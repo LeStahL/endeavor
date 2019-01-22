@@ -554,7 +554,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
                     raymarch(scene, x, ro, d, dir, s, 300, 1.e-4, hit);
                     if(hit)
                     {
-                        calcnormal(scene, n, 2.e-4, x);
+                        vec3 n2;
+                        calcnormal(scene, n2, 2.e-4, x);
 //                         l = -1.*c.yxy+1.5*c.yyx;
                         re = normalize(reflect(-l,n)); 
                         v = normalize(x-ro);
