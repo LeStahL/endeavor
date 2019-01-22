@@ -14,6 +14,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import numpy
+
+# Specification of data:
+# cicle: [x, y, r]
+# circlesegment: [x, y, r, plow, phigh]
+# line: [x1, y1, x2, y2 ]
+
 def glyph(char):
+    pi = numpy.pi;
+    circles = []
+    segments = []
+    lines = []
     if char == 'a':
+        segments = [ [ 0., 0., 1., 13.*pi/8., 11.*pi/8.] ]
+        lines = [ [ -.5, 0., .5, 0. ] ]
+    return [ circles, segments, lines ]
         
