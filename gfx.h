@@ -5,11 +5,15 @@
 # define GFX_H_
 
 const char *gfx_frag =
+ "#version 130\n"
+ "uniform float iNBeats,iScale,iTime;"
+ "uniform vec2 iResolution;"
+ "uniform sampler2D iFont;"
+ "uniform float iFontWidth;"
  "const vec3 c=vec3(1.,0.,-1.);"
  "const float pi=acos(-1.);"
  "float a;\n"
  "#define FSAA 2\n"
- "vec3 col=c.yyy;"
  "float rand(vec2 x)"
  "{"
    "return fract(sin(dot(x-1.,vec2(12.9898,78.233)))*43758.5);"
@@ -143,7 +147,7 @@ const char *gfx_frag =
    "return sdf;"
  "}\n"
  "#define raymarch(scene,xc,ro,d,dir,s,N,eps,flag)flag=false;for(int i=0;i<N;++i){xc=ro+d*dir;s=scene(xc);if(s.x<eps){flag=true;break;}d+=s.x;}\n"
- "#define calcnormal(scene,n,eps,xc){float ss=scene(xc).x;n=normalize(vec3(scene(xc+eps*c.xyy).xc-ss,scene(xc+eps*c.yxy).xc-ss,scene(xc+eps*c.yyx).xc-ss));}\n"
+ "#define calcnormal(scene,n,eps,xc){float ss=scene(xc).x;n=normalize(vec3(scene(xc+eps*c.xyy).x-ss,scene(xc+eps*c.yxy).x-ss,scene(xc+eps*c.yyx).x-ss));}\n"
  "#define camerasetup(camera,ro,r,u,t,uv,dir){camera(ro,r,u,t);t+=uv.x*r+uv.y*u;dir=normalize(t-ro);}\n"
  "#define post(color,uv){col=mix(clamp(col,c.yyy,c.xxx),c.xxx,smoothstep(1.5/iResolution.y,-1.5/iResolution.y,stroke(logo(uv-2.*vec2(-.45*a,.45),.04),.01)));col+=vec3(0.,0.05,0.1)*sin(uv.y*1050.+5.*iTime);}\n"
  "void camera1(out vec3 ro,out vec3 r,out vec3 u,out vec3 t)"
@@ -241,6 +245,7 @@ const char *gfx_frag =
    "vec2 s,uv;"
    "float d=0.;"
    "bool hit;"
+   "vec3 col=c.yyy;"
    "\n#if FSAA!=1\n"
    "for(int i=0;i<FSAA;++i)"
      "for(int j=0;j<FSAA;++j)"
@@ -277,7 +282,7 @@ const char *gfx_frag =
                            "raymarch(inset,x,ro,d,dir,s,20,.0001,hit);"
                            "raymarch(scene,x,ro,d,dir,s,300,.0001,hit);"
                            "if(hit)"
-                             "calcnormal(scene,n,.0002,x),l=-1.*c.yxy+1.5*c.yyx,re=normalize(reflect(-l,n)),v=normalize(x-ro),rev=abs(dot(re,v)),ln=abs(dot(l,n)),c1=mix(c1,color(rev,ln,s.y,uv,x),k);"
+                             "calcnormal(scene,n,.0002,x),re=normalize(reflect(-l,n)),v=normalize(x-ro),rev=abs(dot(re,v)),ln=abs(dot(l,n)),c1=mix(c1,color(rev,ln,s.y,uv,x),k);"
                            "else"
                              " c1=mix(c1,background(uv),k);"
                          "}"
@@ -301,6 +306,10 @@ const char *gfx_frag =
    "\n#endif\n"
    "post(col,uv);"
    "fragColor=vec4(col,1.);"
+ "}"
+ "void main()"
+ "{"
+   "mainImage(gl_FragColor,gl_FragCoord.xy);"
  "}";
 
 #endif // GFX_H_

@@ -1,19 +1,28 @@
 /* Endeavor by Team210 - 64k intro by Team210 at Revision 2k19
- * Copyright (C) 2018  Alexander Kraus <nr4@z10.info>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
+* Copyright (C) 2018  Alexander Kraus <nr4@z10.info>
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+#version 130
+
+uniform float iNBeats;
+uniform float iScale;
+uniform float iTime;
+uniform vec2 iResolution;
+uniform sampler2D iFont;
+uniform float iFontWidth;
 
 // Global constants
 const vec3 c = vec3(1.,0.,-1.);
@@ -22,7 +31,7 @@ float a; // Aspect ratio
 #define FSAA 2 // Antialiasing
 
 // Global variables
-vec3 col = c.yyy;
+// vec3 col = c.yyy;
 
 // Hash function
 float rand(vec2 x)
@@ -182,20 +191,20 @@ float stroke(float d, float w)
 vec2 ind;
 float hexagon( vec2 p ) 
 {
-	vec2 q = vec2( p.x*1.2, p.y + p.x*0.6 );
-	
-	vec2 pi = floor(q);
-	vec2 pf = fract(q);
+    vec2 q = vec2( p.x*1.2, p.y + p.x*0.6 );
+    
+    vec2 pi = floor(q);
+    vec2 pf = fract(q);
 
-	float v = mod(pi.x + pi.y, 3.);
+    float v = mod(pi.x + pi.y, 3.);
 
-	float ca = step(1.,v);
-	float cb = step(2.,v);
-	vec2  ma = step(pf.xy,pf.yx);
-	
+    float ca = step(1.,v);
+    float cb = step(2.,v);
+    vec2  ma = step(pf.xy,pf.yx);
+    
     ind = pi + ca - cb*ma;
     
-	return dot( ma, 1.0-pf.yx + ca*(pf.x+pf.y-1.0) + cb*(pf.yx-2.0*pf.xy) );
+    return dot( ma, 1.0-pf.yx + ca*(pf.x+pf.y-1.0) + cb*(pf.yx-2.0*pf.xy) );
 }
 
 // compute distance to regular polygon
@@ -215,7 +224,7 @@ float zextrude(float z, float d2d, float h)
 
 float box( vec3 x, vec3 b )
 {
-  	return length(max(abs(x) - b,0.));
+    return length(max(abs(x) - b,0.));
 }
 
 vec2 inset(vec3 x)
@@ -283,8 +292,8 @@ vec2 scene(vec3 x)
 //eps:	 exit criterion
 //flag:  name of the flag to set if raymarching succeeded
 #define raymarch(scene, xc, ro, d, dir, s, N, eps, flag) \
-	flag = false;\
-	for(int i=0; i<N; ++i)\
+    flag = false;\
+    for(int i=0; i<N; ++i)\
     {\
         xc = ro + d*dir;\
         s = scene(xc);\
@@ -302,11 +311,11 @@ vec2 scene(vec3 x)
 //eps:	 precision of the computation
 //xc:	 location of normal evaluation
 #define calcnormal(scene, n, eps, xc) \
-	{\
+    {\
         float ss = scene(xc).x;\
-        n = normalize(vec3(scene(xc+eps*c.xyy).xc-ss,\
-                           scene(xc+eps*c.yxy).xc-ss,\
-                           scene(xc+eps*c.yyx).xc-ss));\
+        n = normalize(vec3(scene(xc+eps*c.xyy).x-ss,\
+                        scene(xc+eps*c.yxy).x-ss,\
+                        scene(xc+eps*c.yyx).x-ss));\
     }
 
 //camera setup
@@ -318,7 +327,7 @@ vec2 scene(vec3 x)
 //uv:	  fragment coordinate
 //dir:	  name of the dir variable
 #define camerasetup(camera, ro, r, u, t, uv, dir) \
-	{\
+    {\
         camera(ro, r, u, t);\
         t += uv.x*r+uv.y*u;\
         dir = normalize(t-ro);\
@@ -328,11 +337,11 @@ vec2 scene(vec3 x)
 //col: output color
 //uv:  fragment coordinate
 #define post(color, uv) \
-	{\
-    	col = mix(clamp(col,c.yyy,c.xxx), c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, stroke(logo(uv-2.*vec2(-.45*a,.45),.04),.01)));\
-    	col += vec3(0., 0.05, 0.1)*sin(uv.y*1050.+ 5.*iTime);\
-	}
-	
+    {\
+        col = mix(clamp(col,c.yyy,c.xxx), c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, stroke(logo(uv-2.*vec2(-.45*a,.45),.04),.01)));\
+        col += vec3(0., 0.05, 0.1)*sin(uv.y*1050.+ 5.*iTime);\
+    }
+    
 //camera for scene 1
 void camera1(out vec3 ro, out vec3 r, out vec3 u, out vec3 t)
 {
@@ -344,7 +353,7 @@ void camera1(out vec3 ro, out vec3 r, out vec3 u, out vec3 t)
 
 vec3 stdcolor(vec2 x)
 {
-	return 0.5 + 0.5*cos(iTime+x.xyx+vec3(0,2,4));
+    return 0.5 + 0.5*cos(iTime+x.xyx+vec3(0,2,4));
 }
 
 float star(vec2 x, float r0)
@@ -385,7 +394,7 @@ vec3 background(vec2 x)
 vec3 background2(vec2 uv)
 {
     // hexagonal grid
-	float d = stroke(-hexagon(18.*uv), .1);
+    float d = stroke(-hexagon(18.*uv), .1);
     
     // compute hexagon indices in cartesian coordinates
     vec2 cind = ind/18.;
@@ -473,20 +482,19 @@ vec3 color(float rev, float ln, float mat, vec2 uv, vec3 x)
         col = mix(col, mix(col, vec3(1.,0.27,0.),m), smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
         return col;
     }
-	return .1*c.xyy + .3*c.xyy * abs(ln) + .8*c.xxy * abs(pow(rev,8.));
+    return .1*c.xyy + .3*c.xyy * abs(ln) + .8*c.xxy * abs(pow(rev,8.));
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     a = iResolution.x/iResolution.y;
-    //vec2 uv = fragCoord/iResolution.yy-.5*vec2(a,1.);
-    
-	// Raymarching variables
     vec3 ro, r, u, t, x, dir;
     vec2 s, uv;
     
     float d = 0.;
     bool hit;
+    
+    vec3 col = c.yyy;
     
     // Antialiasing
 #if FSAA!=1
@@ -508,7 +516,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         vec3 c1 = c.yyy;
     
         camerasetup(camera1, ro, r, u, t, uv, dir);
-	    raymarch(inset, x, ro, d, dir, s, 40, 1.e-4, hit);
+        raymarch(inset, x, ro, d, dir, s, 40, 1.e-4, hit);
         raymarch(scene, x, ro, d, dir, s, 300, 1.e-4, hit);
         
         if(hit)
@@ -524,17 +532,17 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
             c1 = color(rev, ln, s.y, uv, x);
 
-            // Soft shadows
-            /*
-            vec3 ddir = normalize(x-l), xx;
-            vec2 ss;
-            float dd;
-            raymarch(sscene, xx, l, dd, ddir, ss, 450, 1.e-4, hit);
-            if(dd<1.e-4)
-                col = mix(col, c.yyy, .5);
-            */
-
-            // Reflections
+//             // Soft shadows
+//             /*
+//             vec3 ddir = normalize(x-l), xx;
+//             vec2 ss;
+//             float dd;
+//             raymarch(sscene, xx, l, dd, ddir, ss, 450, 1.e-4, hit);
+//             if(dd<1.e-4)
+//                 col = mix(col, c.yyy, .5);
+//             */
+// 
+//             // Reflections
             if(s.y == 1.)
             {
                 for(float k = .7; k >= .7; k -= .1)
@@ -547,7 +555,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
                     if(hit)
                     {
                         calcnormal(scene, n, 2.e-4, x);
-                        l = -1.*c.yxy+1.5*c.yyx;
+//                         l = -1.*c.yxy+1.5*c.yyx;
                         re = normalize(reflect(-l,n)); 
                         v = normalize(x-ro);
                         rev = abs(dot(re,v));
@@ -560,13 +568,13 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
             }
         }
         else c1 = background(uv);
-        
+
         // lens flare
         for(float i=0.; i<8.; i+=1.)
         {
             vec2 dx = .15*vec2(-1.+2.*rand(c.xx+i), -1.+2.*rand(c.xx+i+1.));
             vec3 cx = c.xxx-.2*vec3(rand(c.xx+i+2.), rand(c.xx+i+3.), rand(c.xx+i+4.));
-        	float sx = .05+.05*rand(c.xx+i+5.);
+            float sx = .05+.05*rand(c.xx+i+5.);
             float da = dpoly_min(uv-.15*c.yx+dx, 6., sx);
             c1 = mix(c1, mix(c1,cx, .5), smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, da));
         }
@@ -581,7 +589,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         
 #if FSAA!=1
     }
-    col/=float(FSAA*FSAA);
+    col /= float(FSAA*FSAA);
 #else
 #endif
     
@@ -592,3 +600,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     fragColor = vec4(col, 1.);    
 }
 
+void main()
+{
+    mainImage(gl_FragColor, gl_FragCoord.xy);
+}

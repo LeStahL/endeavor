@@ -530,9 +530,9 @@ int main(int argc, char **args)
 //         buf[j] /= (1<<15);
     }
     
-    FILE *f = fopen("SOUND", "wb");
-    fwrite(smusic1, 1, 4*nblocks1*block_size, f);
-    fclose(f);
+//     FILE *f = fopen("SOUND", "wb");
+//     fwrite(smusic1, 1, 4*nblocks1*block_size, f);
+//     fclose(f);
     
     // Reset everything for rendering gfx again
     glViewport(0, 0, w, h);
