@@ -1,4 +1,9 @@
-# Prerequisites
+build
+*.kdev4
+*.kate-swp
+*.kate_swp
+
+# Prerequisites
 *.d
 
 # Object files
