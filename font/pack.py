@@ -15,4 +15,52 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import struct
+import font
+
+# Pack everything as float. If executable size is a problem, this can be optimized slightly.
+# Pack alignment:
+# nglyphs
+# for glyph in glyphs
+#     ordinal
+#     offset
+# for glyph in glyphs
+#     nlines
+#     for line in lines
+#         x1 y1 x2 y2
+#     ncircles
+#     for circle in circles
+#         xc yc r
+#     ncirclesegments
+#     for segment in circlesegments
+#         xc yc r phi0 phi1
+# nstrings
+# for string in nstrings
+#     offset
+# for string in nstrings
+#     for char in string
+#         char
+
+# Read string database
+strings = None
+with open('strings.txt', 'rt') as f:
+    strings = f.readlines()
+    f.close()
+
+# Font has only lowercase letters
+for i in range(len(strings)):
+    strings[i] = strings[i].lower()
+    
+# Get the list of unique contained ordinals
+ordinals = list(set(''.join(strings)))
+
+# Pack number of glyphs
+texture = struct.pack('@e', len(ordinals));
+
+# Pack the according glyph table
+table = ""
+
+# Pack the glyph data
+data = ""
+
+
 
