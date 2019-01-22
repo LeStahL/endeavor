@@ -1,5 +1,5 @@
-/* Star Wave Rave by Team210 - 64k Demo at Vortex III 2k18
- * Copyright (C) 2018  Alexander Kraus <nr4@z10.info>
+/* Endeavor by Team210 - 64k intro by Team210 at Revision 2k19
+ * Copyright (C) 2018 Alexander Kraus <nr4@z10.info>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -685,6 +685,11 @@ int main(int argc, char **args)
             draw();
             
             glXSwapBuffers(display, win);
+        }
+    }
+    return 0;
+#endif
+}
         }
     }
     return 0;

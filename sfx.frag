@@ -1,6 +1,4 @@
-/* 
- *  Puffin Cure by Team210 - 64k Demo at Under Construction 2k18
- * 
+/*  Endeavor by Team210 - 64k intro by Team210 at Revision 2k19
  *  Copyright (C) 2017  QM <TODO>
  *
  *  This program is free software; you can redistribute it and/or
