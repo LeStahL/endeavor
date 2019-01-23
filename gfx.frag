@@ -68,14 +68,16 @@ float rfloat(float off)
     float d = rshort(off);
     
     // Convert bytes to IEEE 754 float16. That is
-    // 1 sign bit, 5 bit exponent, 11 bit mantissa
-    float sign = mod(d, 2.),
-        exponent = mod(floor(d/2.), 32.),
-        x = floor(d/64.);
+    // 1 sign bit, 5 bit exponent, 11 bit mantissa.
+    // Also it has a weird conversion rule that is not evident at all.
+    float sign = floor(d/32768.),
+        exponent = floor(d/1024.-sign*32.),
+        significand = d-sign*32768.-exponent*1024.;
 
-    // Return full float16 number
-    //return mix(1.,-1., sign) * pow(10., exponent-15.) * mix(x,1.+x, clamp(exponent, 0., 1.));
-    return exponent;
+    // Return full float16
+    if(exponent == 0.)
+         return mix(1., -1., sign) * 5.960464477539063e-08 * significand;
+    return mix(1., -1., sign) * (1. + significand * 9.765625e-4) * pow(2.,exponent-15.);
 }
 
 // Hash function
@@ -552,19 +554,19 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     uv = (-iResolution.xy + 2.*fragCoord)/iResolution.y;
     
 #endif
-//     if(iTime < 20000.)
-//     {
-//         // test code for texture
-// //         float res[5] = float[5](119.0, 49.0, 39.0, 52.0, 51.0);
-// //         float res[5] = float[5](19648,22160,20704,22096,21248);
+    if(iTime < 20000.)
+    {
+        // test code for texture
+        float res[5] = float[5](19.0, 105.0, 39.0, 101.0, 56.0);
+//         float res[5] = float[5](19648,22160,20704,22096,21248);
 //         float res[5] = float[5](1.,2.,1.,2.,1.);
-//         float index = floor(5.*(uv.x/a+1.)/2.);
-// //         mod((uv.x+1.)/2., 1./5.)/(1./5.);
-//         col += mix(c.xyy, c.yyy, step((rfloat(index))/32., (uv.y+1.)/2.));
-// //         col += mix(c.xyy, c.yyy, step(index / 5., uv.y));
-//     }
+        float index = floor(5.*(uv.x/a+1.)/2.);
+//         mod((uv.x+1.)/2., 1./5.)/(1./5.);
+        col += mix(c.xyy, c.yyy, step((rfloat(index))/res[int(index)], (uv.y+1.)));
+//         col += mix(c.xyy, c.yyy, step(index / 5., uv.y));
+    }
 
-//     else
+    else
     if(iTime < 28.) // "Enter the Logic Farm" logo/title, t < 31.
     {
         col += background2(uv);
