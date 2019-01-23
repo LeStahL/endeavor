@@ -21,6 +21,7 @@ import numpy
 # circlesegment: [x, y, r, plow, phigh]
 # line: [x1, y1, x2, y2 ]
 
+# Glyph data
 def glyph(char):
     pi = numpy.pi;
     circles = []
@@ -31,3 +32,11 @@ def glyph(char):
         lines = [ [ -.5, 0., .5, 0. ] ]
     return [ circles, segments, lines ]
         
+# Length of glyph data in texture (for building index with offsets)
+def pack_length(char):
+    gly = glyph(char)
+    circles = gly[0]
+    segments = gly[1]
+    lines = gly[2]
+    
+    return 3 + len(circles)*3 + len(segments)*5 + len(lines)*4

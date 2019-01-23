@@ -52,15 +52,66 @@ for i in range(len(strings)):
     
 # Get the list of unique contained ordinals
 ordinals = list(set(''.join(strings)))
+nglyphs = len(ordinals)
+print("Packing glyph data of: ", ordinals)
 
 # Pack number of glyphs
-texture = struct.pack('@e', len(ordinals));
+fmt = '@e'
+texture = struct.pack(fmt, float(len(ordinals)));
 
 # Pack the according glyph table
+pack_len = 1 + nglyphs
 table = ""
+for char in ordinals:
+    # Pack ordinal
+    texture += struct.pack(fmt, float(ord(char)))
+    
+    # Pack offset
+    texture += struct.pack(fmt, float(pack_len))
+    
+    # Update offset
+    pack_len += font.pack_length(char)
 
 # Pack the glyph data
-data = ""
-
+for char in ordinals:
+    # Get glyph inlines
+    glyph = font.glyph(char)
+    
+    # Pack number of lines
+    lines = glyph[2]
+    texture += struct.pack(fmt, float(len(lines)))
+    
+    # Pack lines
+    for line in lines:
+        for i in range(4):
+            texture += struct.pack(fmt, float(line[i]))
+            
+    # Pack number of circles
+    circles = glyph[0]
+    texture += struct.pack(fmt, float(len(circles)))
+    
+    # Pack circles
+    for circle in circles:
+        for i in range(3):
+            texture += struct.pack(fmt, float(circle[i]))
+            
+    # Pack number of circle segments
+    segments = glyph[1]
+    texture += struct.pack(fmt, float(len(segments)))
+    
+    # Pack segments
+    for segment in segments:
+        for i in range(5):
+            texture += struct.pack(fmt, float(segment[i]))
+print("Finished packing texture.")
+    
+#Generate C header text with texture data
+# Write output to c header file or stdout
+# Fill last 4-byte-block with zero
+length = int(len(texture)) # in bytes
+while ((length % 4) != 0):
+    texture += bytes(10)
+    length += 1
+print("Packed font is "+str(length)+" bytes.")
 
 

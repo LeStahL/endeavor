@@ -2,8 +2,10 @@ build
 *.kdev4
 *.kate-swp
 *.kate_swp
-
-# Prerequisites
+*__pycache__
+
+
+# Prerequisites
 *.d
 
 # Object files
