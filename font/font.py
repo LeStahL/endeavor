@@ -18,7 +18,7 @@ import numpy
 
 # Specification of data:
 # cicle: [x, y, r]
-# circlesegment: [x, y, r, plow, phigh]
+# circlesegment: [x, y, r, plow, phigh], plow/phigh counter-clockwise
 # line: [x1, y1, x2, y2 ]
 
 # Glyph data
@@ -30,6 +30,122 @@ def glyph(char):
     if char == 'a':
         segments = [ [ 0., 0., 1., 13.*pi/8., 11.*pi/8.] ]
         lines = [ [ -.5, 0., .5, 0. ] ]
+    elif char == 'b':
+        segments = [ [ 0., 0., 1., 9.*pi/8., 7.*pi/8.] ]
+        lines =  [ [ -1./3., -1./3., -1./3., 1./3. ], [ -1./3., 0., .5, 0. ] ]
+    elif char == 'c':
+        segments = [ [ 0., 0., 1., pi/8., 15.*pi/8. ] ]
+    elif char == 'd':
+        segments = [ [ 0., 0., 1., 9.*pi/8., 7.*pi/8.] ]
+        lines = [ [ 0., 0., 1., 9.*pi/8., 7.*pi/8.] ]
+    elif char == 'e':
+        segments = [ [ 0., 0., 1., pi/8., 15.*pi/8. ] ]
+        lines = [ [ -.5, 0., 0., 0. ] ]
+    elif char == 'f':
+        segments = [ [ 0., 0., 1., pi/8., pi ] ]
+        lines = [ [ -.5, 0., 0., 0. ], [ -1., 0., -1., -1. ] ]
+    elif char == 'g':
+        segments = [ [ 0., 0., 1., pi/4., 0. ] ]
+        lines = [ [ 0., 0., 1., 0. ] ]
+    elif char == 'h':
+        segments = [ [ 0., 0., 1., 13.*pi/8., 3.*pi/8. ], [ 0., 0., 1., 5.*pi/8., 11.*pi/8. ] ]
+        lines = [ [ -1./3., 0., 1./3., 0. ] ]
+    elif char == 'i':
+        segments = [ [ 0., 0., 1., pi/8., 7.*pi/8. ], [ 0., 0., 1., 9.*pi/8., 15.*pi/8. ] ]
+        lines = [ [ 0., -1./3., 0., 1./3. ] ]
+    elif char == 'j':
+        segments = [ [ 0., 0., 1., pi/8., 7.*pi/8. ], [ 0., 0., 1., 9.*pi/8., 3.*pi/2. ] ]
+        lines = [ [ 0., -1., 0., 1./3. ] ]
+    elif char == 'k':
+        segments = [ [ 0., 0., 1., pi/8., 15.*pi/8. ] ]
+        lines = [ [ -1., -1., -1., 1. ] ]
+    elif char == 'l':
+        segments = [ [ 0., 0., 1., pi, 15.*pi/8. ] ]
+        lines = [ [ -1., 0., -1., 1. ] ]
+    elif char == 'm':
+        segments = [ [ 0., 0., 1., 13.*pi/8., 11.*pi/8. ] ]
+        lines = [ [ 0., 0., 0., 1./3. ] ]
+    elif char == 'n':
+        segments = [ [ 0., 0., 1., 13.*pi/8., 11.*pi/8. ] ]
+    elif char == 'o':
+        circles = [ [ 0., 0., 1. ] ]
+    elif char == 'p':
+        segments = [ [ 0., 0., 1., 15.*pi/8., 7.*pi/8. ] ]
+        lines = [ [ -1./3., -1., -1./3., 1./3. ],  [ -1./3., 0., 1./3., 0. ] ]
+    elif char == 'q':
+        circles = [ [ 0., 0., 1. ] ]
+        lines = [ [1./3., -1./3., 2./3., -2./3.] ]
+    elif char == 'r':
+        segments = [ [ 0., 0., 1., pi/8., pi ] ]
+        lines = [ [ -1., 0., -1., -1. ] ]
+    elif char == 's':
+        segments = [ [ 0., 0., 1., pi/8., 7.*pi/8. ], [ 0., 0., 1., 9.*pi/8., 15.*pi/8. ] ]
+        lines = [ [ -0.9238795325112868, 0.3826834323650899, 0.9238795325112868, -0.3826834323650899 ] ]
+    elif char == 't':
+        segments = [ [ 0., 0., 1., pi, 15.*pi/8. ] ]
+        lines = [ [ -1., 0., -1., 1. ], [ -1./3., 0., 0., 0. ] ]
+    elif char == 'u':
+        segments = [ [ 0., 0., 1., pi, 0. ] ]
+        lines = [ [ -1., 0., -1., 1. ], [ 1., 0., 1., 1. ] ]
+    elif char == 'v':
+        segments = [ [ 0., 0., 1., 5.*pi/8., 3.*pi/8. ] ]
+    elif char == 'w':
+        segments = [ [ 0., 0., 1., 5.*pi/8., 3.*pi/8. ] ]
+        lines = [ [ 0., -1./3., 0., 0. ] ]
+    elif char == 'x':
+        segments = [ [ -1., 0., 1., 3.*pi/2., pi/2. ], [ 1., 0., 1., pi/2., 3.*pi/2. ] ]
+    elif char == 'y':
+        segments = [ [ -1., 0., 1., 0., pi/2. ], [ 1., 0., 1., pi/2., pi ] ]
+        lines = [ [ 0., 0., 0., -1. ] ]
+    elif char == 'z':
+        segments = [ [ 0., 0., 1., pi/8., 7.*pi/8. ], [ 0., 0., 1., 9.*pi/8., 15.*pi/8. ] ]
+        lines = [ [ -0.9238795325112868, -0.3826834323650899, 0.9238795325112868, 0.3826834323650899 ] ]
+    elif char == '0':
+        circles = [ [ 0., 0., 1. ] ]
+        lines = [ [ -1./3, -1./3., 1./3., 1./3. ] ]
+    elif char == '1':
+        segments = [ [ 0., 0., 1., 0., 7.*pi/8. ] ]
+        lines = [ [ 1., 0., 1., -1. ] ]
+    elif char == '2':
+        segments = [ [ 0., 0., 1., 3.*pi/2., 1.*pi/8. ] ]
+        lines = [ [ 0., -1., 1., -1. ] ]
+    elif char == '3':
+        segments = [ [ 0., 0., 1., 9.*pi/8., 7.*pi/8. ] ]
+        lines = [ [ 0., 0., 1./3., 0. ] ]
+    elif char == '4':
+        segments = [ [ 0., 0., 1., 5.*pi/8., 0. ] ]
+        lines = [ [ 1., 0., 1., -1. ] ]
+    elif char == '5':
+        segments = [ [ 0., 0., 1., 9.*pi/8., 7.*pi/8. ] ]
+        lines += [ [ -0.9238795325112868, 0.3826834323650899, -0.9238795325112868, 1. ] ]
+    elif char == '6':
+        circles = [ [ 0., 0., 1. ] ]
+        lines = [ [ 0., 1., 1., 1. ] ]
+    elif char == '6':
+        segments = [ [ 0., 0., 1., 0., 7.*pi/8. ] ]
+        lines = [ [ 1., 0., 1., -1. ], [ 0., 0., 1./3., 0. ] ]
+    elif char == '8':
+        circles = [ [ 0., 0., 1. ] ]
+        lines = [ [ -1./3., 0., 1./3., 0. ] ]
+    elif char == '9.':
+        circles = [ [ 0., 0., 1. ] ]
+        lines = [ [ 1., 0., 1., -1. ] ]
+    elif char == '.':
+        circles = [ [ -1., -1., 0. ] ]
+    elif char == ',':
+        lines = [ [ -1., -1., -2./3., -2./3. ] ]
+    elif char == '-':
+        lines = [ [ -1./3., 0., 1./3., 0. ] ]
+    elif char == '?':
+        segments = [ [ 0., 0., 1., 0., 7.*pi/8. ] ]
+        lines = [ [ 1., 0., 1., -1./3. ] ]
+        circles = [ [ 1., 1., 0. ] ]
+    elif char == '!':
+        lines = [ [ 0., 1., 0., -1./3. ] ]
+        circles = [ [ -1., -1., 0. ] ]
+    elif char == '/':
+        lines = [ [ -1., -1., 1., 1. ] ]
+        
     return [ circles, segments, lines ]
         
 # Length of glyph data in texture (for building index with offsets)
@@ -37,6 +153,5 @@ def pack_length(char):
     gly = glyph(char)
     circles = gly[0]
     segments = gly[1]
-    lines = gly[2]
-    
+    lines = gly[2]    
     return 3 + len(circles)*3 + len(segments)*5 + len(lines)*4
