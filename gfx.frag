@@ -15,7 +15,7 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#version 130
+#version 400
 
 uniform float iNBeats;
 uniform float iScale;
@@ -33,15 +33,13 @@ float a; // Aspect ratio
 // Global variables
 // vec3 col = c.yyy;
 
-// Read float value from texture at index off
-float rfloat(float off)
+// Read short value from texture at index off
+float rshort(float off)
 {
     // Parity of offset determines which byte is required.
-    float hilo = round(mod(off, 2.));
-    
+    float hilo = mod(off, 2.);
     // Find the pixel offset your data is in (2 unsigned shorts per pixel).
     off *= .5;
-    
     // - Determine texture coordinates.
     //     offset = i*iFontWidth+j for (i,j) in [0,iFontWidth]^2
     //     floor(offset/iFontWidth) = floor((i*iFontwidth+j)/iFontwidth)
@@ -57,15 +55,27 @@ float rfloat(float off)
     vec4 block = texture(iFont, ind);
     // Select the appropriate word
     vec2 data = mix(block.rg, block.ba, hilo);
-    
+    // Convert bytes to unsigned short. The lower bytes operate on 255,
+    // the higher bytes operate on 65280, which is the maximum range 
+    // of 65535 minus the lower 255.
+    return round(dot(vec2(255., 65280.), data));
+}
+
+// Read float value from texture at index off
+float rfloat(float off)
+{
     // Convert the bytes to unsigned short as first step.
-    data = round(dot(vec2(255., 65280.), data));
+    float d = rshort(off);
     
     // Convert bytes to IEEE 754 float16. That is
     // 1 sign bit, 5 bit exponent, 11 bit mantissa
-    float sign = mod(data.x, 2.),
-        exponent = 
-    
+    float sign = mod(d, 2.),
+        exponent = mod(floor(d/2.), 32.),
+        x = floor(d/64.);
+
+    // Return full float16 number
+    //return mix(1.,-1., sign) * pow(10., exponent-15.) * mix(x,1.+x, clamp(exponent, 0., 1.));
+    return exponent;
 }
 
 // Hash function
@@ -542,6 +552,19 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     uv = (-iResolution.xy + 2.*fragCoord)/iResolution.y;
     
 #endif
+//     if(iTime < 20000.)
+//     {
+//         // test code for texture
+// //         float res[5] = float[5](119.0, 49.0, 39.0, 52.0, 51.0);
+// //         float res[5] = float[5](19648,22160,20704,22096,21248);
+//         float res[5] = float[5](1.,2.,1.,2.,1.);
+//         float index = floor(5.*(uv.x/a+1.)/2.);
+// //         mod((uv.x+1.)/2., 1./5.)/(1./5.);
+//         col += mix(c.xyy, c.yyy, step((rfloat(index))/32., (uv.y+1.)/2.));
+// //         col += mix(c.xyy, c.yyy, step(index / 5., uv.y));
+//     }
+
+//     else
     if(iTime < 28.) // "Enter the Logic Farm" logo/title, t < 31.
     {
         col += background2(uv);
