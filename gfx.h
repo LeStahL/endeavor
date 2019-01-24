@@ -173,7 +173,7 @@ const char *gfx_frag =
    "float stroff=floor(rfloat(stroff0+1.+2.*ordinal)),len=floor(rfloat(stroff0+2.+2.*ordinal));"
    "vec2 dx=mod(x-size,2.*size)-size,ind=ceil((x-dx+size)/2./size);"
    "if(ind.x<len&&ind.x>=0.&&abs(x.y)<size)"
-     "return dglyph(dx,floor(rfloat(stroff+ind.x)),.9*size);"
+     "return dglyph(dx,floor(rfloat(stroff+ind.x)),.7*size);"
    "return dpoly_min(x/vec2(len*size,1.),4.,1.);"
  "}"
  "float logo(vec2 x,float r)"
