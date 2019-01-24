@@ -211,7 +211,7 @@ float circlesegment(vec2 x, float r, float p0, float p1)
     float p = atan(x.y, x.x);
     vec2 philo = vec2(max(p0, p1), min(p0, p1));
     if((p < philo.x && p > philo.y) || (p+2.*pi < philo.x && p+2.*pi > philo.y) || (p-2.*pi < philo.x && p-2.*pi > philo.y))
-    	return length(x)-r;
+    	return abs(length(x)-r);
     return min(
         length(x-r*vec2(cos(p0), sin(p0))),
         length(x-r*vec2(cos(p1), sin(p1)))
@@ -306,23 +306,30 @@ float dglyph(vec2 x, float ordinal, float size)
 float dstring(vec2 x, float ordinal, float size)
 {
     // Get string database offset
-    float stroff = floor(rfloat(0.));
+    float stroff0 = floor(rfloat(0.));
     
     // Return 1 if wrong ordinal is supplied
-    float nstrings = floor(rfloat(stroff));
+    float nstrings = floor(rfloat(stroff0));
     if(ordinal >= nstrings)
         return 1.;
         
     // Get offset and length of string from string database index
-    stroff = floor(rfloat(stroff+1.+2.*ordinal));
-    float len = floor(rfloat(stroff+2.+2.*ordinal));
+    float stroff = floor(rfloat(stroff0+1.+2.*ordinal));
+    float len = floor(rfloat(stroff0+2.+2.*ordinal));
+    
+    float d = 1.;
+    for(float i=0.; i<len; i+=1.)
+        d = min(d, dglyph(x-2.1*i*size*c.xy,floor(rfloat(0.+stroff+i)), .8*size));
+    return d;
     
     // Draw glyphs
+    /*
     vec2 dx = mod(x, 2.*size)-size, 
-        ind = floor(x/(2.*size))-1.;
+        ind = floor((x-dx)/2./size);
     if(ind.x < len && ind.x >= 0. && abs(x.y) < size)
         return dglyph(dx, floor(rfloat(stroff+ind.x)), .8*size);
     return dpoly_min(x/vec2(len*size,1.), 4., 1.);
+    */
 }
 
 // Distance to 210 logo
@@ -655,7 +662,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     if(iTime < 1000.)
     {
         //float d = dglyph(uv, 110., .1);
-        float d = dstring(uv, 0., .1);
+        float d = dstring(uv-.1, 0., .05);
         if(d == 1.)col += c.yxy;
         else
         {
@@ -762,4 +769,3 @@ void main()
 {
     mainImage(gl_FragColor, gl_FragCoord.xy);
 }
-

@@ -28,7 +28,7 @@ def glyph(char):
     segments = []
     lines = []
     if char == 'a':
-        segments = [ [ 0., 0., 1., 13.*pi/8., 11.*pi/8.] ]
+        segments = [ [ 0., 0., 1., -3.*pi/8., 11.*pi/8.] ]
         lines = [ [ -.5, 0., .5, 0. ] ]
     elif char == 'b':
         segments = [ [ 0., 0., 1., 9.*pi/8., 7.*pi/8.] ]
@@ -45,14 +45,14 @@ def glyph(char):
         segments = [ [ 0., 0., 1., pi/8., pi ] ]
         lines = [ [ -.5, 0., 0., 0. ], [ -1., 0., -1., -1. ] ]
     elif char == 'g':
-        segments = [ [ 0., 0., 1., pi/4., 0. ] ]
+        segments = [ [ 0., 0., 1., pi/4., 2.*pi ] ]
         lines = [ [ 0., 0., 1., 0. ] ]
     elif char == 'h':
         segments = [ [ 0., 0., 1., 13.*pi/8., 3.*pi/8. ], [ 0., 0., 1., 5.*pi/8., 11.*pi/8. ] ]
         lines = [ [ -1./3., 0., 1./3., 0. ] ]
     elif char == 'i':
         segments = [ [ 0., 0., 1., pi/8., 7.*pi/8. ], [ 0., 0., 1., 9.*pi/8., 15.*pi/8. ] ]
-        lines = [ [ 0., -1./3., 0., 1./3. ] ]
+        lines = [ [ 0., 1./3., 0., -1./3. ] ]
     elif char == 'j':
         segments = [ [ 0., 0., 1., pi/8., 7.*pi/8. ], [ 0., 0., 1., 9.*pi/8., 3.*pi/2. ] ]
         lines = [ [ 0., -1., 0., 1./3. ] ]
@@ -113,7 +113,7 @@ def glyph(char):
         segments = [ [ 0., 0., 1., 9.*pi/8., 7.*pi/8. ] ]
         lines = [ [ 0., 0., 1./3., 0. ] ]
     elif char == '4':
-        segments = [ [ 0., 0., 1., 5.*pi/8., 0. ] ]
+        segments = [ [ 0., 0., 1., -11.*pi/8., 0. ] ]
         lines = [ [ 1., 0., 1., -1. ] ]
     elif char == '5':
         segments = [ [ 0., 0., 1., 9.*pi/8., 7.*pi/8. ] ]
@@ -121,7 +121,7 @@ def glyph(char):
     elif char == '6':
         circles = [ [ 0., 0., 1. ] ]
         lines = [ [ 0., 1., 1., 1. ] ]
-    elif char == '6':
+    elif char == '7':
         segments = [ [ 0., 0., 1., 0., 7.*pi/8. ] ]
         lines = [ [ 1., 0., 1., -1. ], [ 0., 0., 1./3., 0. ] ]
     elif char == '8':
