@@ -206,13 +206,23 @@ float circle(vec2 x, float r)
 }
 
 // Distance to circle segment
+// Distance to circle segment
 float circlesegment(vec2 x, float r, float p0, float p1)
 {
-    p0 = mod(p0, 2.*pi);
-    p1 = mod(p1, 2.*pi);
     float p = atan(x.y, x.x);
-    p = clamp(p, p0, p1);
-    return length(x-r*vec2(cos(p), sin(p)));
+    float pa = clamp(p, min(p0,p1), max(p0,p1));
+    float d;
+    if(pa != p)
+    {
+        d = min(
+            length(x-r*vec2(cos(p0), sin(p0))),
+            length(x-r*vec2(cos(p1), sin(p1)))
+            );
+    }
+    else
+	    d = length(x-r*vec2(cos(p), sin(p)));
+       
+    return d;
 }
 
 // Get glyph data from texture
