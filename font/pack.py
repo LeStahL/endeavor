@@ -38,6 +38,7 @@ import font
 # nstrings
 # for string in nstrings
 #     offset
+#     length
 # for string in nstrings
 #     for char in string
 #         char
@@ -111,7 +112,7 @@ for char in ordinals:
 
 print("Packing string database.")
 # Pack the string database index
-offset = pack_len + 1 + len(strings)
+offset = pack_len + 1 + 2*len(strings)
 
 # Pack the database length
 texture += struct.pack(fmt, float(len(strings)))
@@ -120,6 +121,9 @@ texture += struct.pack(fmt, float(len(strings)))
 for string in strings:
     # Pack offset
     texture += struct.pack(fmt, float(offset))
+    
+    # Pack size
+    texture += struct.pack(fmt, float(len(string)));
     
     # Update offset. We waste loads of space here by packing floats instead of chars! but I do not want to distinguish between two data types.
     offset += len(string)

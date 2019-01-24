@@ -28,6 +28,11 @@ if(WIN32)
         COMMAND ${SHADER_MINIFIER}  -o "${PROJECT_SOURCE_DIR}/sfx.h" "${PROJECT_SOURCE_DIR}/sfx.frag" --preserve-externals
     )
     
+    add_custom_target(texture_packing
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/font/
+        COMMAND python pack.py
+    )
+    
     add_definitions(/Gy /O1 /fp:fast /GR- /GS- /MT)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:demo /SUBSYSTEM:Windows  /OPT:REF  /OPT:ICF=10 /VERBOSE /NODEFAULTLIB") 
     add_executable(endeavor e.c)
@@ -36,6 +41,7 @@ if(WIN32)
     target_link_libraries(endeavor opengl32.lib Winmm.lib User32.lib ucrt.lib msvcrt.lib)
     
     add_dependencies(endeavor minification)
+    add_dependencies(endeavor texture_packing)
     add_custom_command(TARGET endeavor COMMAND ${KKRUNCHY_K7} --best ${CMAKE_CURRENT_BINARY_DIR}/Release/endeavor.exe --out ${CMAKE_CURRENT_BINARY_DIR}/Release/endeavorc.exe POST_BUILD)
 endif()
 

@@ -218,9 +218,20 @@ float circlesegment(vec2 x, float r, float p0, float p1)
         );
 }
 
+// compute distance to regular polygon
+float dpoly_min(vec2 x, float N, float R)
+{
+    float d = 2.*pi/N,
+        t = mod(acos(x.x/length(x)), d)-.5*d;
+    return R-length(x)*cos(t)/cos(.5*d);
+}
+
 // Get glyph data from texture
 float dglyph(vec2 x, float ordinal, float size)
 {
+    // TODO: add bounding box here
+    
+    
     // Find glyph offset in glyph index
     float nglyphs = rfloat(1.),
         offset = 0;
@@ -291,6 +302,29 @@ float dglyph(vec2 x, float ordinal, float size)
     return d;
 }
 
+// Get distance to string from databas
+float dstring(vec2 x, float ordinal, float size)
+{
+    // Get string database offset
+    float stroff = floor(rfloat(0.));
+    
+    // Return 1 if wrong ordinal is supplied
+    float nstrings = floor(rfloat(stroff));
+    if(ordinal >= nstrings)
+        return 1.;
+        
+    // Get offset and length of string from string database index
+    stroff = floor(rfloat(stroff+1.+2.*ordinal));
+    float len = floor(rfloat(stroff+2.+2.*ordinal));
+    
+    // Draw glyphs
+    vec2 dx = mod(x, 2.*size)-size, 
+        ind = floor(x/(2.*size))-1.;
+    if(ind.x < len && ind.x >= 0. && abs(x.y) < size)
+        return dglyph(dx, floor(rfloat(stroff+ind.x)), .8*size);
+    return dpoly_min(x/vec2(len*size,1.), 4., 1.);
+}
+
 // Distance to 210 logo
 float logo(vec2 x, float r)
 {
@@ -324,14 +358,6 @@ float hexagon( vec2 p )
     ind = pi + ca - cb*ma;
     
     return dot( ma, 1.0-pf.yx + ca*(pf.x+pf.y-1.0) + cb*(pf.yx-2.0*pf.xy) );
-}
-
-// compute distance to regular polygon
-float dpoly_min(vec2 x, float N, float R)
-{
-    float d = 2.*pi/N,
-        t = mod(acos(x.x/length(x)), d)-.5*d;
-    return R-length(x)*cos(t)/cos(.5*d);
 }
 
 // extrusion
@@ -628,7 +654,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 #endif
     if(iTime < 1000.)
     {
-        float d = dglyph(uv, 99., .5);
+        //float d = dglyph(uv, 110., .1);
+        float d = dstring(uv, 0., .1);
         if(d == 1.)col += c.yxy;
         else
         {
@@ -735,3 +762,4 @@ void main()
 {
     mainImage(gl_FragColor, gl_FragCoord.xy);
 }
+

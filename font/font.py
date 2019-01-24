@@ -63,10 +63,10 @@ def glyph(char):
         segments = [ [ 0., 0., 1., pi, 15.*pi/8. ] ]
         lines = [ [ -1., 0., -1., 1. ] ]
     elif char == 'm':
-        segments = [ [ 0., 0., 1., 13.*pi/8., 11.*pi/8. ] ]
+        segments = [ [ 0., 0., 1., -3.*pi/8., 11.*pi/8. ] ]
         lines = [ [ 0., 0., 0., 1./3. ] ]
     elif char == 'n':
-        segments = [ [ 0., 0., 1., 13.*pi/8., 11.*pi/8. ] ]
+        segments = [ [ 0., 0., 1., -3.*pi/8., 11.*pi/8. ] ]
     elif char == 'o':
         circles = [ [ 0., 0., 1. ] ]
     elif char == 'p':
