@@ -62,7 +62,7 @@ fmt = '@e'
 texture = struct.pack(fmt, float(len(ordinals)));
 
 # Pack the according glyph table
-pack_len = 1 + nglyphs * 2
+pack_len = 2 + nglyphs * 2
 table = ""
 for char in ordinals:
     # Pack ordinal

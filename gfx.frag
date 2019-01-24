@@ -206,7 +206,6 @@ float circle(vec2 x, float r)
 }
 
 // Distance to circle segment
-// Distance to circle segment
 float circlesegment(vec2 x, float r, float p0, float p1)
 {
     float p = atan(x.y, x.x);
@@ -232,12 +231,12 @@ float dglyph(vec2 x, float ordinal, float size)
     float nglyphs = rfloat(1.),
         offset = 0;
         
-    for(float i=2.; i<2.+2.*nglyphs; i+=2.)
+    for(float i=0.; i<nglyphs; i+=1.)
     {
-        float ord = rfloat(i);
+        float ord = floor(rfloat(2.+2.*i));
         if(ord == ordinal)
         {
-            offset = rfloat(i+1.);
+            offset = floor(rfloat(2.+2.*i+1.));
             break;
         }
     }
@@ -248,7 +247,7 @@ float dglyph(vec2 x, float ordinal, float size)
     float d = 1.;
     
     // Lines
-    float nlines = rfloat(offset);
+    float nlines = floor(rfloat(offset));
     offset += 1.;
     for(float i=0.; i<nlines; i+=1.)
     {
@@ -264,7 +263,7 @@ float dglyph(vec2 x, float ordinal, float size)
     }
     
     // Circles
-    float ncircles = rfloat(offset);
+    float ncircles = floor(rfloat(offset));
     offset += 1.;
     for(float i=0.; i<ncircles; i+=1.)
     {
@@ -278,7 +277,7 @@ float dglyph(vec2 x, float ordinal, float size)
     }
     
     // Circle segments
-    float nsegments = rfloat(offset);
+    float nsegments = floor(rfloat(offset));
     offset += 1.;
     for(float i=0.; i<nsegments; i+=1.)
     {
@@ -635,11 +634,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 #endif
     if(iTime < 1000.)
     {
-        float d = dglyph(uv, 99., 1.);
+        float d = dglyph(uv, 99., .5);
         if(d == 1.)col += c.yxy;
         else
         {
-            d = stroke(d, .05);
+            d = stroke(d, .01);
             col +=  mix(c.yyy, c.xyy, smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
         }
     }
