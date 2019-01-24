@@ -226,12 +226,20 @@ float dpoly_min(vec2 x, float N, float R)
     return R-length(x)*cos(t)/cos(.5*d);
 }
 
+// 2D box
+float box(vec2 x, vec2 b)
+{
+  vec2 d = abs(x) - b;
+  return length(max(d,c.yy)) + min(max(d.x,d.y),0.);
+}
+
 // Get glyph data from texture
 float dglyph(vec2 x, float ordinal, float size)
 {
-    // TODO: add bounding box here
-    
-    
+    float dis = box(x, 2.*size*c.xx);
+    if(dis > 0.)
+        return dis;
+
     // Find glyph offset in glyph index
     float nglyphs = rfloat(1.),
         offset = 0;
@@ -299,6 +307,9 @@ float dglyph(vec2 x, float ordinal, float size)
         d = min(d, circlesegment(x-size*vec2(xc,yc), size*r, phi0, phi1));
     }
     
+    if(nlines+ncircles+nsegments == 0.)
+        return dis;
+    
     return d;
 }
 
@@ -317,7 +328,7 @@ float dstring(vec2 x, float ordinal, float size)
     float stroff = floor(rfloat(stroff0+1.+2.*ordinal));
     float len = floor(rfloat(stroff0+2.+2.*ordinal));
     
-    /*
+    /* Slower code
     float d = 1.;
     for(float i=0.; i<len; i+=1.)
         d = min(d, dglyph(x-2.1*i*size*c.xy,floor(rfloat(0.+stroff+i)), .8*size));
@@ -325,13 +336,24 @@ float dstring(vec2 x, float ordinal, float size)
     */
     
     // Draw glyphs
-    
     vec2 dx = mod(x-size, 2.*size)-size, 
         ind = ceil((x-dx+size)/2./size);
-    if(ind.x < len && ind.x >= 0. && abs(x.y) < size)
-        return dglyph(dx, floor(rfloat(stroff+ind.x)), .7*size);
-    return dpoly_min(x/vec2(len*size,1.), 4., 1.);
     
+    // Bounding box
+    float bound = box(x-size*(len-3.)*c.xy, vec2(size*len, 1.*size));
+    if(bound > 0.)
+        return bound+.3*size;
+    //if(ind.x < len && ind.x >= 0. && abs(x.y) < size)
+    return dglyph(dx, floor(rfloat(stroff+ind.x)), .7*size);
+    //return ;
+//     dpoly_min(x/vec2(len*size,1.), 4., 1.);    
+}
+
+float dfloat(vec2 x, float num, float size)
+{
+    float d = 1.;
+    
+    return d;
 }
 
 // Distance to 210 logo
