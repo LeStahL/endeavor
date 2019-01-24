@@ -184,7 +184,7 @@ const char *gfx_frag =
    "vec2 dx=mod(x-size,2.*size)-size,ind=ceil((x-dx+size)/2./size);"
    "float bound=box(x-size*(len-3.)*c.xy,vec2(size*len,size));"
    "if(bound>0.)"
-     "return bound+.3*size;"
+     "return bound+.5*size;"
    "return dglyph(dx,floor(rfloat(stroff+ind.x)),.7*size);"
  "}"
  "float dfloat(vec2 x,float num,float size)"

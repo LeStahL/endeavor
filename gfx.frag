@@ -342,7 +342,7 @@ float dstring(vec2 x, float ordinal, float size)
     // Bounding box
     float bound = box(x-size*(len-3.)*c.xy, vec2(size*len, 1.*size));
     if(bound > 0.)
-        return bound+.3*size;
+        return bound+.5*size;
     //if(ind.x < len && ind.x >= 0. && abs(x.y) < size)
     return dglyph(dx, floor(rfloat(stroff+ind.x)), .7*size);
     //return ;
