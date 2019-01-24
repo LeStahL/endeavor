@@ -208,9 +208,9 @@ float circle(vec2 x, float r)
 // Distance to circle segment
 float circlesegment(vec2 x, float r, float p0, float p1)
 {
-    float p = atan(x.y, x.x);
-    float pa = clamp(p, min(p0,p1), max(p0,p1));
-    float d;
+    float p = mod(atan(x.y, x.x), 2.*pi);
+    float pa = clamp(p, p0, p1);
+    float d = 1.;
     if(pa != p)
     {
         d = min(
@@ -219,7 +219,7 @@ float circlesegment(vec2 x, float r, float p0, float p1)
             );
     }
     else
-	    d = length(x-r*vec2(cos(p), sin(p)));
+	    d = length(x-r*vec2(cos(pa), sin(pa)));
        
     return d;
 }
