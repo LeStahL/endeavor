@@ -356,7 +356,7 @@ const char *gfx_frag =
          "\n#endif\n"
          "if(iTime<1000.)"
            "{"
-             "float d=dstring(uv-.1,0.,.05);"
+             "float d=dstring(uv-.1,1.,.05);"
              "if(d==1.)"
                "col+=c.yxy;"
              "else"

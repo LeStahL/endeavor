@@ -686,7 +686,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     if(iTime < 1000.)
     {
         //float d = dglyph(uv, 110., .1);
-        float d = dstring(uv-.1, 0., .05);
+        float d = dstring(uv-.1, 1., .05);
         if(d == 1.)col += c.yxy;
         else
         {

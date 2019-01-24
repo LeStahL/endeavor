@@ -85,7 +85,7 @@ def glyph(char):
         segments = [ [ 0., 0., 1., pi, 15.*pi/8. ] ]
         lines = [ [ -1., 0., -1., 1. ], [ -1./3., 0., 0., 0. ] ]
     elif char == 'u':
-        segments = [ [ 0., 0., 1., pi, 0. ] ]
+        segments = [ [ 0., 0., 1., -pi, 0. ] ]
         lines = [ [ -1., 0., -1., 1. ], [ 1., 0., 1., 1. ] ]
     elif char == 'v':
         segments = [ [ 0., 0., 1., 5.*pi/8., 3.*pi/8. ] ]
@@ -107,7 +107,7 @@ def glyph(char):
         segments = [ [ 0., 0., 1., 0., 7.*pi/8. ] ]
         lines = [ [ 1., 0., 1., -1. ] ]
     elif char == '2':
-        segments = [ [ 0., 0., 1., 3.*pi/2., 1.*pi/8. ] ]
+        segments = [ [ 0., 0., 1., -pi/2., 7.*pi/8. ] ]
         lines = [ [ 0., -1., 1., -1. ] ]
     elif char == '3':
         segments = [ [ 0., 0., 1., 9.*pi/8., 7.*pi/8. ] ]
