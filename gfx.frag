@@ -592,31 +592,8 @@ vec3 background2(vec2 uv)
     cind = mix(cind, dind,  clamp(.5*(iTime-16.), 0., 1.));
     
     // Show demo name: "Endeavor" (t < 25.)
-    float dp = 6.*pi/8.;
-    // e
-    float endeavor = circlesegment(cind*c.zx-vec2(1.2, .5), .3, -dp, dp);
-    endeavor = min(endeavor, lineseg(cind, vec2(-1.1,.5), vec2(-1.3,.5)));
-    // n
-    endeavor = min(endeavor, circlesegment(cind.yx-vec2(-.4,.5).yx, .3, -dp, dp));
-    // D
-    endeavor = min(endeavor, circlesegment(cind-vec2(.4,.5), .3, -dp, dp));
-    endeavor = min(endeavor, lineseg(cind, vec2(.3, .45), vec2(.3,.55)));
-    // e
-    endeavor = min(endeavor, circlesegment(cind*c.zx-vec2(-1.3, .5), .3, -dp, dp));
-    endeavor = min(endeavor, lineseg(cind, vec2(1.2, .5), vec2(1.4,.5)));
-    // A
-    endeavor = min(endeavor, circlesegment(cind.yx-vec2(-1.2,-.5).yx, .3, -dp, dp));
-    endeavor = min(endeavor, lineseg(cind, vec2(-1.1,-.5), vec2(-1.3,-.5)));
-    // v
-    endeavor = min(endeavor, circlesegment((cind.yx-vec2(-.3,-.5).yx)*c.zx, .3, -dp, dp));
-    // o
-    endeavor = min(endeavor, circle(cind-vec2(.6,-.5), .3));
-    // r
-    endeavor = min(endeavor, circlesegment(cind*c.zx-vec2(-1.5, -.5), .3, 0., .66*dp));
-    endeavor = min(endeavor, lineseg(cind, vec2(1.2, -.5), vec2(1.2,-.8)));
-    // stroke
-    endeavor = stroke(endeavor, .13);
-    //endeavor *= clamp(.25*(iTime-18.), 0., 1.)*exp(-(ind.x-34.)-8.*(iTime-18.));
+    float endeavor = dstring(cind+(-6.+iTime-14.)*c.xy, 0., .4);
+    endeavor = stroke(endeavor, .1);
     structure = mix(structure, endeavor, clamp(.25*(iTime-14.), 0., 1.));
     
     // blend hexagons smaller (t < 27.)
@@ -683,18 +660,18 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     uv = (-iResolution.xy + 2.*fragCoord)/iResolution.y;
     
 #endif
-    if(iTime < 1000.)
-    {
-        //float d = dglyph(uv, 110., .1);
-        float d = dstring(uv-.1, 1., .05);
-        if(d == 1.)col += c.yxy;
-        else
-        {
-            d = stroke(d, .01);
-            col +=  mix(c.yyy, c.xyy, smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
-        }
-    }
-    else
+//     if(iTime < 1000.)
+//     {
+//         //float d = dglyph(uv, 110., .1);
+//         float d = dstring(uv-.1, 1., .05);
+//         if(d == 1.)col += c.yxy;
+//         else
+//         {
+//             d = stroke(d, .01);
+//             col +=  mix(c.yyy, c.xyy, smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
+//         }
+//     }
+//     else
     if(iTime < 28.) // "Enter the Logic Farm" logo/title, t < 31.
     {
         col += background2(uv);
