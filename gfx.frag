@@ -317,19 +317,21 @@ float dstring(vec2 x, float ordinal, float size)
     float stroff = floor(rfloat(stroff0+1.+2.*ordinal));
     float len = floor(rfloat(stroff0+2.+2.*ordinal));
     
+    /*
     float d = 1.;
     for(float i=0.; i<len; i+=1.)
         d = min(d, dglyph(x-2.1*i*size*c.xy,floor(rfloat(0.+stroff+i)), .8*size));
     return d;
+    */
     
     // Draw glyphs
-    /*
-    vec2 dx = mod(x, 2.*size)-size, 
-        ind = floor((x-dx)/2./size);
+    
+    vec2 dx = mod(x-size, 2.*size)-size, 
+        ind = ceil((x-dx+size)/2./size);
     if(ind.x < len && ind.x >= 0. && abs(x.y) < size)
-        return dglyph(dx, floor(rfloat(stroff+ind.x)), .8*size);
+        return dglyph(dx, floor(rfloat(stroff+ind.x)), .9*size);
     return dpoly_min(x/vec2(len*size,1.), 4., 1.);
-    */
+    
 }
 
 // Distance to 210 logo
