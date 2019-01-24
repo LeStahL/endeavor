@@ -15,7 +15,7 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#version 400
+#version 130
 
 uniform float iNBeats;
 uniform float iScale;
@@ -208,15 +208,84 @@ float circle(vec2 x, float r)
 // Distance to circle segment
 float circlesegment(vec2 x, float r, float p0, float p1)
 {
+    p0 = mod(p0, 2.*pi);
+    p1 = mod(p1, 2.*pi);
     float p = atan(x.y, x.x);
     p = clamp(p, p0, p1);
     return length(x-r*vec2(cos(p), sin(p)));
 }
 
-// Distance to glyph
-float dglyph(int ascii)
+// Get glyph data from texture
+float dglyph(vec2 x, float ordinal, float size)
 {
-    return 1.;
+    // Find glyph offset in glyph index
+    float nglyphs = rfloat(1.),
+        offset = 0;
+        
+    for(float i=2.; i<2.+2.*nglyphs; i+=2.)
+    {
+        float ord = rfloat(i);
+        if(ord == ordinal)
+        {
+            offset = rfloat(i+1.);
+            break;
+        }
+    }
+    
+    if(offset == 0.) return 1.;
+    
+    // Get distance from glyph data
+    float d = 1.;
+    
+    // Lines
+    float nlines = rfloat(offset);
+    offset += 1.;
+    for(float i=0.; i<nlines; i+=1.)
+    {
+        float x1 = rfloat(offset);
+        offset += 1.;
+        float y1 = rfloat(offset);
+        offset += 1.;
+        float x2 = rfloat(offset);
+        offset += 1.;
+        float y2 = rfloat(offset);
+        offset += 1.;
+        d = min(d, lineseg(x, size*vec2(x1,y1), size*vec2(x2, y2)));
+    }
+    
+    // Circles
+    float ncircles = rfloat(offset);
+    offset += 1.;
+    for(float i=0.; i<ncircles; i+=1.)
+    {
+        float xc = rfloat(offset);
+        offset += 1.;
+        float yc = rfloat(offset);
+        offset += 1.;
+        float r = rfloat(offset);
+        offset += 1.;
+        d = min(d, circle(x-size*vec2(xc, yc), size*r));
+    }
+    
+    // Circle segments
+    float nsegments = rfloat(offset);
+    offset += 1.;
+    for(float i=0.; i<nsegments; i+=1.)
+    {
+        float xc = rfloat(offset);
+        offset += 1.;
+        float yc = rfloat(offset);
+        offset += 1.;
+        float r = rfloat(offset);
+        offset += 1.;
+        float phi0 = rfloat(offset);
+        offset += 1.;
+        float phi1 = rfloat(offset);
+        offset += 1.;
+        d = min(d, circlesegment(x-size*vec2(xc,yc), size*r, phi0, phi1));
+    }
+    
+    return d;
 }
 
 // Distance to 210 logo
@@ -554,18 +623,16 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     uv = (-iResolution.xy + 2.*fragCoord)/iResolution.y;
     
 #endif
-    if(iTime < 20000.)
+    if(iTime < 1000.)
     {
-        // test code for texture
-        float res[5] = float[5](19.0, 105.0, 39.0, 101.0, 56.0);
-//         float res[5] = float[5](19648,22160,20704,22096,21248);
-//         float res[5] = float[5](1.,2.,1.,2.,1.);
-        float index = floor(5.*(uv.x/a+1.)/2.);
-//         mod((uv.x+1.)/2., 1./5.)/(1./5.);
-        col += mix(c.xyy, c.yyy, step((rfloat(index))/res[int(index)], (uv.y+1.)));
-//         col += mix(c.xyy, c.yyy, step(index / 5., uv.y));
+        float d = dglyph(uv, 99., 1.);
+        if(d == 1.)col += c.yxy;
+        else
+        {
+            d = stroke(d, .05);
+            col +=  mix(c.yyy, c.xyy, smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
+        }
     }
-
     else
     if(iTime < 28.) // "Enter the Logic Farm" logo/title, t < 31.
     {

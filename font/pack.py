@@ -20,6 +20,7 @@ import font
 
 # Pack everything as float. If executable size is a problem, this can be optimized slightly.
 # Pack alignment:
+# string database offset
 # nglyphs
 # for glyph in glyphs
 #     ordinal
@@ -72,6 +73,9 @@ for char in ordinals:
     
     # Update offset
     pack_len += font.pack_length(char)
+    
+# Pack string database intex
+texture = struct.pack(fmt, float(pack_len)) + texture
 
 # Pack the glyph data
 for char in ordinals:
