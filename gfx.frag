@@ -238,7 +238,7 @@ float dglyph(vec2 x, float ordinal, float size)
 {
     float dis = box(x, 2.*size*c.xx);
     if(dis > 0.)
-        return dis;
+        return dis+.5*size;
 
     // Find glyph offset in glyph index
     float nglyphs = rfloat(1.),
@@ -350,7 +350,54 @@ float dstring(vec2 x, float ordinal, float size)
 // for debugging stuff while shader is loaded
 float dfloat(vec2 x, float num, float size)
 {
-    float d = 1.;
+    float d = 1., index = 0.;
+    
+    // Determine sign and output it if present
+    float sign = sign(num), exp = 0.;
+    if(sign<0.)
+    {
+        d = min(d, dglyph(x, 45., .7*size));
+        index += 1.;
+        num *= -1.;
+    }
+    
+    // The first power of ten that floors num to anything not zero is the exponent
+    for(exp = -15.; exp < 15.; exp += 1.)
+        if(floor(num*pow(10.,exp)) != 0.)
+            break;
+    exp *= -1.;
+            
+    // Determine the significand and output it
+    for(float i = exp; i >= exp-5.; i -= 1.)
+    {
+        float po = pow(10.,i);
+        float ca = floor(num/po);
+        num -= ca*po;
+        
+        d = min(d, dglyph(x-2.*index*size*c.xy, 48.+ca, .7*size));
+        index += 1.;
+        if(i == exp) // decimal point
+        {
+            d = min(d, dglyph(x-2.*index*size*c.xy, 46., .7*size));
+            index += 1.;
+        }
+    }
+    
+    // Output the exponent
+    d = min(d, dglyph(x-2.*index*size*c.xy, 101., .7*size));
+    index += 1.;
+    if(exp < 0.) // Sign
+    {
+        d = min(d, dglyph(x-2.*index*size*c.xy, 45., .7*size));
+        index += 1.;
+        exp *= -1.;
+    }
+    float ca = floor(exp/10.);
+    d = min(d, dglyph(x-2.*index*size*c.xy, 48.+ca, .7*size));
+    index += 1.;
+    ca = floor(exp-10.*ca);
+    d = min(d, dglyph(x-2.*index*size*c.xy, 48.+ca, .7*size));
+    index += 1.;
     
     return d;
 }
@@ -468,7 +515,7 @@ vec2 scene(vec3 x)
 //flag:  name of the flag to set if raymarching succeeded
 #define raymarch(scene, xc, ro, d, dir, s, N, eps, flag) \
     flag = false;\
-    for(int i=0; i<N; ++i)\
+    for(int ia=0; ia<N; ++ia)\
     {\
         xc = ro + d*dir;\
         s = scene(xc);\
@@ -659,18 +706,19 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     uv = (-iResolution.xy + 2.*fragCoord)/iResolution.y;
     
 #endif
-//     if(iTime < 1000.)
-//     {
-//         //float d = dglyph(uv, 110., .1);
-//         float d = dstring(uv-.1, 1., .05);
-//         if(d == 1.)col += c.yxy;
-//         else
-//         {
-//             d = stroke(d, .01);
-//             col +=  mix(c.yyy, c.xyy, smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
-//         }
-//     }
-//     else
+    if(iTime < 1000.)
+    {
+        //float d = dglyph(uv, 110., .1);
+        //float d = dstring(uv-.1, 1., .05);
+        float d = dfloat(uv, -1.337334e-4, .05);
+        if(d == 1.)col += c.yxy;
+        else
+        {
+            d = stroke(d, .01);
+            col +=  mix(c.yyy, c.xyy, smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
+        }
+    }
+    else
     if(iTime < 28.) // "Enter the Logic Farm" logo/title, t < 31.
     {
         col += background2(uv);
@@ -735,11 +783,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         else c1 = background(uv);
 
         // lens flare
-        for(float i=0.; i<8.; i+=1.)
+        for(float k=0.; k<8.; k+=1.)
         {
-            vec2 dx = .15*vec2(-1.+2.*rand(c.xx+i), -1.+2.*rand(c.xx+i+1.));
-            vec3 cx = c.xxx-.2*vec3(rand(c.xx+i+2.), rand(c.xx+i+3.), rand(c.xx+i+4.));
-            float sx = .05+.05*rand(c.xx+i+5.);
+            vec2 dx = .15*vec2(-1.+2.*rand(c.xx+k), -1.+2.*rand(c.xx+k+1.));
+            vec3 cx = c.xxx-.2*vec3(rand(c.xx+k+2.), rand(c.xx+k+3.), rand(c.xx+k+4.));
+            float sx = .05+.05*rand(c.xx+k+5.);
             float da = dpoly_min(uv-.15*c.yx+dx, 6., sx);
             c1 = mix(c1, mix(c1,cx, .5), smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, da));
         }
