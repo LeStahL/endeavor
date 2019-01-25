@@ -706,19 +706,19 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     uv = (-iResolution.xy + 2.*fragCoord)/iResolution.y;
     
 #endif
-    if(iTime < 1000.)
-    {
-//         float d = dglyph(uv, 57., .1);
-        //float d = dstring(uv-.1, 1., .05);
-        float d = dfloat(uv, -8.901e-4, .05);
-        if(d == 1.)col += c.yxy;
-        else
-        {
-            d = stroke(d, .01);
-            col +=  mix(c.yyy, c.xyy, smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
-        }
-    }
-    else
+//     if(iTime < 1000.)
+//     {
+// //         float d = dglyph(uv, 57., .1);
+//         //float d = dstring(uv-.1, 1., .05);
+//         float d = dfloat(uv, -8.901e-4, .05);
+//         if(d == 1.)col += c.yxy;
+//         else
+//         {
+//             d = stroke(d, .01);
+//             col +=  mix(c.yyy, c.xyy, smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
+//         }
+//     }
+//     else
     if(iTime < 28.) // "Enter the Logic Farm" logo/title, t < 31.
     {
         col += background2(uv);
