@@ -313,7 +313,7 @@ float dglyph(vec2 x, float ordinal, float size)
     return d;
 }
 
-// Get distance to string from databas
+// Get distance to string from database
 float dstring(vec2 x, float ordinal, float size)
 {
     // Get string database offset
@@ -343,12 +343,11 @@ float dstring(vec2 x, float ordinal, float size)
     float bound = box(x-size*(len-3.)*c.xy, vec2(size*len, 1.*size));
     if(bound > 0.)
         return bound+.5*size;
-    //if(ind.x < len && ind.x >= 0. && abs(x.y) < size)
     return dglyph(dx, floor(rfloat(stroff+ind.x)), .7*size);
-    //return ;
-//     dpoly_min(x/vec2(len*size,1.), 4., 1.);    
 }
 
+// distance to a floating point number string
+// for debugging stuff while shader is loaded
 float dfloat(vec2 x, float num, float size)
 {
     float d = 1.;
