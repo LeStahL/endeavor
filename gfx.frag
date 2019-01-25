@@ -455,7 +455,8 @@ vec2 inset(vec3 x)
     return vec2(-.11+min(x.y+.4, abs(length(x)-rs)), 2.);
 }
 
-vec2 scene(vec3 x)
+// Hangar scene
+vec2 scene(vec3 x) 
 {
     // Start with floor (floor material: 1)
     vec2 sdf = vec2(x.y+.4/*+.01*snoise(2.*x.xz-iTime)+.01*snoise(4.1*x.xz-iTime*c.yx)*/, 1.);
@@ -495,6 +496,48 @@ vec2 scene(vec3 x)
     
     // Add guard objects for debugging
     float dr = .1;
+    vec3 y = mod(x,dr)-.5*dr;
+    float guard = -length(max(abs(y)-vec3(.5*dr*c.xx, .6),0.));
+    guard = abs(guard)+dr*.1;
+    sdf.x = min(sdf.x, guard);
+    
+    return sdf;
+}
+
+// Greetings scene
+vec2 greetings(vec3 x)
+{
+    vec2 sdf = c.xy;
+    
+    return sdf;
+}
+
+// 3D Effect on text in intro
+vec2 texteffect(vec3 x)
+{
+    // Make it bigger
+    //x *= .5;
+    
+    // Start with z=0 plane
+    vec2 sdf = vec2(x.z, 7.);
+    float hex = hexagon(18.*x.xy);
+    
+    // compute hexagon indices in cartesian coordinates
+    vec2 cind = ind/18.;
+    cind = vec2(cind.x/1.2, cind.y);
+    cind = vec2(cind.x, cind.y-cind.x*.6);
+    
+    // build up team210 logo (t < 12.)
+    float structure = stroke(logo(cind+.3*c.xy,.6),.25);
+    float blend = smoothstep(2., 6., iTime)*(1.-smoothstep(6.,12.,iTime));
+    if(structure < 0. && blend >= .01)
+    {
+        float blend = smoothstep(2., 6., iTime)*(1.-smoothstep(6.,12.,iTime));
+        sdf = vec2(stroke(zextrude(x.z, 2.*x.z-stroke(logo(cind.xy+.3*c.xy,.6),.25), (.8+.4*snoise(4.*cind.xy-iTime))*blend*clamp(1.-exp(-(ind.x-34.)-8.*iTime), 0., 1.)), .05*blend), 7.);
+    }
+    
+    // Add guard objects for debugging
+    float dr = .01;
     vec3 y = mod(x,dr)-.5*dr;
     float guard = -length(max(abs(y)-vec3(.5*dr*c.xx, .6),0.));
     guard = abs(guard)+dr*.1;
@@ -571,6 +614,16 @@ void camera1(out vec3 ro, out vec3 r, out vec3 u, out vec3 t)
     r = c.xyy;
     u = c.yxy;
     t = c.yyy-1.*c.yyx+.1*(iTime-28.)*c.yyx;
+}
+
+// static camera
+void camera0(out vec3 ro, out vec3 r, out vec3 u, out vec3 t)
+{
+    float blend = 0.;// smoothstep(2., 6., iTime)*(1.-smoothstep(6.,12.,iTime));
+    ro = c.yyx-.5*c.yxy*blend;
+    r = c.xyy;
+    u = c.yxy+.5*c.yyx*blend;
+    t = .1*c.yyx;
 }
 
 vec3 stdcolor(vec2 x)
@@ -670,6 +723,8 @@ vec3 background2(vec2 uv)
 
 vec3 color(float rev, float ln, float mat, vec2 uv, vec3 x)
 {
+    if(mat == 7.)
+        return background2(x.xy);
     if(mat == 6.)
         return clamp(.7*c.xxx + .7*c.xxy*(ln) + c.xxx*abs(pow(rev,8.)), 0., 1.);
     if(mat == 2.)
@@ -697,10 +752,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     
     // Antialiasing
 #if FSAA!=1
-    for(int i=0; i<FSAA; ++i)
-    for(int j=0; j<FSAA; ++j)
+    for(int jii=0; jii<FSAA; ++jii)
+    for(int jij=0; jij<FSAA; ++jij)
     {
-    vec2 o = vec2(float(i),float(j)) / float(FSAA) - .5;
+    vec2 o = vec2(float(jii),float(jij)) / float(FSAA) - .5;
     uv = (-iResolution.xy + 2.*(fragCoord+o))/iResolution.y;
 #else 
     uv = (-iResolution.xy + 2.*fragCoord)/iResolution.y;
@@ -721,7 +776,27 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 //     else
     if(iTime < 28.) // "Enter the Logic Farm" logo/title, t < 31.
     {
-        col += background2(uv);
+        vec3 c1 = c.yyy;
+        
+        camerasetup(camera0, ro, r, u, t, uv, dir);
+        raymarch(texteffect, x, ro, d, dir, s, 1200, 1.e-4, hit);
+        
+        if(hit)
+        {
+            vec3 n;
+            calcnormal(scene, n, 2.e-4, x);
+
+            float rs = 1.9;
+            vec3 l = x+1.*c.yyx,
+                //l = -1.*c.yxy+1.5*c.yyx, 
+                re = normalize(reflect(-l,n)), v = normalize(x-ro);
+            float rev = (dot(re,v)), ln = (dot(l,n));
+
+            c1 = color(rev, ln, s.y, uv, x);
+        }
+        else c1 = c.yyy;// background2(uv);
+        
+        col += c1;
     }
     else if(iTime < 10000.)
     {
