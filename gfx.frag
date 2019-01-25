@@ -202,7 +202,7 @@ float lineseg(vec3 x, vec3 p1, vec3 p2)
 // Distance to circle
 float circle(vec2 x, float r)
 {
-    return length(x)-r;
+    return abs(length(x)-r);
 }
 
 // Distance to circle segment
@@ -708,9 +708,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 #endif
     if(iTime < 1000.)
     {
-        //float d = dglyph(uv, 110., .1);
+//         float d = dglyph(uv, 57., .1);
         //float d = dstring(uv-.1, 1., .05);
-        float d = dfloat(uv, -1.337334e-4, .05);
+        float d = dfloat(uv, -8.901e-4, .05);
         if(d == 1.)col += c.yxy;
         else
         {
