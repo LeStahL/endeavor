@@ -688,8 +688,8 @@ vec3 background2(vec2 uv)
     cind = mix(cind, dind,  clamp(.5*(iTime-16.), 0., 1.));
     
     // Show demo name: "Endeavor" (t < 25.)
-    float endeavor = dstring(cind+(-6.+iTime-14.)*c.xy, 0., .4);
-    endeavor = stroke(endeavor, .1);
+    float endeavor = dstring(cind+2.*(-6.+1.2*iTime-1.2*14.)*c.xy, 0., .8);
+    endeavor = stroke(endeavor, .2);
     structure = mix(structure, endeavor, clamp(.25*(iTime-14.), 0., 1.));
     
     // blend hexagons smaller (t < 27.)
@@ -798,6 +798,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     else if(iTime < 10000.)
     {
         vec3 c1 = c.yyy;
+    
+        d = 0.;
     
         camerasetup(camera1, ro, r, u, t, uv, dir);
         raymarch(inset, x, ro, d, dir, s, 40, 1.e-4, hit);
