@@ -406,7 +406,7 @@ const char *gfx_frag =
            "{"
              "vec3 c1=c.yyy;"
              "camerasetup(camera0,ro,r,u,t,uv,dir);"
-             "raymarch(texteffect,x,ro,d,dir,s,500,.002,hit);"
+             "raymarch(texteffect,x,ro,d,dir,s,500,2e-05,hit);"
              "if(hit)"
                "{"
                  "vec3 n;"

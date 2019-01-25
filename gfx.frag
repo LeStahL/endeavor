@@ -776,7 +776,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         vec3 c1 = c.yyy;
         
         camerasetup(camera0, ro, r, u, t, uv, dir);
-        raymarch(texteffect, x, ro, d, dir, s, 500, 2.e-3, hit);
+        raymarch(texteffect, x, ro, d, dir, s, 500, 2.e-5, hit);
         
         if(hit)
         {
