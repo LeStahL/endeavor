@@ -515,9 +515,6 @@ vec2 greetings(vec3 x)
 // 3D Effect on text in intro
 vec2 texteffect(vec3 x)
 {
-    // Make it bigger
-    //x *= .5;
-    
     // Start with z=0 plane
     vec2 sdf = vec2(x.z, 7.);
     float hex = hexagon(18.*x.xy);
@@ -530,14 +527,14 @@ vec2 texteffect(vec3 x)
     // build up team210 logo (t < 12.)
     float structure = stroke(logo(cind+.3*c.xy,.6),.25);
     float blend = smoothstep(2., 6., iTime)*(1.-smoothstep(6.,12.,iTime));
-    if(structure < 0. && blend >= .01)
+    if(structure < 0. && blend >= 1.e-3)
     {
         float blend = smoothstep(2., 6., iTime)*(1.-smoothstep(6.,12.,iTime));
         sdf = vec2(stroke(zextrude(x.z, 2.*x.z-stroke(logo(cind.xy+.3*c.xy,.6),.25), (.8+.4*snoise(4.*cind.xy-iTime))*blend*clamp(1.-exp(-(ind.x-34.)-8.*iTime), 0., 1.)), .05*blend), 7.);
     }
     
     // Add guard objects for debugging
-    float dr = .01;
+    float dr = .03;
     vec3 y = mod(x,dr)-.5*dr;
     float guard = -length(max(abs(y)-vec3(.5*dr*c.xx, .6),0.));
     guard = abs(guard)+dr*.1;
@@ -779,12 +776,12 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         vec3 c1 = c.yyy;
         
         camerasetup(camera0, ro, r, u, t, uv, dir);
-        raymarch(texteffect, x, ro, d, dir, s, 1200, 1.e-4, hit);
+        raymarch(texteffect, x, ro, d, dir, s, 500, 2.e-3, hit);
         
         if(hit)
         {
             vec3 n;
-            calcnormal(scene, n, 2.e-4, x);
+            calcnormal(scene, n, 2.e-3, x);
 
             float rs = 1.9;
             vec3 l = x+1.*c.yyx,
