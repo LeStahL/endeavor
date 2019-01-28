@@ -702,15 +702,15 @@ vec3 background2(vec2 uv)
     
     // make background change the color with time
     vec2 dt = vec2(snoise(cind+2.),snoise(cind+3.));
-    float m = 1.5+.5*snoise(10.*cind)
-        + mix(-2.,clamp(.5+.5*snoise(.05*(cind)-dt-iTime*c.xx),0.,1.), clamp(.125*(iTime-1.),0.,1.));
-    vec3 c1 = mix(c.yyy, .8*c.yyy,m)*smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d);
+    float m = (1.5+.5*snoise(10.*cind)
+        + mix(-2.,clamp(.5+.5*snoise(.05*(cind)-dt-iTime*c.xx),0.,1.), clamp(.125*(iTime-1.),0.,1.)));
+    vec3 c1 = mix(c.yyy, c.yyy,m)*smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d);
         c1 = mix(c1, mix(c.yyy, vec3(1.,0.27,0.),m), smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, stroke(structure,.05)))*smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d);
     c1 = clamp(c1, 0., 1.);
     
     // grayscale everything outside the structure
     if(structure > 0.)
-        c1 = mix(.7*length(c1)*c.xxx/sqrt(3.), c1, clamp(.5*(iTime-24.), 0., 1.));
+        c1 = mix(.3*length(c1)*c.xxx/sqrt(3.), c1, clamp(.5*(iTime-24.), 0., 1.));
     
     // blend to black at the end
     c1 = mix(c1, c.yyy, clamp(iTime-27., 0., 1.));
