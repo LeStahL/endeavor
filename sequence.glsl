@@ -251,8 +251,8 @@ float note_vel(int index)   {return     rfloat(index+2+4*NTRK+4*NMOD+NPTN+3*NNOT
 float mainSynth(float time)
 {
     float max_mod_off = 24.1;
-    int drum_index = 15;
-    float drum_synths = 2.;
+    int drum_index = 18;
+    float drum_synths = 1.;
     
     
     float r = 0.;
@@ -326,4 +326,14 @@ vec2 mainSound(float t)
     float stereo_delay = 2e-4;
       
     return vec2(mainSynth(t), mainSynth(t-stereo_delay));
+}
+
+void main()
+{
+   float t = (iBlockOffset + (gl_FragCoord.x) + (gl_FragCoord.y)*iTexSize)/iSampleRate;
+   vec2 y = mainSound( t );
+   vec2 v  = floor((0.5+0.5*y)*65535.0);
+   vec2 vl = mod(v,256.0)/255.0;
+   vec2 vh = floor(v/256.0)/255.0;
+   gl_FragColor = vec4(vl.x,vh.x,vl.y,vh.y);
 }
