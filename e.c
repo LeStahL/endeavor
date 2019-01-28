@@ -721,6 +721,7 @@ int main(int argc, char **args)
     }
     
     return msg.wParam;
+}
 #else
     int x_file_descriptor = ConnectionNumber(display);
     fd_set x_file_descriptor_set;
@@ -756,7 +757,5 @@ int main(int argc, char **args)
         }
     }
     return 0;
+}
 #endif
-}
-dif
-}
