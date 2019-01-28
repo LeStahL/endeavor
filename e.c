@@ -124,7 +124,7 @@ void debug(int shader_handle)
     }
     else 
         printf("shader compilation successful.\n");
-    Sleep(20000);
+//     Sleep(20000); TODO ADDN
 }
 // TODO: remove above
 
