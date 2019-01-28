@@ -115,15 +115,16 @@ void debug(int shader_handle)
     if(compile_status != GL_TRUE)
     {
         printf("FAILED.\n");
-        int len = 12;
+        int len = 4618;
         glGetShaderiv(shader_handle, GL_INFO_LOG_LENGTH, &len);
         printf("log length: %d\n", len);
-        GLchar CompileLog[1024];
+        GLchar CompileLog[4618];
         glGetShaderInfoLog(shader_handle, len, NULL, CompileLog);
         printf("error: %s\n", CompileLog);
     }
     else 
         printf("shader compilation successful.\n");
+    Sleep(20000);
 }
 // TODO: remove above
 
@@ -518,6 +519,16 @@ int main(int argc, char **args)
     sfx_sequence_texture_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCE);
     sfx_sequence_width_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCEWIDTH);
     
+    // Initialize sequence texture
+    printf("sequence texture width is: %d\n", sequence_texture_size); // TODO: remove
+    glGenTextures(1, &sequence_texture_handle);
+    glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sequence_texture_size, sequence_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, sequence_texture);
+    
     int nblocks1 = sample_rate*duration1/block_size+1;
     music1_size = nblocks1*block_size; 
     smusic1 = (float*)malloc(4*music1_size);
@@ -538,16 +549,6 @@ int main(int argc, char **args)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, snd_texture, 0);
-
-    // Initialize sequence texture
-    printf("sequence texture width is: %d\n", sequence_texture_size); // TODO: remove
-    glGenTextures(1, &sequence_texture_handle);
-    glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sequence_texture_size, sequence_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, sequence_texture);
     
     // Render sfx
     printf("nblocks: %d\n", nblocks1);
@@ -566,6 +567,8 @@ int main(int argc, char **args)
         
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
+        
+        glActiveTexture(GL_TEXTURE1);
         
         glBegin(GL_QUADS);
         glVertex3f(-1,-1,0);
