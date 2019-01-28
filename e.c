@@ -141,7 +141,8 @@ int w = 800, h = 450,
     sfx_texs_location,
     scale_location, nbeats_location,
     sfx_sequence_texture_location, sfx_sequence_width_location,
-    gfx_sequence_texture_location, gfx_sequence_width_location;
+    gfx_sequence_texture_location, gfx_sequence_width_location,
+    gfx_executable_size_location;
     
 // Demo globals
 double t_start = 0., 
@@ -149,6 +150,7 @@ double t_start = 0.,
     t_end = 180.; // TODO: set to sensible end
 unsigned int font_texture_handle, sequence_texture_handle;
 float nbeats = 0., scale = 0., oldscale = 0., ooldscale = 0.;
+float executable_size = 0.;
 
 // Music shader globals
 int sample_rate = 44100, channels = 2;
@@ -213,6 +215,7 @@ void draw()
     glUniform1f(gfx_sequence_width_location, sequence_texture_size);
     glUniform1f(scale_location, .3*(scale+oldscale+ooldscale));
     glUniform1f(nbeats_location, nbeats);
+    glUniform1f(gfx_executable_size_location, executable_size);
     
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, font_texture_handle);
@@ -306,6 +309,17 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
     
+    // Show executable size on top
+#define MAX_PATH 1024
+    char szFileName[MAX_PATH];
+    GetModuleFileName(NULL, szFileName, MAX_PATH);
+    printf("%s\n", szFileName);
+    
+    FILE *ex = fopen(szFileName, "rb");
+    fseek(ex, 0, SEEK_END);
+    executable_size = (float)ftell(ex)/1024.;
+    
+    // Display window
     CHAR WindowClass[]  = "Team210 Demo Window";
     
     WNDCLASSEX wc = { 0 };
@@ -650,6 +664,9 @@ int main(int argc, char **args)
 #ifndef VAR_ISEQUENCEWIDTH
     #define VAR_ISEQUENCEWIDTH "iSequenceWidth"
 #endif
+#ifndef VAR_IEXECUTABLESIZE
+    #define VAR_IEXECUTABLESIZE "iExecutableSize"
+#endif
     int gfx_size = strlen(gfx_frag),
         gfx_handle = glCreateShader(GL_FRAGMENT_SHADER);
     gfx_program = glCreateProgram();
@@ -667,6 +684,7 @@ int main(int argc, char **args)
     nbeats_location = glGetUniformLocation(gfx_program, VAR_INBEATS);
     gfx_sequence_texture_location = glGetUniformLocation(gfx_program, VAR_ISEQUENCE);
     gfx_sequence_width_location = glGetUniformLocation(gfx_program, VAR_ISEQUENCEWIDTH);
+    gfx_executable_size_location = glGetUniformLocation(gfx_program, VAR_IEXECUTABLESIZE);
     
     glUseProgram(gfx_program);
     glViewport(0, 0, w, h);

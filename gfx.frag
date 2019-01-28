@@ -25,6 +25,7 @@ uniform sampler2D iFont;
 uniform float iFontWidth;
 uniform sampler2D iSequence;
 uniform float iSequenceWidth;
+uniform float iExecutableSize;
 
 // Global constants
 const vec3 c = vec3(1.,0.,-1.);
@@ -635,6 +636,14 @@ vec2 texteffect(vec3 x)
         col = mix(col, vec3(.2, .68, 1.), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, dt1));\
         float dta = dstring(uv-2.*vec2(-.45*a,.45)-.3*c.xy,1., .025);\
         dta = min(dta, dfloat(uv-2.*vec2(-.45*a,.45)-.7*c.xy, iTime, .025));\
+        dta = stroke(dta, .005);\
+        col = mix(col, clamp(1.*vec3(.2, .68, 1.), 0., 1.), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, dta));\
+        dt0 = stroke(lineseg(uv-2.*vec2(-.45*a, .45)-1.4*c.xy, c.yy, 1.*c.xy), .05);\
+        dt1 = stroke(dt0, .005);\
+        col = mix(col, mix(col, vec3(.2, .68, 1.), .5), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, dt0));\
+        col = mix(col, vec3(.2, .68, 1.), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, dt1));\
+        dta = dstring(uv-2.*vec2(-.45*a,.45)-1.5*c.xy,2., .025);\
+        dta = min(dta, dfloat(uv-2.*vec2(-.45*a,.45)-1.7*c.xy, iExecutableSize, .025));\
         dta = stroke(dta, .005);\
         col = mix(col, clamp(1.*vec3(.2, .68, 1.), 0., 1.), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, dta));\
     }
