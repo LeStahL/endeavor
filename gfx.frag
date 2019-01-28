@@ -366,7 +366,6 @@ float dfloat(vec2 x, float num, float size)
         if(floor(num*pow(10.,exp)) != 0.)
             break;
     exp *= -1.;
-            
     // Determine the significand and output it
     for(float i = exp; i >= exp-5.; i -= 1.)
     {
@@ -374,7 +373,7 @@ float dfloat(vec2 x, float num, float size)
         float ca = floor(num/po);
         num -= ca*po;
         
-        d = min(d, dglyph(x-2.*index*size*c.xy, 48.+ca, .7*size));
+        d = min(d, dglyph(x+.7*size*c.xy-2.*index*size*c.xy, 48.+ca, .7*size));
         index += 1.;
         if(i == exp) // decimal point
         {
@@ -384,19 +383,19 @@ float dfloat(vec2 x, float num, float size)
     }
     
     // Output the exponent
-    d = min(d, dglyph(x-2.*index*size*c.xy, 101., .7*size));
+    d = min(d, dglyph(x+.7*size*c.xy-2.*index*size*c.xy, 101., .7*size));
     index += 1.;
     if(exp < 0.) // Sign
     {
-        d = min(d, dglyph(x-2.*index*size*c.xy, 45., .7*size));
+        d = min(d, dglyph(x+.7*size*c.xy-2.*index*size*c.xy, 45., .7*size));
         index += 1.;
         exp *= -1.;
     }
     float ca = floor(exp/10.);
-    d = min(d, dglyph(x-2.*index*size*c.xy, 48.+ca, .7*size));
+    d = min(d, dglyph(x+.7*size*c.xy-2.*index*size*c.xy, 48.+ca, .7*size));
     index += 1.;
     ca = floor(exp-10.*ca);
-    d = min(d, dglyph(x-2.*index*size*c.xy, 48.+ca, .7*size));
+    d = min(d, dglyph(x+.7*size*c.xy-2.*index*size*c.xy, 48.+ca, .7*size));
     index += 1.;
     
     return d;
@@ -595,6 +594,7 @@ vec2 texteffect(vec3 x)
         dir = normalize(t-ro);\
     }
 
+        //uv += .02*vec2(snoise(uv-iTime+2.),snoise(uv-iTime+3.));\
 //post processing: 210 logo and trendy display lines
 //col: output color
 //uv:  fragment coordinate
@@ -602,6 +602,15 @@ vec2 texteffect(vec3 x)
     {\
         col = mix(clamp(col,c.yyy,c.xxx), c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, stroke(logo(uv-2.*vec2(-.45*a,.45),.04),.01)));\
         col += vec3(0., 0.05, 0.1)*sin(uv.y*1050.+ 5.*iTime);\
+        col = clamp(col,c.yyy,c.xxx);\
+        float dt0 = stroke(lineseg(uv-2.*vec2(-.45*a, .45)-.2*c.xy, c.yy, 1.*c.xy), .05);\
+        float dt1 = stroke(dt0, .005);\
+        col = mix(col, mix(col, vec3(.2, .68, 1.), .5), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, dt0));\
+        col = mix(col, vec3(.2, .68, 1.), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, dt1));\
+        float dta = dstring(uv-2.*vec2(-.45*a,.45)-.3*c.xy,1., .025);\
+        dta = min(dta, dfloat(uv-2.*vec2(-.45*a,.45)-.7*c.xy, iTime, .025));\
+        dta = stroke(dta, .005);\
+        col = mix(col, clamp(1.*vec3(.2, .68, 1.), 0., 1.), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, dta));\
     }
     
 //camera for scene 1

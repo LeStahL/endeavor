@@ -70,7 +70,7 @@ def glyph(char):
     elif char == 'o':
         circles = [ [ 0., 0., 1. ] ]
     elif char == 'p':
-        segments = [ [ 0., 0., 1., 15.*pi/8., 7.*pi/8. ] ]
+        segments = [ [ 0., 0., 1., -pi/8., 7.*pi/8. ] ]
         lines = [ [ -1./3., -1., -1./3., 1./3. ],  [ -1./3., 0., 1./3., 0. ] ]
     elif char == 'q':
         circles = [ [ 0., 0., 1. ] ]
@@ -132,6 +132,8 @@ def glyph(char):
         lines = [ [ 1., -1., 1., 0. ] ]
     elif char == '.':
         circles = [ [ -1., -1., 0. ] ]
+    elif char == ':':
+        circles = [ [ -1., -.5, 0. ], [-1., .5, 0.] ]
     elif char == ',':
         lines = [ [ -1., -1., -2./3., -2./3. ] ]
     elif char == '-':
