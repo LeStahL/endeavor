@@ -80,6 +80,7 @@ void *malloc( unsigned int size )
 
 // fonts
 #include "font/font.h"
+#include "sfxpack/sequence.h"
 
 // OpenGL extensions
 PFNGLGETPROGRAMIVPROC glGetProgramiv;
@@ -137,14 +138,15 @@ int w = 800, h = 450,
     sfx_program, sfx_blockoffset_location, 
     sfx_samplerate_location, sfx_volumelocation, 
     sfx_texs_location,
-    scale_location, nbeats_location;
+    scale_location, nbeats_location,
+    sfx_sequence_texture_location, sfx_sequence_width_location,
+    gfx_sequence_texture_location, gfx_sequence_width_location;
     
 // Demo globals
 double t_start = 0., 
     t_now = 0., 
     t_end = 180.; // TODO: set to sensible end
-unsigned int font_texture_handle;
-int font_texture_location, font_texture_width_location;
+unsigned int font_texture_handle, sequence_texture_handle;
 float nbeats = 0., scale = 0., oldscale = 0., ooldscale = 0.;
 
 // Music shader globals
@@ -206,11 +208,16 @@ void draw()
     
     glUniform1i(font_texture_location, 0);
     glUniform1f(font_width_location, font_texture_size);
+    glUniform1i(gfx_sequence_texture_location, 1);
+    glUniform1f(gfx_sequence_width_location, sequence_texture_size);
     glUniform1f(scale_location, .3*(scale+oldscale+ooldscale));
     glUniform1f(nbeats_location, nbeats);
     
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, font_texture_handle);
+    
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
     
     glUniform1f(time_location, t_now-t_start);
     glUniform2f(resolution_location, w, h);
@@ -488,6 +495,12 @@ int main(int argc, char **args)
 #ifndef VAR_ITEXS
     #define VAR_ITEXS "iTexS"
 #endif
+#ifndef VAR_ISEQUENCE
+    #define VAR_ISEQUENCE "iSequence"
+#endif
+#ifndef VAR_ISEQUENCEWIDTH
+    #define VAR_ISEQUENCEWIDTH "iSequenceWidth"
+#endif
     int sfx_size = strlen(sfx_frag),
         sfx_handle = glCreateShader(GL_FRAGMENT_SHADER);
     sfx_program = glCreateProgram();
@@ -502,6 +515,8 @@ int main(int argc, char **args)
     sfx_blockoffset_location = glGetUniformLocation(sfx_program, VAR_IBLOCKOFFSET);
     sfx_volumelocation = glGetUniformLocation(sfx_program, VAR_IVOLUME);
     sfx_texs_location = glGetUniformLocation(sfx_program, VAR_ITEXS);
+    sfx_sequence_texture_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCE);
+    sfx_sequence_width_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCEWIDTH);
     
     int nblocks1 = sample_rate*duration1/block_size+1;
     music1_size = nblocks1*block_size; 
@@ -524,6 +539,16 @@ int main(int argc, char **args)
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, snd_texture, 0);
 
+    // Initialize sequence texture
+    printf("sequence texture width is: %d\n", sequence_texture_size); // TODO: remove
+    glGenTextures(1, &sequence_texture_handle);
+    glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sequence_texture_size, sequence_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, sequence_texture);
+    
     // Render sfx
     printf("nblocks: %d\n", nblocks1);
     for(int i=0; i<nblocks1; ++i)
@@ -536,6 +561,11 @@ int main(int argc, char **args)
         glUniform1f(sfx_samplerate_location, (float)sample_rate);
         glUniform1f(sfx_blockoffset_location, (float)tstart);
         glUniform1i(sfx_texs_location, texs);
+        glUniform1i(sfx_sequence_texture_location, 0);
+        glUniform1f(sfx_sequence_width_location, sequence_texture_size);
+        
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
         
         glBegin(GL_QUADS);
         glVertex3f(-1,-1,0);
@@ -557,13 +587,7 @@ int main(int argc, char **args)
     for(int j=0; j<2*nblocks1*block_size; ++j)
     {
         dest[j] = (buf[j]-(1<<15));
-//         buf[j] -= (1<<15);
-//         buf[j] /= (1<<15);
     }
-    
-//     FILE *f = fopen("SOUND", "wb");
-//     fwrite(smusic1, 1, 4*nblocks1*block_size, f);
-//     fclose(f);
     
     // Reset everything for rendering gfx again
     glViewport(0, 0, w, h);
@@ -596,6 +620,8 @@ int main(int argc, char **args)
 #undef VAR_ITIME
 #undef VAR_IFONT
 #undef VAR_IFONTWIDTH
+#undef VAR_ISEQUENCE
+#undef VAR_ISEQUENCEWIDTH
 #include "gfx.h"
 #ifndef VAR_IRESOLUTION
     #define VAR_IRESOLUTION "iResolution"
@@ -615,6 +641,12 @@ int main(int argc, char **args)
 #ifndef VAR_INBEATS
     #define VAR_INBEATS "iNBeats"
 #endif
+#ifndef VAR_ISEQUENCE
+    #define VAR_ISEQUENCE "iSequence"
+#endif
+#ifndef VAR_ISEQUENCEWIDTH
+    #define VAR_ISEQUENCEWIDTH "iSequenceWidth"
+#endif
     int gfx_size = strlen(gfx_frag),
         gfx_handle = glCreateShader(GL_FRAGMENT_SHADER);
     gfx_program = glCreateProgram();
@@ -630,6 +662,8 @@ int main(int argc, char **args)
     font_width_location = glGetUniformLocation(gfx_program, VAR_IFONTWIDTH);
     scale_location = glGetUniformLocation(gfx_program, VAR_ISCALE);
     nbeats_location = glGetUniformLocation(gfx_program, VAR_INBEATS);
+    gfx_sequence_texture_location = glGetUniformLocation(gfx_program, VAR_ISEQUENCE);
+    gfx_sequence_width_location = glGetUniformLocation(gfx_program, VAR_ISEQUENCEWIDTH);
     
     glUseProgram(gfx_program);
     glViewport(0, 0, w, h);
