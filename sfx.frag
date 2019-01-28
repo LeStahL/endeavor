@@ -17,7 +17,7 @@ float pseudorandom(float x) { return fract(sin(dot(vec2(x),vec2(12.9898,78.233))
 
 #define pat4(a,b,c,d,x) mod(x,1.)<.25 ? a : mod(x,1.)<.5 ? b : mod(x,1.) < .75 ? c : d
 
-const float BPM = 25.;
+const float BPM = 40.;
 const float BPS = BPM/60.;
 const float SPB = 60./BPM;
 
@@ -190,17 +190,10 @@ float AMAYSYN(float t, float B, float Bon, float Boff, float note, int Bsyn, flo
 	float s = _sin(t*f);
 
 	if(Bsyn == 0){}
-    else if(Bsyn == 2){
-      s = theta(Bprog)*exp(-16.*mod(Bprog,.125))*theta(Bprog)*exp(-1.5*Bprog)*(s_atan((0.+(1.*(2.*fract(f*t+0.)-1.)))+(0.+(1.*(2.*fract((1.-.01)*f*t+0.)-1.)))+(0.+(1.*(2.*fract((1.-.033)*f*t+0.)-1.)))+(0.+(1.*(2.*fract((1.-.04)*f*t+0.)-1.))))+.6*s_atan((0.+(1.*(2.*fract(.5*f*t+.01)-1.)))+(0.+(1.*(2.*fract((1.-.05)*.5*f*t+.01)-1.)))+(0.+(1.*(2.*fract((1.+.03)*.5*f*t+.01)-1.)))+(0.+(1.*(2.*fract((1.+.02)*.5*f*t+.01)-1.)))));
-    }
     else if(Bsyn == 3){
       s = (0.+(1.*_sin(f*t)))
       +-.1*GAC(t,0.,1.,2.,-.5,3.,2.,2.,-.25)*(0.+(1.*_sin(f*t)))
       +.1*GAC(t,0.,1.,2.,-.5,3.,2.,2.,-.25)*supershape((0.+(1.*_sin(f*t))),1.,.01,.7,.1,.6,.8);
-    }
-    else if(Bsyn == 6){
-      s = reverbFsaw3(_t,f,tL,.1,.00297,.00371,.00411,.00437,.3,.00017,.0005);
-env = theta(B-Bon)*pow(1.-smoothstep(Boff, Boff+Brel, B),.005);
     }
     
     
@@ -227,9 +220,9 @@ float rshort(float off)
 }
 
 // Read float value from texture at index off
-float rfloat(float off)
+float rfloat(int off)
 {
-    float d = rshort(off);
+    float d = rshort(float(off));
     float sign = floor(d/32768.),
         exponent = floor(d/1024.-sign*32.),
         significand = d-sign*32768.-exponent*1024.;
@@ -239,28 +232,28 @@ float rfloat(float off)
     return mix(1., -1., sign) * (1. + significand * 9.765625e-4) * pow(2.,exponent-15.);
 }
 
-#define NTRK 4.
-#define NMOD 24.
-#define NPTN 5.
-#define NNOT 166.
+#define NTRK 1
+#define NMOD 4
+#define NPTN 1
+#define NNOT 26
 
-int trk_sep(int index){return int(rfloat(float(index)));}
-int trk_syn(int index){return int(rfloat(NTRK+1.+float(index)));}
-float trk_norm(int index){return rfloat(2.*NTRK+1.+float(index));}
-float trk_rel(int index){return rfloat(3.*NTRK+1.+float(index));}
-float mod_on(int index){return rfloat(4.*NTRK+1.+float(index));}
-float mod_off(int index){return rfloat(4.*NTRK+NMOD+1.+float(index));}
-int mod_ptn(int index){return int(rfloat(4.*NTRK+2.*NMOD+1.+float(index)));}
-float mod_transp(int index){return rfloat(4.*NTRK+3.*NMOD+1.+float(index));}
-int ptn_sep(int index){return int(rfloat(4.*NTRK+4.*NMOD+1.+float(index)));}
-float note_on(int index){return rfloat(4.*NTRK+4.*NMOD+NPTN+2.+float(index));}
-float note_off(int index){return rfloat(4.*NTRK+4.*NMOD+NPTN+NNOT+2.+float(index));}
-float note_pitch(int index){return rfloat(4.*NTRK+4.*NMOD+NPTN+2.*NNOT+2.+float(index));}
-float note_vel(int index){return rfloat(4.*NTRK+4.*NMOD+NPTN+3.*NNOT+2.+float(index));}
+int trk_sep(int index)      {return int(rfloat(index));}
+int trk_syn(int index)      {return int(rfloat(index+1+1*NTRK));}
+float trk_norm(int index)   {return     rfloat(index+1+2*NTRK);}
+float trk_rel(int index)    {return     rfloat(index+1+3*NTRK);}
+float mod_on(int index)     {return     rfloat(index+1+4*NTRK);}
+float mod_off(int index)    {return     rfloat(index+1+4*NTRK+1*NMOD);}
+int mod_ptn(int index)      {return int(rfloat(index+1+4*NTRK+2*NMOD));}
+float mod_transp(int index) {return     rfloat(index+1+4*NTRK+3*NMOD);}
+int ptn_sep(int index)      {return int(rfloat(index+1+4*NTRK+4*NMOD));}
+float note_on(int index)    {return     rfloat(index+2+4*NTRK+4*NMOD+NPTN);}
+float note_off(int index)   {return     rfloat(index+2+4*NTRK+4*NMOD+NPTN+1*NNOT);}
+float note_pitch(int index) {return     rfloat(index+2+4*NTRK+4*NMOD+NPTN+2*NNOT);}
+float note_vel(int index)   {return     rfloat(index+2+4*NTRK+4*NMOD+NPTN+3*NNOT);}
 
 float mainSynth(float time)
 {
-    float max_mod_off = 26.;
+    float max_mod_off = 18.;
     int drum_index = 15;
     float drum_synths = 2.;
     
@@ -278,8 +271,7 @@ float mainSynth(float time)
     float Bon = 0.;
     float Boff = 0.;
 
-    int iNTRK = int(NTRK);
-    for(int trk = 0; trk < iNTRK; trk++)
+    for(int trk = 0; trk < NTRK; trk++)
     {
         int tsep = trk_sep(trk);
         int tlen = trk_sep(trk+1) - tsep;
