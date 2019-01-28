@@ -176,7 +176,7 @@ float reverbFsaw3(float time, float f, float tL, float IIRgain, float IIRdel1, f
 
 
 
-float AMAYSYN(float t, float B, float Bon, float Boff, float note, int Bsyn, float Brel)
+float AMAYSYN(float t, float B, float Bon, float Boff, float note, int Bsyn, float Bvel, float Brel)
 {
     float Bprog = B-Bon;
     float Bproc = Bprog/(Boff-Bon);
@@ -184,7 +184,6 @@ float AMAYSYN(float t, float B, float Bon, float Boff, float note, int Bsyn, flo
     float tL = SPB*L;
     float _t = SPB*(B-Bon);
     float f = freqC1(note);
-	float vel = 1.; //implement later
 
     float env = theta(B-Bon) * (1. - smoothstep(Boff, Boff+Brel, B));
 	float s = _sin(t*f);
@@ -233,7 +232,7 @@ float rfloat(int off)
 }
 
 #define NTRK 1
-#define NMOD 4
+#define NMOD 1
 #define NPTN 1
 #define NNOT 26
 
@@ -253,7 +252,7 @@ float note_vel(int index)   {return     rfloat(index+2+4*NTRK+4*NMOD+NPTN+3*NNOT
 
 float mainSynth(float time)
 {
-    float max_mod_off = 18.;
+    float max_mod_off = 4.;
     int drum_index = 15;
     float drum_synths = 2.;
     
@@ -304,17 +303,17 @@ float mainSynth(float time)
                 if(trk_syn(trk) == drum_index)
                 {
                     int Bdrum = int(mod(note_pitch(psep + _note), drum_synths));
-                    float Bvel = note_vel(psep + _note) * pow(2., mod_transp(tsep + _mod)/6.);
 
-                    //0 is for sidechaining - am I doing this right?
-                    if(Bdrum == 0)
+                    if(Bdrum == 0) // "sidechaining"
                         r_sidechain = 1. - smoothstep(Bon,Bon+1e-4,B) + smoothstep(Bon,Boff,B);
                     else
-                        d += trk_norm(trk) * AMAYSYN(time, B, Bon, Boff, Bvel, -Bdrum, trk_rel(trk));
+                        d += trk_norm(trk) * AMAYSYN(time, B, Bon, Boff, mod_transp(tsep + _mod),
+                                                     -Bdrum, note_vel(psep + _note), trk_rel(trk));
                 }
                 else
                 {
-                    r += trk_norm(trk) * AMAYSYN(time, B, Bon, Boff, note_pitch(psep+_note) + mod_transp(tsep+_mod), trk_syn(trk), trk_rel(trk));
+                    r += trk_norm(trk) * AMAYSYN(time, B, Bon, Boff, note_pitch(psep+_note) + mod_transp(tsep+_mod),
+                                                 trk_syn(trk), note_vel(psep + _note), trk_rel(trk));
                 }
             }
         }
@@ -329,4 +328,14 @@ vec2 mainSound(float t)
     float stereo_delay = 2e-4;
       
     return vec2(mainSynth(t), mainSynth(t-stereo_delay));
+}
+
+void main()
+{
+   float t = (iBlockOffset + (gl_FragCoord.x) + (gl_FragCoord.y)*iTexSize)/iSampleRate;
+   vec2 y = mainSound( t );
+   vec2 v  = floor((0.5+0.5*y)*65535.0);
+   vec2 vl = mod(v,256.0)/255.0;
+   vec2 vh = floor(v/256.0)/255.0;
+   gl_FragColor = vec4(vl.x,vh.x,vl.y,vh.y);
 }
