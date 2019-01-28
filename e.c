@@ -80,7 +80,7 @@ void *malloc( unsigned int size )
 
 // fonts
 #include "font/font.h"
-#include "sfxpack/sequence.h"
+#include "sequence.h"
 
 // OpenGL extensions
 PFNGLGETPROGRAMIVPROC glGetProgramiv;
@@ -757,4 +757,6 @@ int main(int argc, char **args)
     }
     return 0;
 #endif
+}
+dif
 }
