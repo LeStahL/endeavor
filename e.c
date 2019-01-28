@@ -493,8 +493,8 @@ int main(int argc, char **args)
 #ifndef VAR_IBLOCKOFFSET
     #define VAR_IBLOCKOFFSET "iBlockOffset"
 #endif
-#ifndef VAR_ITEXS
-    #define VAR_ITEXS "iTexS"
+#ifndef VAR_ITEXSIZE
+    #define VAR_ITEXSIZE "iTexSize"
 #endif
 #ifndef VAR_ISEQUENCE
     #define VAR_ISEQUENCE "iSequence"
@@ -515,7 +515,7 @@ int main(int argc, char **args)
     sfx_samplerate_location = glGetUniformLocation(sfx_program, VAR_ISAMPLERATE);
     sfx_blockoffset_location = glGetUniformLocation(sfx_program, VAR_IBLOCKOFFSET);
     sfx_volumelocation = glGetUniformLocation(sfx_program, VAR_IVOLUME);
-    sfx_texs_location = glGetUniformLocation(sfx_program, VAR_ITEXS);
+    sfx_texs_location = glGetUniformLocation(sfx_program, VAR_ITEXSIZE);
     sfx_sequence_texture_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCE);
     sfx_sequence_width_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCEWIDTH);
     
