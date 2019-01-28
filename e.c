@@ -15,6 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// define this to get some extra bytes
+//#define SUPER_SMALL
+
 // WIN32 code
 #ifdef _MSC_VER
 
@@ -126,8 +129,8 @@ void debug(int shader_handle)
 //TODO: use full hd again
 // Graphics shader globals
 // int w = 1366, h = 768,
-//int w = 800, h = 450,
-int w = 1920, h = 1080,
+int w = 800, h = 450,
+// int w = 1920, h = 1080,
     gfx_handle, gfx_program, 
     time_location, resolution_location, 
     font_texture_location, font_width_location,
@@ -151,6 +154,12 @@ float *smusic1;
 int music1_size;
 #define texs 1024
 int block_size = texs*texs;
+unsigned int paused = 0;
+
+#ifdef _MSC_VER
+HWAVEOUT hWaveOut;
+#endif
+double t_paused;
 
 // Pure opengl drawing code, essentially cross-platform
 void draw()
@@ -229,6 +238,29 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 case VK_ESCAPE:
                     ExitProcess(0);
                     break;
+#ifndef SUPER_SMALL
+                case VK_SPACE:
+                    // pause/unpaused render timer
+                    paused = !paused;
+                    if(paused)
+                    {
+                        SetTimer(hwnd, 1, USER_TIMER_MAXIMUM, NULL);
+                        waveOutPause(hWaveOut);
+                        
+                        t_paused = t_now;
+                    }
+                    else
+                    {
+                        SetTimer(hwnd, 1, 1000./60., NULL);
+                        waveOutRestart(hWaveOut);
+                        
+                        SYSTEMTIME st_now;
+                        GetSystemTime(&st_now);            
+                        t_now = (float)st_now.wMinute*60.+(float)st_now.wSecond+(float)st_now.wMilliseconds/1000.;
+                        t_start += t_now - t_paused;
+                    }
+                    break;
+#endif
             }
             break;
         
@@ -627,7 +659,7 @@ int main(int argc, char **args)
     
     // Play sound
 #ifdef _MSC_VER
-    HWAVEOUT hWaveOut = 0;
+    hWaveOut = 0;
     int n_bits_per_sample = 16;
 	WAVEFORMATEX wfx = { WAVE_FORMAT_PCM, channels, sample_rate, sample_rate*channels*n_bits_per_sample/8, channels*n_bits_per_sample/8, n_bits_per_sample, 0 };
 	waveOutOpen(&hWaveOut, WAVE_MAPPER, &wfx, 0, 0, CALLBACK_NULL);
