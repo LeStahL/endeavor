@@ -23,6 +23,8 @@ uniform float iTime;
 uniform vec2 iResolution;
 uniform sampler2D iFont;
 uniform float iFontWidth;
+uniform sampler2D iSequence;
+uniform float iSequenceWidth;
 
 // Global constants
 const vec3 c = vec3(1.,0.,-1.);
@@ -75,6 +77,30 @@ float rfloat(float off)
         significand = d-sign*32768.-exponent*1024.;
 
     // Return full float16
+    if(exponent == 0.)
+         return mix(1., -1., sign) * 5.960464477539063e-08 * significand;
+    return mix(1., -1., sign) * (1. + significand * 9.765625e-4) * pow(2.,exponent-15.);
+}
+
+// Read short value from texture at index off
+float rshorts(float off)
+{
+    float hilo = mod(off, 2.);
+    off *= .5;
+    vec2 ind = (vec2(mod(off, iSequenceWidth), floor(off/iSequenceWidth))+.05)/iSequenceWidth;
+    vec4 block = texture(iSequence, ind);
+    vec2 data = mix(block.rg, block.ba, hilo);
+    return round(dot(vec2(255., 65280.), data));
+}
+
+// Read float value from texture at index off
+float rfloats(float off)
+{
+    float d = rshorts(off);
+    float sign = floor(d/32768.),
+        exponent = floor(d/1024.-sign*32.),
+        significand = d-sign*32768.-exponent*1024.;
+
     if(exponent == 0.)
          return mix(1., -1., sign) * 5.960464477539063e-08 * significand;
     return mix(1., -1., sign) * (1. + significand * 9.765625e-4) * pow(2.,exponent-15.);
@@ -769,9 +795,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 #endif
 //     if(iTime < 1000.)
 //     {
-// //         float d = dglyph(uv, 57., .1);
+//         float d = dglyph(uv, 57., .1);
 //         //float d = dstring(uv-.1, 1., .05);
-//         float d = dfloat(uv, -8.901e-4, .05);
+//         float d = dfloat(uv, rfloats(3.), .05);
 //         if(d == 1.)col += c.yxy;
 //         else
 //         {
