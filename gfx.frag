@@ -760,13 +760,7 @@ vec3 background2(vec2 uv)
     // blend to gray (t < 16.)
     structure = mix(structure, hexagon(18.*uv), clamp(.25*(iTime-12.), 0., 1.));
     
-    // blend hexagons smaller (t < 18.)
-    d = mix(d, stroke(-hexagon(38.*uv), .1), clamp(.5*(iTime-16.), 0., 1.));
-    structure = mix(structure, hexagon(38.*uv), clamp(.5*(iTime-16.), 0., 1.));
-    vec2 dind = ind/38.;
-    dind = vec2(dind.x/1.2, dind.y);
-    dind = vec2(dind.x, dind.y-dind.x*.6);
-    cind = mix(cind, dind,  clamp(.5*(iTime-16.), 0., 1.));
+    vec2 dind = cind;
     
     // Show demo name: "Endeavor" (t < 25.)
     float endeavor = dstring(cind+2.*(-6.+1.2*iTime-1.2*14.)*c.xy, 0., .8);
