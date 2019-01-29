@@ -31,7 +31,7 @@ uniform float iExecutableSize;
 const vec3 c = vec3(1.,0.,-1.);
 const float pi = acos(-1.);
 float a; // Aspect ratio
-#define FSAA 2 // Antialiasing
+#define FSAA 1 // Antialiasing
 
 // Global variables
 // vec3 col = c.yyy;
@@ -569,6 +569,46 @@ vec2 texteffect(vec3 x)
     return sdf;
 }
 
+vec3 post1(vec2 uv, vec3 col)
+{
+    // Preparations
+    vec3 blu = vec3(.2, .68, 1.);
+    float px = 1.5/iResolution.y;
+    
+    // 210 logo
+    col = mix(clamp(col,c.yyy,c.xxx), c.xxx, smoothstep(px, -px, stroke(logo(uv-2.*vec2(-.45*a,.45),.04),.01)));
+    
+    // bounding box for time display
+    float dt0 = stroke(lineseg(uv-2.*vec2(-.45*a, .45)-.2*c.xy, c.yy, 1.*c.xy), .05);
+    col = mix(col, mix(col, blu, .5), smoothstep(px, -px, dt0));
+    float dt1 = stroke(dt0, .0025);
+    col = mix(col, blu, smoothstep(px, -px, dt1));
+    
+    // "elapsed:" text with time display
+    float dta = dstring(uv-2.*vec2(-.45*a,.45)-.3*c.xy,1., .025);
+    dta = min(dta, dfloat(uv-2.*vec2(-.45*a,.45)-.7*c.xy, iTime, .025));
+    dta = stroke(dta, .0025);
+    col = mix(col, clamp(1.*blu, 0., 1.), smoothstep(px, -px, dta));
+    
+    // bounding box for size display
+    dt0 = stroke(lineseg(uv-2.*vec2(-.45*a, .45)-1.4*c.xy, c.yy, 1.*c.xy), .05);
+    col = mix(col, mix(col, blu, .5), smoothstep(px, -px, dt0));
+    dt1 = stroke(dt0, .0025);
+    col = mix(col, blu, smoothstep(px, -px, dt1));
+    
+    // "size:" text with size
+    dta = dstring(uv-2.*vec2(-.45*a,.45)-1.5*c.xy,2., .025);
+    dta = min(dta, dfloat(uv-2.*vec2(-.45*a,.45)-1.7*c.xy, iExecutableSize, .025));
+    dta = stroke(dta, .0025);
+    col = mix(col, clamp(1.*blu, 0., 1.), smoothstep(px, -px, dta));
+    
+    // scanlines
+    col += vec3(0., 0.05, 0.1)*sin(uv.y*1050.+ 5.*iTime);
+    col = clamp(col,c.yyy,c.xxx);
+    
+    return col;
+}
+
 //performs raymarching
 //scene: name of the scene function
 //xc: 	 name of the coordinate variable
@@ -627,25 +667,7 @@ vec2 texteffect(vec3 x)
 //uv:  fragment coordinate
 #define post(color, uv) \
     {\
-        col = mix(clamp(col,c.yyy,c.xxx), c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, stroke(logo(uv-2.*vec2(-.45*a,.45),.04),.01)));\
-        col += vec3(0., 0.05, 0.1)*sin(uv.y*1050.+ 5.*iTime);\
-        col = clamp(col,c.yyy,c.xxx);\
-        float dt0 = stroke(lineseg(uv-2.*vec2(-.45*a, .45)-.2*c.xy, c.yy, 1.*c.xy), .05);\
-        float dt1 = stroke(dt0, .005);\
-        col = mix(col, mix(col, vec3(.2, .68, 1.), .5), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, dt0));\
-        col = mix(col, vec3(.2, .68, 1.), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, dt1));\
-        float dta = dstring(uv-2.*vec2(-.45*a,.45)-.3*c.xy,1., .025);\
-        dta = min(dta, dfloat(uv-2.*vec2(-.45*a,.45)-.7*c.xy, iTime, .025));\
-        dta = stroke(dta, .005);\
-        col = mix(col, clamp(1.*vec3(.2, .68, 1.), 0., 1.), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, dta));\
-        dt0 = stroke(lineseg(uv-2.*vec2(-.45*a, .45)-1.4*c.xy, c.yy, 1.*c.xy), .05);\
-        dt1 = stroke(dt0, .005);\
-        col = mix(col, mix(col, vec3(.2, .68, 1.), .5), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, dt0));\
-        col = mix(col, vec3(.2, .68, 1.), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, dt1));\
-        dta = dstring(uv-2.*vec2(-.45*a,.45)-1.5*c.xy,2., .025);\
-        dta = min(dta, dfloat(uv-2.*vec2(-.45*a,.45)-1.7*c.xy, iExecutableSize, .025));\
-        dta = stroke(dta, .005);\
-        col = mix(col, clamp(1.*vec3(.2, .68, 1.), 0., 1.), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, dta));\
+        color = post1(uv, color);\
     }
     
 //camera for scene 1
