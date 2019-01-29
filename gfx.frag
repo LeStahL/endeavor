@@ -610,10 +610,14 @@ vec3 post1(vec2 uv, vec3 col)
     float px = 1.5/iResolution.y;
     
     // 210 logo
-    col = mix(clamp(col,c.yyy,c.xxx), c.xxx, smoothstep(px, -px, stroke(logo(uv-2.*vec2(-.45*a,.45),.04),.01)));
+    float dt0 = logo(uv-2.*vec2(-.45*a,.45),.04);
+    dt0 = stroke(dt0, .01);
+    col = mix(col, mix(col, blu, .5), smoothstep(px, -px ,dt0));
+    dt0 = stroke(dt0, .0025);
+    col = mix(col, blu, smoothstep(px, -px ,dt0));
     
     // bounding box for time display
-    float dt0 = stroke(lineseg(uv-2.*vec2(-.45*a, .45)-.2*c.xy, c.yy, 1.*c.xy), .05);
+    dt0 = stroke(lineseg(uv-2.*vec2(-.45*a, .45)-.2*c.xy, c.yy, 1.*c.xy), .05);
     col = mix(col, mix(col, blu, .5), smoothstep(px, -px, dt0));
     float dt1 = stroke(dt0, .0025);
     col = mix(col, blu, smoothstep(px, -px, dt1));
