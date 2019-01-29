@@ -553,7 +553,7 @@ vec2 textpre(vec3 x)
     return sdf;
 }
 
-// 3D Effect on text in intro
+// 3D Effect on text in intro (210 logo)
 vec2 texteffect(vec3 x)
 {
     // Start with z=0 plane
@@ -580,6 +580,17 @@ vec2 texteffect(vec3 x)
     float guard = -length(max(abs(y)-vec3(.5*dr*c.xx, .6),0.));
     guard = abs(guard)+dr*.1;
     sdf.x = min(sdf.x, guard);
+    
+    return sdf;
+}
+
+vec2 texteffect2(vec3 x) // text effect for endeavor text (bounce with rhythm
+{
+    vec2 sdf = vec2(x.z, 7.);
+    
+//     float endeavor = dstring(cind+2.*(-6.+1.2*iTime-1.2*14.)*c.xy, 0., .8);
+//     endeavor = stroke(endeavor, .2);
+//     structure = mix(structure, endeavor, clamp(.25*(iTime-14.), 0., 1.));
     
     return sdf;
 }
