@@ -139,7 +139,6 @@ int w = 1920, h = 1080,
     sfx_program, sfx_blockoffset_location, 
     sfx_samplerate_location, sfx_volumelocation, 
     sfx_texs_location,
-    scale_location, nbeats_location,
     sfx_sequence_texture_location, sfx_sequence_width_location,
     gfx_sequence_texture_location, gfx_sequence_width_location,
     gfx_executable_size_location;
@@ -149,7 +148,6 @@ double t_start = 0.,
     t_now = 0., 
     t_end = 180.; // TODO: set to sensible end
 unsigned int font_texture_handle, sequence_texture_handle;
-float nbeats = 0., scale = 0., oldscale = 0., ooldscale = 0.;
 float executable_size = 0.;
 
 // Music shader globals
@@ -176,45 +174,11 @@ void draw()
 #else
         exit(0)
 #endif
-        
-    // Compute scale and nbeats
-    ooldscale = oldscale;
-    oldscale = scale;
-    scale = 0.;
-        
-    // First determine index that matches the current time
-    int index = (t_now-t_start)*sample_rate,
-        window_length = 512;
-    index = min(index, 4*music1_size-1);
-    index = max(index, 0);
-    
-    for(int i=-window_length/2; i<window_length/2; ++i)
-    {
-        // Find sample index
-        int j = index + i;
-        j = max(j,0);
-        j = min(j,4*music1_size-1);
-        
-        // Compute FFT at position k
-        int k = 2;
-        float val = ((float)*(unsigned short*)(smusic1+j)-65536/4)/1024.;
-        scale += val*val;// * cos(2.*acos(-1.)*(float)(k*j)/(float)window_length);
-    }
-    
-    scale /= window_length/6.;
-//     printf("%le \n", scale);
-    scale = max(scale, 0.);
-    scale = min(scale, 1.);
-    
-    // Modify number of beats only when clamped
-    if(oldscale + ooldscale + scale == 3.) nbeats += 1.;
     
     glUniform1i(font_texture_location, 0);
     glUniform1f(font_width_location, font_texture_size);
     glUniform1i(gfx_sequence_texture_location, 1);
     glUniform1f(gfx_sequence_width_location, sequence_texture_size);
-    glUniform1f(scale_location, .3*(scale+oldscale+ooldscale));
-    glUniform1f(nbeats_location, nbeats);
     glUniform1f(gfx_executable_size_location, executable_size);
     
     glActiveTexture(GL_TEXTURE0);
@@ -652,12 +616,6 @@ int main(int argc, char **args)
 #ifndef VAR_IFONTWIDTH
     #define VAR_IFONTWIDTH "iFontWidth"
 #endif
-#ifndef VAR_ISCALE
-    #define VAR_ISCALE "iScale"
-#endif
-#ifndef VAR_INBEATS
-    #define VAR_INBEATS "iNBeats"
-#endif
 #ifndef VAR_ISEQUENCE
     #define VAR_ISEQUENCE "iSequence"
 #endif
@@ -680,8 +638,6 @@ int main(int argc, char **args)
     resolution_location = glGetUniformLocation(gfx_program, VAR_IRESOLUTION);
     font_texture_location = glGetUniformLocation(gfx_program, VAR_IFONT);
     font_width_location = glGetUniformLocation(gfx_program, VAR_IFONTWIDTH);
-    scale_location = glGetUniformLocation(gfx_program, VAR_ISCALE);
-    nbeats_location = glGetUniformLocation(gfx_program, VAR_INBEATS);
     gfx_sequence_texture_location = glGetUniformLocation(gfx_program, VAR_ISEQUENCE);
     gfx_sequence_width_location = glGetUniformLocation(gfx_program, VAR_ISEQUENCEWIDTH);
     gfx_executable_size_location = glGetUniformLocation(gfx_program, VAR_IEXECUTABLESIZE);
