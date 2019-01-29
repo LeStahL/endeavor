@@ -31,7 +31,7 @@ uniform float iExecutableSize;
 const vec3 c = vec3(1.,0.,-1.);
 const float pi = acos(-1.);
 float a; // Aspect ratio
-#define FSAA 1 // Antialiasing
+#define FSAA 2 // Antialiasing
 
 // Global variables
 // vec3 col = c.yyy;
@@ -538,6 +538,21 @@ vec2 greetings(vec3 x)
     return sdf;
 }
 
+// graph traversal for text effect
+vec2 textpre(vec3 x)
+{
+    vec2 sdf =  vec2(x.z, 7.);
+    float structure = stroke(logo(x.xy+.3*c.xy,.6),.25);
+    float blend = smoothstep(2., 6., iTime)*(1.-smoothstep(6.,12.,iTime));
+    if(structure < 0. && blend >= 1.e-3)
+    {
+        float blend = smoothstep(2., 6., iTime)*(1.-smoothstep(6.,12.,iTime));
+        sdf = vec2(stroke(zextrude(x.z, 1.5*x.z-stroke(logo(x.xy+.3*c.xy,.6),.25), 1.*blend*clamp(1.-exp(-(x.x-34.)-8.*iTime), 0., .5)), .05*blend), 7.);
+    }
+    sdf.x = abs(sdf.x)-.3;
+    return sdf;
+}
+
 // 3D Effect on text in intro
 vec2 texteffect(vec3 x)
 {
@@ -556,7 +571,7 @@ vec2 texteffect(vec3 x)
     if(structure < 0. && blend >= 1.e-3)
     {
         float blend = smoothstep(2., 6., iTime)*(1.-smoothstep(6.,12.,iTime));
-        sdf = vec2(stroke(zextrude(x.z, 2.*x.z-stroke(logo(cind.xy+.3*c.xy,.6),.25), (.8+.4*snoise(4.*cind.xy-iTime))*blend*clamp(1.-exp(-(ind.x-34.)-8.*iTime), 0., 1.)), .05*blend), 7.);
+        sdf = vec2(stroke(zextrude(x.z, 2.*x.z-stroke(logo(cind.xy+.3*c.xy,.6),.25), (.6+.15*snoise(4.*cind.xy-iTime))*blend*clamp(1.-exp(-(ind.x-34.)-8.*iTime), 0., 1.)), .05*blend), 7.);
     }
     
     // Add guard objects for debugging
@@ -822,7 +837,6 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     uv = (-iResolution.xy + 2.*(fragCoord+o))/iResolution.y;
 #else 
     uv = (-iResolution.xy + 2.*fragCoord)/iResolution.y;
-    
 #endif
 //     if(iTime < 1000.)
 //     {
@@ -842,12 +856,16 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         vec3 c1 = c.yyy;
         
         camerasetup(camera0, ro, r, u, t, uv, dir);
-        raymarch(texteffect, x, ro, d, dir, s, 500, 2.e-5, hit);
+//         d = (.8-ro.z)/dir.z;
+        raymarch(textpre, x, ro, d, dir, s, 100, 2.e-5, hit);
+        if(hit) hit = false;
+        else d = -ro.z/dir.z;
+        raymarch(texteffect, x, ro, d, dir, s, 200, 2.e-5, hit);
         
         if(hit)
         {
             vec3 n;
-            calcnormal(scene, n, 2.e-3, x);
+            calcnormal(scene, n, 2.e-4, x);
 
             float rs = 1.9;
             vec3 l = x+1.*c.yyx,
@@ -857,18 +875,17 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
             c1 = color(rev, ln, s.y, uv, x);
         }
-        else c1 = c.yyy;// background2(uv);
+        else c1 = background2((ro-ro.z/dir.z*dir).xy);
         
         col += c1;
     }
     else if(iTime < 10000.)
     {
         vec3 c1 = c.yyy;
-    
-        d = 0.;
-    
         camerasetup(camera1, ro, r, u, t, uv, dir);
+        d = 0.;
         raymarch(inset, x, ro, d, dir, s, 40, 1.e-4, hit);
+        if(hit) hit = false;
         raymarch(scene, x, ro, d, dir, s, 300, 1.e-4, hit);
         
         if(hit)
