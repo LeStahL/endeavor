@@ -17,8 +17,7 @@
 
 #version 130
 
-uniform float iNBeats;
-uniform float iScale;
+float iScale, iNBeats;
 uniform float iTime;
 uniform vec2 iResolution;
 uniform sampler2D iFont;
@@ -105,6 +104,91 @@ float rfloats(float off)
     if(exponent == 0.)
          return mix(1., -1., sign) * 5.960464477539063e-08 * significand;
     return mix(1., -1., sign) * (1. + significand * 9.765625e-4) * pow(2.,exponent-15.);
+}
+
+// TODO: COPY THIS FROM SFX SHADER TO ACHIEVE SYNC
+#define NTRK 2
+#define NMOD 5
+#define NPTN 2
+#define NNOT 32
+
+int trk_sep(int index)      {return int(rfloats(index));}
+int trk_syn(int index)      {return int(rfloats(index+1+1*NTRK));}
+float trk_norm(int index)   {return     rfloats(index+1+2*NTRK);}
+float trk_rel(int index)    {return     rfloats(index+1+3*NTRK);}
+float mod_on(int index)     {return     rfloats(index+1+4*NTRK);}
+float mod_off(int index)    {return     rfloats(index+1+4*NTRK+1*NMOD);}
+int mod_ptn(int index)      {return int(rfloats(index+1+4*NTRK+2*NMOD));}
+float mod_transp(int index) {return     rfloats(index+1+4*NTRK+3*NMOD);}
+int ptn_sep(int index)      {return int(rfloats(index+1+4*NTRK+4*NMOD));}
+float note_on(int index)    {return     rfloats(index+2+4*NTRK+4*NMOD+NPTN);}
+float note_off(int index)   {return     rfloats(index+2+4*NTRK+4*NMOD+NPTN+1*NNOT);}
+float note_pitch(int index) {return     rfloats(index+2+4*NTRK+4*NMOD+NPTN+2*NNOT);}
+float note_vel(int index)   {return     rfloats(index+2+4*NTRK+4*NMOD+NPTN+3*NNOT);}
+
+const float BPM = 35.;
+const float BPS = BPM/60.;
+const float SPB = 60./BPM;
+
+// Extract drum signal
+float scale()
+{
+    float max_mod_off = 4.;
+    int drum_index = 24;
+    float drum_synths = 10.;
+    
+    float r = 0.;
+    float d = 0.;
+
+    // mod for looping
+    float BT = mod(BPS * iTime*44100., max_mod_off);
+    if(BT > max_mod_off) return r;
+    float time = SPB * BT;
+
+    float r_sidechain = 1.;
+
+    float Bon = 0.;
+    float Boff = 0.;
+    
+    for(int trk = 0; trk < NTRK; trk++)
+    {
+        if(trk == drum_index) continue;
+        int tsep = trk_sep(trk);
+        int tlen = trk_sep(trk+1) - tsep;
+
+        int _modU = tlen-1;
+        for(int i=0; i<tlen-1; i++) if(BT < mod_on(tsep + i)) {_modU = i; break;}
+               
+        int _modL = tlen-1;
+        for(int i=0; i<tlen-1; i++) if(BT < mod_off(tsep + i) + trk_rel(trk)) {_modL = i; break;}
+       
+        for(int _mod = _modL; _mod <= _modU; _mod++)
+        {
+            float B = BT - mod_on(tsep + _mod);
+
+            int ptn = mod_ptn(tsep + _mod);
+            int psep = ptn_sep(ptn);
+            int plen = ptn_sep(ptn+1) - psep;
+            
+            int _noteU = plen-1;
+            for(int i=0; i<plen-1; i++) if(B < note_on(psep + i + 1)) {_noteU = i; break;}
+
+            int _noteL = plen-1;
+            for(int i=0; i<plen-1; i++) if(B <= note_off(psep + i ) + trk_rel(trk)) {_noteL = i; break;}
+           
+            for(int _note = _noteL; _note <= _noteU; _note++)
+            {
+                Bon    = note_on(psep + _note);
+                Boff   = note_off(psep + _note);
+
+                int Bdrum = int(note_pitch(psep + _note)); //int(mod(note_pitch(psep + _note), drum_synths));
+                d = max(d, clamp(smoothstep(Bon, mix(Bon, 3.*Boff-2.*Bon, .5), time)*(1.-smoothstep(mix(Bon,  3.*Boff-2.*Bon, .5),  3.*Boff-2.*Bon, time)), 0., 1.));
+            }
+            
+            return d;
+        }
+    }
+    return 0.;
 }
 
 // Hash function
@@ -836,6 +920,8 @@ vec3 color(float rev, float ln, float mat, vec2 uv, vec3 x)
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
+    
+    iScale = scale();
     a = iResolution.x/iResolution.y;
     vec3 ro, r, u, t, x, dir;
     vec2 s, uv;
@@ -855,6 +941,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 #else 
     uv = (-iResolution.xy + 2.*fragCoord)/iResolution.y;
 #endif
+    if(iTime < 1000.)
+        col += step(uv.y, iScale)*c.xxy;
 //     if(iTime < 1000.)
 //     {
 //         float d = dglyph(uv, 57., .1);
@@ -867,7 +955,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 //             col +=  mix(c.yyy, c.xyy, smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
 //         }
 //     }
-//     else
+    else
     if(iTime < 28.) // "Enter the Logic Farm" logo/title, t < 31.
     {
         vec3 c1 = c.yyy;
