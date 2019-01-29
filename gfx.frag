@@ -597,6 +597,14 @@ vec2 texteffect2(vec3 x) // text effect for endeavor text (bounce with rhythm
 
 vec3 post1(vec2 uv, vec3 col)
 {
+    if(uv.y < .8) 
+    {
+        // scanlines
+        col += vec3(0., 0.05, 0.1)*sin(uv.y*1050.+ 5.*iTime);
+        col = clamp(col,c.yyy,c.xxx);
+        return col;
+    }
+    
     // Preparations
     vec3 blu = vec3(.2, .68, 1.);
     float px = 1.5/iResolution.y;

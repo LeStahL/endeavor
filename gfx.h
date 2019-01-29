@@ -332,6 +332,8 @@ const char *gfx_frag =
  "}"
  "vec3 post1(vec2 uv,vec3 col)"
  "{"
+   "if(uv.y<.8)"
+     "return col+=vec3(0.,.05,.1)*sin(uv.y*1050.+5.*iTime),col=clamp(col,c.yyy,c.xxx),col;"
    "vec3 blu=vec3(.2,.68,1.);"
    "float px=1.5/iResolution.y;"
    "col=mix(clamp(col,c.yyy,c.xxx),c.xxx,smoothstep(px,-px,stroke(logo(uv-2.*vec2(-.45*a,.45),.04),.01)));"
