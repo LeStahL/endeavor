@@ -141,7 +141,7 @@ float scale(float t)
     float d = 0.;
 
     // mod for looping
-    float BT = mod(BPS * t*44100., max_mod_off);
+    float BT = mod(BPS * t, max_mod_off);
     if(BT > max_mod_off) return r;
     float time = SPB * BT;
 
@@ -152,16 +152,16 @@ float scale(float t)
     
     for(int trk = 0; trk < NTRK; trk++)
     {
-        if(trk == drum_index) continue;
+        if(trk_syn(trk) != drum_index) continue;
         int tsep = trk_sep(trk);
         int tlen = trk_sep(trk+1) - tsep;
 
         int _modU = tlen-1;
-        for(int i=0; i<tlen-1; i++) if(BT < mod_on(tsep + i)) {_modU = i; break;}
+        for(int i=0; i<tlen-1; i++) if(BT < mod_on(tsep + i + 1)) {_modU = i; break;}
                
         int _modL = tlen-1;
         for(int i=0; i<tlen-1; i++) if(BT < mod_off(tsep + i) + trk_rel(trk)) {_modL = i; break;}
-       
+        
         for(int _mod = _modL; _mod <= _modU; _mod++)
         {
             float B = BT - mod_on(tsep + _mod);
@@ -181,16 +181,16 @@ float scale(float t)
                 Bon    = note_on(psep + _note);
                 Boff   = note_off(psep + _note);
 
-                //int Bdrum = int(note_pitch(psep + _note)); //int(mod(note_pitch(psep + _note), drum_synths));
-                float BT1 = SPB*mod(BPS * t*44100., .2*BPS*44100.)-SPB*BPS*.1*44100.;
-                float env = mix(Bon, Boff, .5);
-                env = smoothstep(env-.1*BPS*44100., env, BT1);
-                env = min(env, 1.-smoothstep(env, env+.1*BPS*44100., BT1));
-                d = max(d, env);
+                int Bdrum = int(note_pitch(psep + _note));
+                if(Bdrum != 0)
+                {
+                    float env = step(Bon, B)*step(B, Bon+.1);
+                    d = max(d, env);
+                }
 //                 d = max(d, clamp(smoothstep(Bon, mix(Bon, 3.*Boff-2.*Bon, .5), time)*(1.-smoothstep(mix(Bon,  3.*Boff-2.*Bon, .5),  3.*Boff-2.*Bon, time)), 0., 1.));
             }
             
-            return .5*d;
+            return d;
         }
     }
     return 0.;

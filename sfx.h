@@ -362,7 +362,7 @@ const char *sfx_frag =
      "{"
        "int t=o(m),W=o(m+1)-t,c=W-1;"
        "for(int w=0;w<W-1;w++)"
-         "if(N<h(t+w))"
+         "if(N<h(t+w+1))"
            "{"
              "c=w;"
              "break;"

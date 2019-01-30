@@ -387,7 +387,7 @@ float mainSynth(float time)
         int tlen = trk_sep(trk+1) - tsep;
 
         int _modU = tlen-1;
-        for(int i=0; i<tlen-1; i++) if(BT < mod_on(tsep + i)) {_modU = i; break;}
+        for(int i=0; i<tlen-1; i++) if(BT < mod_on(tsep + i + 1)) {_modU = i; break;}
                
         int _modL = tlen-1;
         for(int i=0; i<tlen-1; i++) if(BT < mod_off(tsep + i) + trk_rel(trk)) {_modL = i; break;}
