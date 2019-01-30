@@ -94,9 +94,9 @@ float rshorts(float off)
 }
 
 // Read float value from texture at index off
-float rfloats(float off)
+float rfloats(int off)
 {
-    float d = rshorts(off);
+    float d = rshorts(float(off));
     float sign = floor(d/32768.),
         exponent = floor(d/1024.-sign*32.),
         significand = d-sign*32768.-exponent*1024.;
@@ -135,18 +135,10 @@ float scale(float t)
 {
     float max_mod_off = 4.;
     int drum_index = 24;
-    float drum_synths = 10.;
-    
-    float r = 0.;
     float d = 0.;
 
     // mod for looping
     float BT = mod(BPS * t, max_mod_off);
-    if(BT > max_mod_off) return r;
-    float time = SPB * BT;
-
-    float r_sidechain = 1.;
-
     float Bon = 0.;
     float Boff = 0.;
     
@@ -182,12 +174,11 @@ float scale(float t)
                 Boff   = note_off(psep + _note);
 
                 int Bdrum = int(note_pitch(psep + _note));
-                if(Bdrum != 0)
+//                 if(Bdrum != 0)
                 {
-                    float env = step(Bon, B)*step(B, Bon+.1);
+                    float env = smoothstep(Bon, Bon+.1, B)*(1.-smoothstep(Bon+.1, Bon+.2, B));
                     d = max(d, env);
                 }
-//                 d = max(d, clamp(smoothstep(Bon, mix(Bon, 3.*Boff-2.*Bon, .5), time)*(1.-smoothstep(mix(Bon,  3.*Boff-2.*Bon, .5),  3.*Boff-2.*Bon, time)), 0., 1.));
             }
             
             return d;
@@ -947,6 +938,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 #endif
     if(iTime < 1000.)
     {
+//         vec3 c1 = texture(iSequence, uv).rgb;
         vec3 c1 = c.yyy;
         float st = scale(iTime);
         iScale = scale(iTime-uv.x);
