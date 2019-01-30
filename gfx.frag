@@ -182,10 +182,10 @@ float scale(float t)
                 Boff   = note_off(psep + _note);
 
                 //int Bdrum = int(note_pitch(psep + _note)); //int(mod(note_pitch(psep + _note), drum_synths));
-                float BT1 = mod(BPS * t*44100., .2*BPS*44100.)-BPS*.1*44100.;
+                float BT1 = SPB*mod(BPS * t*44100., .2*BPS*44100.)-SPB*BPS*.1*44100.;
                 float env = mix(Bon, Boff, .5);
-                env = smoothstep(env-.1*44100., env, BT1);
-                env = min(env, 1.-smoothstep(env, env+.1*44100., BT1));
+                env = smoothstep(env-.1*BPS*44100., env, BT1);
+                env = min(env, 1.-smoothstep(env, env+.1*BPS*44100., BT1));
                 d = max(d, env);
 //                 d = max(d, clamp(smoothstep(Bon, mix(Bon, 3.*Boff-2.*Bon, .5), time)*(1.-smoothstep(mix(Bon,  3.*Boff-2.*Bon, .5),  3.*Boff-2.*Bon, time)), 0., 1.));
             }
@@ -947,10 +947,13 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 #endif
     if(iTime < 1000.)
     {
+        vec3 c1 = c.yyy;
         float st = scale(iTime);
         iScale = scale(iTime-uv.x);
         if(uv.y > 0.)  
-            col += step(uv.y, iScale)*mix(c.xxy, c.xyy, st);
+            c1 += step(uv.y, iScale)*mix(c.xxy, c.xyy, st);
+        c1 = mix(c1, c.xxy, step(abs(uv.x), .01));
+        col += c1;
     }
 //     if(iTime < 1000.)
 //     {
