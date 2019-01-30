@@ -131,8 +131,8 @@ void debug(int shader_handle)
 //TODO: use full hd again
 // Graphics shader globals
 // int w = 1366, h = 768,
-// int w = 800, h = 450,
-int w = 1920, h = 1080,
+int w = 800, h = 450,
+// int w = 1920, h = 1080,
     gfx_handle, gfx_program, 
     time_location, resolution_location, 
     font_texture_location, font_width_location,

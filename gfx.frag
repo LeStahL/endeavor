@@ -131,7 +131,7 @@ const float BPS = BPM/60.;
 const float SPB = 60./BPM;
 
 // Extract drum signal
-float scale()
+float scale(float t)
 {
     float max_mod_off = 4.;
     int drum_index = 24;
@@ -141,7 +141,7 @@ float scale()
     float d = 0.;
 
     // mod for looping
-    float BT = mod(BPS * iTime*44100., max_mod_off);
+    float BT = mod(BPS * t*44100., max_mod_off);
     if(BT > max_mod_off) return r;
     float time = SPB * BT;
 
@@ -181,11 +181,16 @@ float scale()
                 Bon    = note_on(psep + _note);
                 Boff   = note_off(psep + _note);
 
-                int Bdrum = int(note_pitch(psep + _note)); //int(mod(note_pitch(psep + _note), drum_synths));
-                d = max(d, clamp(smoothstep(Bon, mix(Bon, 3.*Boff-2.*Bon, .5), time)*(1.-smoothstep(mix(Bon,  3.*Boff-2.*Bon, .5),  3.*Boff-2.*Bon, time)), 0., 1.));
+                //int Bdrum = int(note_pitch(psep + _note)); //int(mod(note_pitch(psep + _note), drum_synths));
+                float BT1 = mod(BPS * t*44100., .2*BPS*44100.)-BPS*.1*44100.;
+                float env = mix(Bon, Boff, .5);
+                env = smoothstep(env-.1*44100., env, BT1);
+                env = min(env, 1.-smoothstep(env, env+.1*44100., BT1));
+                d = max(d, env);
+//                 d = max(d, clamp(smoothstep(Bon, mix(Bon, 3.*Boff-2.*Bon, .5), time)*(1.-smoothstep(mix(Bon,  3.*Boff-2.*Bon, .5),  3.*Boff-2.*Bon, time)), 0., 1.));
             }
             
-            return d;
+            return .5*d;
         }
     }
     return 0.;
@@ -921,7 +926,6 @@ vec3 color(float rev, float ln, float mat, vec2 uv, vec3 x)
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     
-    iScale = scale();
     a = iResolution.x/iResolution.y;
     vec3 ro, r, u, t, x, dir;
     vec2 s, uv;
@@ -942,7 +946,12 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     uv = (-iResolution.xy + 2.*fragCoord)/iResolution.y;
 #endif
     if(iTime < 1000.)
-        col += step(uv.y, iScale)*c.xxy;
+    {
+        float st = scale(iTime);
+        iScale = scale(iTime-uv.x);
+        if(uv.y > 0.)  
+            col += step(uv.y, iScale)*mix(c.xxy, c.xyy, st);
+    }
 //     if(iTime < 1000.)
 //     {
 //         float d = dglyph(uv, 57., .1);
