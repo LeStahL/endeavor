@@ -17,7 +17,7 @@
 
 #version 130
 
-float iScale, iNBeats;
+float iScale, iNBeats = 0.;
 uniform float iTime;
 uniform vec2 iResolution;
 uniform sampler2D iFont;
@@ -162,11 +162,11 @@ float scale(float t)
             int psep = ptn_sep(ptn);
             int plen = ptn_sep(ptn+1) - psep;
             
-            int _noteU = plen-1;
-            for(int i=0; i<plen-1; i++) if(B < note_on(psep + i + 1)) {_noteU = i; break;}
+            int _noteU = plen;
+            for(int i=0; i<plen; i++) if(B < note_on(psep + i + 1)) {_noteU = i; break;}
 
-            int _noteL = plen-1;
-            for(int i=0; i<plen-1; i++) if(B <= note_off(psep + i ) + trk_rel(trk)) {_noteL = i; break;}
+            int _noteL = plen;
+            for(int i=0; i<plen; i++) if(B <= note_off(psep + i ) + trk_rel(trk)) {_noteL = i; break;}
            
             for(int _note = _noteL; _note <= _noteU; _note++)
             {
@@ -174,10 +174,11 @@ float scale(float t)
                 Boff   = note_off(psep + _note);
 
                 int Bdrum = int(note_pitch(psep + _note));
-//                 if(Bdrum != 0)
+                if(Bdrum != 0)
                 {
-                    float env = smoothstep(Bon, Bon+.1, B)*(1.-smoothstep(Bon+.1, Bon+.2, B));
+                    float env = (1.-smoothstep(Bon, Bon+.1, B));
                     d = max(d, env);
+                    iNBeats += 1.;
                 }
             }
             
@@ -916,7 +917,7 @@ vec3 color(float rev, float ln, float mat, vec2 uv, vec3 x)
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    
+//     iScale = scale(iTime+.1); //TODO: ADD THIS! IT SYNCS
     a = iResolution.x/iResolution.y;
     vec3 ro, r, u, t, x, dir;
     vec2 s, uv;
@@ -940,10 +941,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     {
 //         vec3 c1 = texture(iSequence, uv).rgb;
         vec3 c1 = c.yyy;
-        float st = scale(iTime);
+//         float st = scale(iTime);
         iScale = scale(iTime-uv.x);
         if(uv.y > 0.)  
-            c1 += step(uv.y, iScale)*mix(c.xxy, c.xyy, st);
+            c1 += step(uv.y, iNBeats/16.);
         c1 = mix(c1, c.xxy, step(abs(uv.x), .01));
         col += c1;
     }
