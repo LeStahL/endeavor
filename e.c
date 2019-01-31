@@ -224,14 +224,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     if(paused)
                     {
                         SetTimer(hwnd, 1, USER_TIMER_MAXIMUM, NULL);
-                        waveOutPause(hWaveOut);
+                        if(!muted)
+                            waveOutPause(hWaveOut);
                         
                         t_paused = t_now;
                     }
                     else
                     {
                         SetTimer(hwnd, 1, 1000./60., NULL);
-                        waveOutRestart(hWaveOut);
+                        if(!muted)
+                            waveOutRestart(hWaveOut);
                         
                         SYSTEMTIME st_now;
                         GetSystemTime(&st_now);            
@@ -788,7 +790,8 @@ int main(int argc, char **args)
 	
 	WAVEHDR header = { smusic1, 4*music1_size, 0, 0, 0, 0, 0, 0 };
 	waveOutPrepareHeader(hWaveOut, &header, sizeof(WAVEHDR));
-	waveOutWrite(hWaveOut, &header, sizeof(WAVEHDR));
+	if(!muted)
+        waveOutWrite(hWaveOut, &header, sizeof(WAVEHDR));
 #endif
     
     // Main loop
