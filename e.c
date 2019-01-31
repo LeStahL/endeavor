@@ -277,13 +277,23 @@ LRESULT CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         case WM_COMMAND:
             UINT id =  LOWORD(wParam);
+            HWND hSender = (HWND)lParam;
             switch(id)
             {
                 case 5:
-                    //TODO: select appropriate option
+                    int index = SendMessage(hSender, CB_GETCURSEL, 0, 0);
+                    if(index == 0)
+                    {
+                        w = 1920;
+                        h = 1080;
+                    }
+                    else if(index == 1)
+                    {
+                        w = 960;
+                        h = 540;
+                    }
                     break;
                 case 6:
-                    HWND hSender = (HWND)lParam;
                     muted = !muted;
                     if(muted)
                         SendMessage(hSender, BM_SETCHECK, BST_CHECKED, 0);
@@ -351,14 +361,15 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     // Add resolution Combo box
     HWND hResolutionComboBox = CreateWindow(WC_COMBOBOX, TEXT(""), 
      CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
-     100, 10, 150, 20, lwnd, (HMENU)5, hInstance,
+     100, 10, 150, 80, lwnd, (HMENU)5, hInstance,
      NULL);
     
-    // Add items to resolution combo box
-    const char *fullhd = L"1920 x 1080",
-        *halfhd = L"960 x 540";
+    // Add items to resolution combo box and select full HD
+    const char *fullhd = "1920 x 1080",
+        *halfhd = "960 x 540";
     SendMessage(hResolutionComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (fullhd)); 
     SendMessage(hResolutionComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (halfhd));
+    SendMessage(hResolutionComboBox, CB_SETCURSEL, 0, 0);
     
     // Add mute checkbox
     HWND hMuteCheckbox = CreateWindow(WC_BUTTON, TEXT("Mute"),
