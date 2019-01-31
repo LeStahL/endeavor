@@ -208,20 +208,6 @@ float avglpBDbody3f(float time, float f, float tL, float N)
     }
     return avg;
 }
-float avglpBDbody3ff(float time, float f, float tL, float N)
-{    
-    int iN = int(N);
-
-    float _TIME = time;
-    float avg = 0.;
-    
-    for(int i = 0; i < iN; i++)
-    {
-          _TIME = time - float(i)*Tsample;
-          avg += avglpBDbody3f(_TIME,f,tL,2.) / N;
-    }
-    return avg;
-}
 float reverbsnrrev_IIR(float time, float f, float tL, float IIRgain, float IIRdel1, float IIRdel2, float IIRdel3, float IIRdel4)
 {
     int imax = int(log(filterthreshold)/log(IIRgain));
@@ -303,8 +289,8 @@ float AMAYSYN(float t, float B, float Bon, float Boff, float note, int Bsyn, flo
       +supershape(clip(1.6*QFM((_t-4.0e-03*(1.+2.*_sin(.15*_t))),f,0.,.00787*127.*pow(vel,12.*7.87e-3),.00787*112.*pow(vel,63.*7.87e-3),.00787*127.*pow(vel,26.*7.87e-3),.00787*96.*pow(vel,120.*7.87e-3),.5,1.,1.5,1.,.00787*0.,.00787*0.,.00787*0.,.00787*50.,8.)),.3,.2,.8,.4,.8,.8));
     }
     
-    else if(Bsyn == -3){
-      s = 4.*avglpBDbody3ff(_t,f,tL,2.);
+    else if(Bsyn == -2){
+      s = 3.*s_atan(smoothstep(0.,.015,_t)*smoothstep(.1+.15,.15,_t)*MADD(_t,(50.+(200.-50.)*smoothstep(-.12, 0.,-_t)),5.,10,1,.8,1.,1.,1.,.1,.1,0.,1) + .4*.5*step(_t,.03)*_sin(_t*1100.*1.*_saw(_t*800.*1.)) + .4*(1.-exp(-1000.*_t))*exp(-40.*_t)*_sin((400.-200.*_t)*_t*_sin(1.*(50.+(200.-50.)*smoothstep(-.12, 0.,-_t))*_t)));
     }
     
 	return clamp(env,0.,1.) * s_atan(s);
@@ -343,9 +329,9 @@ float rfloat(int off)
 }
 
 #define NTRK 2
-#define NMOD 5
+#define NMOD 3
 #define NPTN 2
-#define NNOT 32
+#define NNOT 11
 
 int trk_sep(int index)      {return int(rfloat(index));}
 int trk_syn(int index)      {return int(rfloat(index+1+1*NTRK));}
