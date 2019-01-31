@@ -194,84 +194,42 @@ float rand(vec2 x)
     return fract(sin(dot(x-1. ,vec2(12.9898,78.233)))*43758.5453);
 }
 
-/* Simplex noise -
-Copyright (C) 2011 by Ashima Arts (Simplex noise)
-Copyright (C) 2011-2016 by Stefan Gustavson (Classic noise and others)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-*/
-vec3 taylorInvSqrt(vec3 r) 
-{     
-    return 1.79284291400159-0.85373472095314*r; 
-}
-
-vec3 permute(vec3 x)
+// One-dimensional perlin noise
+float snoise_1d(float t)
 {
-    return mod((x*34.+1.)*x, 289.);
+    float i = floor(t);
+    t = fract(t);
+    t = ((6.*t-15.)*t+10.)*t*t*t;
+    return mix(-1.+2.*rand(i*c.xx), -1.+2.*rand((i+1.)*c.xx), t);
 }
 
-float snoise(vec2 P) 
-{     
-    const vec2 C = vec2 (0.211324865405187134, 0.366025403784438597);  
-    vec2 i = floor(P+dot(P, C.yy)) ; 
-    vec2 x0 = P-i+dot(i, C.xx) ; 
-    // Other  corners 
-    vec2 i1 ; 
-    i1.x = step ( x0.y , x0.x ) ;  //  1.0  i f  x0 . x > x0 . y ,  e l s e  0.0 
-    i1.y = 1.0 - i1.x ; 
-    // x1 = x0 − i1 + 1.0 ∗ C. xx ;  x2 = x0 − 1.0 + 2.0 ∗ C. xx ; 
-    vec4 x12 = x0.xyxy + vec4 ( C.xx , C.xx * 2.0 - 1.0) ; 
-    x12.xy -= i1 ; 
-    //  Permutations 
-    i = mod( i ,  289.0) ;  // Avoid  truncation  in  polynomial  evaluation 
-    vec3 p = permute ( permute ( i.y + vec3 (0.0 , i1.y ,  1.0  ) ) + i.x + vec3 (0.0 , i1.x ,  1.0  ) ) ; 
-    //  Circularly  symmetric  blending  kernel
-    vec3 m = max(0.5 - vec3 ( dot ( x0 , x0 ) ,  dot ( x12.xy , x12.xy ) , dot ( x12.zw , x12.zw ) ) ,  0.0) ; 
-    m = m * m ; 
-    m = m * m ; 
-    //  Gradients  from 41  points  on a  line ,  mapped onto a diamond 
-    vec3 x = fract ( p * (1.0  /  41.0) ) * 2.0 - 1.0  ; 
-    vec3 gy = abs ( x ) - 0.5  ; 
-    vec3 ox = floor ( x + 0.5) ;  // round (x)  i s  a GLSL 1.30  feature 
-    vec3 gx = x - ox ; //  Normalise  gradients  i m p l i c i t l y  by  s c a l i n g m 
-    m *= taylorInvSqrt ( gx * gx + gy * gy ) ; // Compute  f i n a l  noise  value  at P 
-    vec3 g ; 
-    g.x = gx.x * x0.x + gy.x * x0.y ; 
-    g.yz = gx.yz * x12.xz + gy.yz * x12.yw ; 
-    //  Scale  output  to  span  range  [ − 1 ,1] 
-    //  ( s c a l i n g  f a c t o r  determined by  experiments ) 
-    return  -1.+2.*(130.0 * dot ( m , g ) ) ; 
+// Two-dimensional perlin noise
+float snoise_2d(vec2 t)
+{
+    vec2 i = floor(t);
+    t = fract(t);
+    //t = ((6.*t-15.)*t+10.)*t*t*t;  // TODO: add this for slower perlin noise
+    t = smoothstep(c.yy, c.xx, t); // TODO: add this for faster value noise
+    vec2 v1 = vec2(rand(i), rand(i+c.xy)),
+        v2 = vec2(rand(i+c.yx), rand(i+c.xx));
+    v1 = c.zz+2.*mix(v1, v2, t.y);
+    return mix(v1.x, v1.y, t.x);
 }
-/* End of Simplex Noise */
 
 // Multi-frequency simplex noise
-float mfsnoise(vec2 x, float f0, float f1, float phi)
+float mfsnoise_2d(vec2 x, float f0, float f1, float phi)
 {
     float sum = 0.;
     float a = 1.2;
+    float n = 0.;
     
     for(float f = f0; f<f1; f = f*2.)
     {
-        sum = a*snoise(f*x) + sum;
+        sum = a*snoise_2d(f*x) + sum;
         a = a*phi;
+        n += 1.;
     }
-    
+    sum *= (1.-phi)/(1.-pow(phi, n));
     return sum;
 }
 
@@ -566,7 +524,7 @@ vec2 inset(vec3 x)
 vec2 scene(vec3 x) 
 {
     // Start with floor (floor material: 1)
-    vec2 sdf = vec2(x.y+.4/*+.01*snoise(2.*x.xz-iTime)+.01*snoise(4.1*x.xz-iTime*c.yx)*/, 1.);
+    vec2 sdf = vec2(x.y+.4/*+.01*snoise_2d(2.*x.xz-iTime)+.01*snoise_2d(4.1*x.xz-iTime*c.yx)*/, 1.);
         
     // Add glass sphere (glass material: 2)
     float rs = 1.9;
@@ -652,7 +610,7 @@ vec2 texteffect(vec3 x)
     if(structure < 0. && blend >= 1.e-3)
     {
         float blend = smoothstep(2., 6., iTime)*(1.-smoothstep(6.,12.,iTime));
-        sdf = vec2(stroke(zextrude(x.z, 2.*x.z-stroke(logo(cind.xy+.3*c.xy,.6),.25), (.6+.15*snoise(4.*cind.xy-iTime))*blend*clamp(1.-exp(-(ind.x-34.)-8.*iTime), 0., 1.)), .05*blend), 7.);
+        sdf = vec2(stroke(zextrude(x.z, 2.*x.z-stroke(logo(cind.xy+.3*c.xy,.6),.25), (.5+.5*snoise_2d(24.*cind.xy-iTime))*blend*clamp(1.-exp(-(ind.x-34.)-8.*iTime), 0., 1.)), .05*blend), 7.);
     }
     
     // Add guard objects for debugging
@@ -780,7 +738,7 @@ vec3 post1(vec2 uv, vec3 col)
         dir = normalize(t-ro);\
     }
 
-        //uv += .02*vec2(snoise(uv-iTime+2.),snoise(uv-iTime+3.));\
+        //uv += .02*vec2(snoise_2d(uv-iTime+2.),snoise_2d(uv-iTime+3.));\
 //post processing: 210 logo and trendy display lines
 //col: output color
 //uv:  fragment coordinate
@@ -828,15 +786,15 @@ vec3 background(vec2 x)
     col = mix(col, c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d));
     
     // Add clouds
-    float da = .5*snoise(2.*vec2(x.x, abs(x.y+.15))-.4*iTime);
-    float dx = da+mfsnoise(vec2(x.x-.2*iTime, abs(x.y+.15)), 1.e0, 1.e3, .55);
+    float da = .5*snoise_2d(2.*vec2(x.x, abs(x.y+.15))-.4*iTime);
+    float dx = da+mfsnoise_2d(vec2(x.x-.2*iTime, abs(x.y+.15)), 1.e0, 1.e3, .55);
     col = mix(col, .8*vec3(1.,.7,.57), clamp(2.5+dx, 0., 1.));
     col = mix(col, .9*vec3(1.,.7,.57), clamp(2.3+dx, 0., 1.));
     col = mix(col, vec3(1.,.7,.57), clamp(2.1+dx, 0., 1.));
     
     // And more clouds
-    da = .5*snoise(2.*vec2(x.x, abs(x.y+.15))-.4*iTime-15.);
-    dx = da+mfsnoise(vec2(x.x-.1*iTime-15., abs(x.y+.15)), 1.e0, 1.e3, .55);
+    da = .5*snoise_2d(2.*vec2(x.x, abs(x.y+.15))-.4*iTime-15.);
+    dx = da+mfsnoise_2d(vec2(x.x-.1*iTime-15., abs(x.y+.15)), 1.e0, 1.e3, .55);
     col = mix(col, .8*vec3(1.,1.,.87), clamp(2.5+dx, 0., 1.));
     col = mix(col, .9*vec3(1.,1.,.87), clamp(2.3+dx, 0., 1.));
     col = mix(col, vec3(1.,1.,.87), clamp(1.6+dx, 0., 1.));
@@ -880,9 +838,9 @@ vec3 background2(vec2 uv)
     cind = mix(cind, dind,  clamp(.5*(iTime-24.), 0., 1.));
     
     // make background change the color with time
-    vec2 dt = vec2(snoise(cind+2.),snoise(cind+3.));
-    float m = (1.5+.5*snoise(10.*cind)
-        + mix(-2.,clamp(.5+.5*snoise(.05*(cind)-dt-iTime*c.xx),0.,1.), clamp(.125*(iTime-1.),0.,1.)));
+    vec2 dt = vec2(snoise_2d(5.*cind+2.),snoise_2d(5.*cind+3.));
+    float m = (.5+.5*snoise_2d(50.*cind)
+        + mix(-1.,clamp(.5+.5*snoise_2d(.5*(cind)-dt-2.*iTime*c.xx),0.,1.), clamp(.125*(iTime-1.),0.,1.)));
     vec3 c1 = mix(c.yyy, c.yyy,m)*smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d);
         c1 = mix(c1, mix(c.yyy, vec3(1.,0.27,0.),m), smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, stroke(structure,.05)))*smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d);
     c1 = clamp(c1, 0., 1.);
@@ -937,17 +895,17 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 #else 
     uv = (-iResolution.xy + 2.*fragCoord)/iResolution.y;
 #endif
-    if(iTime < 1000.)
-    {
-//         vec3 c1 = texture(iSequence, uv).rgb;
-        vec3 c1 = c.yyy;
-//         float st = scale(iTime);
-        iScale = scale(iTime-uv.x);
-        if(uv.y > 0.)  
-            c1 += step(uv.y, iNBeats/16.);
-        c1 = mix(c1, c.xxy, step(abs(uv.x), .01));
-        col += c1;
-    }
+//     if(iTime < 1000.)
+//     {
+// //         vec3 c1 = texture(iSequence, uv).rgb;
+//         vec3 c1 = c.yyy;
+// //         float st = scale(iTime);
+//         iScale = scale(iTime-uv.x);
+//         if(uv.y > 0.)  
+//             c1 += step(uv.y, iNBeats/16.);
+//         c1 = mix(c1, c.xxy, step(abs(uv.x), .01));
+//         col += c1;
+//     }
 //     if(iTime < 1000.)
 //     {
 //         float d = dglyph(uv, 57., .1);
@@ -960,7 +918,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 //             col +=  mix(c.yyy, c.xyy, smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
 //         }
 //     }
-    else
+//     else
     if(iTime < 28.) // "Enter the Logic Farm" logo/title, t < 31.
     {
         vec3 c1 = c.yyy;

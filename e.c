@@ -21,7 +21,7 @@
 // WIN32 code
 #ifdef _MSC_VER
 
-const char *demoname = "Endeavour by Team210";
+const char *demoname = "Endeavour/Team210";
 unsigned int muted = 0.;
 
 int _fltused = 0;
