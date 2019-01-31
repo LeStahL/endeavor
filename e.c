@@ -22,6 +22,7 @@
 #ifdef _MSC_VER
 
 const char *demoname = "Endeavour by Team210";
+unsigned int muted = 0.;
 
 int _fltused = 0;
 
@@ -273,8 +274,25 @@ LRESULT CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     switch(uMsg)
     {
         case WM_COMMAND:
-            DestroyWindow(hwnd);
-            PostQuitMessage(0);
+            UINT id =  LOWORD(wParam);
+            switch(id)
+            {
+                case 5:
+                    //TODO: select appropriate option
+                    break;
+                case 6:
+                    HWND hSender = (HWND)lParam;
+                    muted = !muted;
+                    if(muted)
+                        SendMessage(hSender, BM_SETCHECK, BST_CHECKED, 0);
+                    else
+                        SendMessage(hSender, BM_SETCHECK, BST_UNCHECKED, 0);
+                    break;
+                case 7:
+                    DestroyWindow(hwnd);
+                    PostQuitMessage(0);
+                    break;
+            }
             break;
             
         case WM_CLOSE:
@@ -310,7 +328,6 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     wca.hInstance     = hInstance;
     wca.lpszClassName = L"Settings";
     RegisterClass(&wca);
-    
     HWND lwnd = CreateWindowEx(
         0,                              // Optional window styles.
         L"Settings",                     // Window class
@@ -332,32 +349,32 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     // Add resolution Combo box
     HWND hResolutionComboBox = CreateWindow(WC_COMBOBOX, TEXT(""), 
      CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
-     100, 10, 150, 20, lwnd, NULL, hInstance,
+     100, 10, 150, 20, lwnd, (HMENU)5, hInstance,
      NULL);
     
     // Add items to resolution combo box
-    const char *fullhd = "1920 x 1080",
-        *halfhd = "960 x 540";
-    SendMessage(hResolutionComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) TEXT(fullhd)); 
-    SendMessage(hResolutionComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) TEXT(halfhd));
+    const char *fullhd = L"1920 x 1080",
+        *halfhd = L"960 x 540";
+    SendMessage(hResolutionComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (fullhd)); 
+    SendMessage(hResolutionComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (halfhd));
     
     // Add mute checkbox
-    HWND hMuteCheckbox = CreateWindow(WC_BUTTON, TEXT("Show Title"),
+    HWND hMuteCheckbox = CreateWindow(WC_BUTTON, TEXT("Mute"),
                      WS_VISIBLE | WS_CHILD | BS_CHECKBOX,
                      10, 40, 100, 20,        
-                     lwnd, (HMENU) 1, hInstance, NULL);
+                     lwnd, (HMENU) 6, hInstance, NULL);
     
     // Add start button
     HWND hwndButton = CreateWindow( 
     WC_BUTTON,  // Predefined class; Unicode assumed 
     "Abfahrt!",      // Button text 
     WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-    150,         // x position 
-    150,         // y position 
+    185,         // x position 
+    165,         // y position 
     90,        // Button width
     90,        // Button height
     lwnd,     // Parent window
-    NULL,       // No menu.
+    (HMENU)7,       // No menu.
     hInstance, 
     NULL);      // Pointer not needed.
     
@@ -372,7 +389,10 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
         DispatchMessage(&msg); 
     }
     
-    printf("Rendering Demo.");
+    printf("Rendering Demo with:\nSound ");
+    if(muted)printf("muted");
+    else printf("playing");
+    printf("\nResolution: %d * %d\n", w, h);
 
     // Display demo window
     CHAR WindowClass[]  = "Team210 Demo Window";
