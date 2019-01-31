@@ -21,6 +21,8 @@
 // WIN32 code
 #ifdef _MSC_VER
 
+const char *demoname = "Endeavour by Team210";
+
 int _fltused = 0;
 
 #define ABS(x) ((x)<0?(-x):(x))
@@ -29,6 +31,7 @@ int _fltused = 0;
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
 #include <windows.h>
+#include "commctrl.h"
 #include <mmsystem.h>
 #include <Mmreg.h>
 
@@ -265,6 +268,24 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 #endif
 
 #ifdef _MSC_VER
+LRESULT CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch(uMsg)
+    {
+        case WM_COMMAND:
+            DestroyWindow(hwnd);
+            PostQuitMessage(0);
+            break;
+            
+        case WM_CLOSE:
+            ExitProcess(0);
+            break;
+    }
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+#endif
+
+#ifdef _MSC_VER
 int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
     //TODO: remove
@@ -283,7 +304,77 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     fseek(ex, 0, SEEK_END);
     executable_size = (float)ftell(ex)/1024.;
     
-    // Display window
+    // Display settings selector
+    WNDCLASS wca = { 0 };
+    wca.lpfnWndProc   = DialogProc;
+    wca.hInstance     = hInstance;
+    wca.lpszClassName = L"Settings";
+    RegisterClass(&wca);
+    
+    HWND lwnd = CreateWindowEx(
+        0,                              // Optional window styles.
+        L"Settings",                     // Window class
+        demoname,    // Window text
+        WS_OVERLAPPEDWINDOW,            // Window style
+
+        // Size and position
+        200, 200, 300, 300,
+
+        NULL,       // Parent window    
+        NULL,       // Menu
+        hInstance,  // Instance handle
+        NULL        // Additional application data
+        );
+    
+    // Add "Resolution: " text
+    HWND hResolutionText = CreateWindow(WC_STATIC, "Resolution: ", WS_VISIBLE | WS_CHILD | SS_LEFT, 10,15,100,100, lwnd, NULL, hInstance, NULL);
+    
+    // Add resolution Combo box
+    HWND hResolutionComboBox = CreateWindow(WC_COMBOBOX, TEXT(""), 
+     CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
+     100, 10, 150, 20, lwnd, NULL, hInstance,
+     NULL);
+    
+    // Add items to resolution combo box
+    const char *fullhd = "1920 x 1080",
+        *halfhd = "960 x 540";
+    SendMessage(hResolutionComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) TEXT(fullhd)); 
+    SendMessage(hResolutionComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) TEXT(halfhd));
+    
+    // Add mute checkbox
+    HWND hMuteCheckbox = CreateWindow(WC_BUTTON, TEXT("Show Title"),
+                     WS_VISIBLE | WS_CHILD | BS_CHECKBOX,
+                     10, 40, 100, 20,        
+                     lwnd, (HMENU) 1, hInstance, NULL);
+    
+    // Add start button
+    HWND hwndButton = CreateWindow( 
+    WC_BUTTON,  // Predefined class; Unicode assumed 
+    "Abfahrt!",      // Button text 
+    WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+    150,         // x position 
+    150,         // y position 
+    90,        // Button width
+    90,        // Button height
+    lwnd,     // Parent window
+    NULL,       // No menu.
+    hInstance, 
+    NULL);      // Pointer not needed.
+    
+    // Show the selector
+    ShowWindow(lwnd, TRUE);
+    UpdateWindow(lwnd);
+    
+    MSG msg;
+    while(GetMessage(&msg, NULL, 0, 0) > 0)
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg); 
+    }
+    
+    printf("Rendering Demo.");
+
+    // Display demo window
     CHAR WindowClass[]  = "Team210 Demo Window";
     
     WNDCLASSEX wc = { 0 };
@@ -687,7 +778,7 @@ int main(int argc, char **args)
     GetSystemTime(&st_start);
     t_start = (float)st_start.wMinute*60.+(float)st_start.wSecond+(float)st_start.wMilliseconds/1000.;
     
-    MSG msg;
+//     MSG msg;
     while(GetMessage(&msg, NULL, 0, 0) > 0)
     {
         TranslateMessage(&msg);
