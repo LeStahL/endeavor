@@ -626,7 +626,24 @@ vec2 texteffect(vec3 x)
 vec2 texteffect2(vec3 x) // text effect for endeavor text (bounce with rhythm
 {
     vec2 sdf = vec2(x.z, 7.);
+    float hex = hexagon(18.*x.xy);
     
+    // compute hexagon indices in cartesian coordinates
+    vec2 cind = ind/18.;
+    cind = vec2(cind.x/1.2, cind.y);
+    cind = vec2(cind.x, cind.y-cind.x*.6);
+    
+    // build up endeavour text
+    // Show demo name: "Endeavor" (t < 25.)
+    float endeavor = dstring(cind+2.*(-6.+1.2*iTime-1.2*14.)*c.xy, 0., .8);
+    endeavor = stroke(endeavor, .2);
+    float structure = mix(0., endeavor, clamp(.25*(iTime-14.), 0., 1.));
+    float blend = smoothstep(2., 6., iTime)*(1.-smoothstep(6.,12.,iTime));
+    if(structure < 0. && blend >= 1.e-3)
+    {
+        float blend = smoothstep(2., 6., iTime)*(1.-smoothstep(6.,12.,iTime));
+        sdf = vec2(stroke(zextrude(x.z, 2.*x.z-stroke(logo(cind.xy+.3*c.xy,.6),.25), (.5+.5*snoise_2d(24.*cind.xy-iTime))*blend*clamp(1.-exp(-(ind.x-34.)-8.*iTime), 0., 1.)), .05*blend), 7.);
+    }
 //     float endeavor = dstring(cind+2.*(-6.+1.2*iTime-1.2*14.)*c.xy, 0., .8);
 //     endeavor = stroke(endeavor, .2);
 //     structure = mix(structure, endeavor, clamp(.25*(iTime-14.), 0., 1.));
