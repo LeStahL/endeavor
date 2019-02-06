@@ -581,7 +581,7 @@ vec2 greetings(vec3 x)
     return sdf;
 }
 
-// graph traversal for text effect
+// graph traversal for 210 logo effect
 vec2 textpre(vec3 x)
 {
     vec2 sdf =  vec2(x.z, 7.);
@@ -589,10 +589,28 @@ vec2 textpre(vec3 x)
     float blend = smoothstep(2., 6., iTime)*(1.-smoothstep(6.,12.,iTime));
     if(structure < 0. && blend >= 1.e-3)
     {
-        float blend = smoothstep(2., 6., iTime)*(1.-smoothstep(6.,12.,iTime));
         sdf = vec2(stroke(zextrude(x.z, 1.5*x.z-stroke(logo(x.xy+.3*c.xy,.6),.25), 1.*blend*clamp(1.-exp(-(x.x-34.)-8.*iTime), 0., .5)), .05*blend), 7.);
     }
     sdf.x = abs(sdf.x)-.3;
+    return sdf;
+}
+
+// graph traversal for endeavour text effect
+vec2 textpre2(vec3 x)
+{
+    vec2 sdf = vec2(x.z, 7.);
+    
+    // build up endeavour text
+    // Show demo name: "Endeavor" (t < 25.)
+    float endeavor = dstring(x.xy+2.*(-6.+1.2*iTime-1.2*14.)*c.xy, 0., .8);
+    endeavor = stroke(endeavor, .2);
+    float structure = mix(0., endeavor, clamp(.25*(iTime-14.), 0., 1.));
+    float blend = smoothstep(15., 16., iTime)*(1.-smoothstep(24.,25.,iTime));
+    if(structure < 0. && blend >= 1.e-3)
+    {
+        sdf = vec2(stroke(zextrude(x.z, -endeavor, iScale*(.5+.5*snoise_2d(24.*x.xy-iTime))*blend), .05*blend), 7.);
+    }
+    sdf.x = abs(sdf.x)-.1;
     return sdf;
 }
 
@@ -642,15 +660,19 @@ vec2 texteffect2(vec3 x) // text effect for endeavor text (bounce with rhythm
     float endeavor = dstring(cind+2.*(-6.+1.2*iTime-1.2*14.)*c.xy, 0., .8);
     endeavor = stroke(endeavor, .2);
     float structure = mix(0., endeavor, clamp(.25*(iTime-14.), 0., 1.));
-    float blend = smoothstep(2., 6., iTime)*(1.-smoothstep(6.,12.,iTime));
+    float blend = smoothstep(15., 16., iTime)*(1.-smoothstep(24.,25.,iTime));
     if(structure < 0. && blend >= 1.e-3)
     {
-        float blend = smoothstep(2., 6., iTime)*(1.-smoothstep(6.,12.,iTime));
-        sdf = vec2(stroke(zextrude(x.z, 2.*x.z-stroke(logo(cind.xy+.3*c.xy,.6),.25), (.5+.5*snoise_2d(24.*cind.xy-iTime))*blend*clamp(1.-exp(-(ind.x-34.)-8.*iTime), 0., 1.)), .05*blend), 7.);
+//         sdf = vec2(stroke(zextrude(x.z, 2.*x.z-stroke(logo(cind.xy+.3*c.xy,.6),.25), (.5+.5*snoise_2d(24.*cind.xy-iTime))*blend*clamp(1.-exp(-(ind.x-34.)-8.*iTime), 0., 1.)), .05*blend), 7.);
+        sdf = vec2(stroke(zextrude(x.z, -endeavor, iScale*(.5+.5*snoise_2d(24.*cind.xy-iTime))*blend), .05*blend), 7.);
     }
-//     float endeavor = dstring(cind+2.*(-6.+1.2*iTime-1.2*14.)*c.xy, 0., .8);
-//     endeavor = stroke(endeavor, .2);
-//     structure = mix(structure, endeavor, clamp(.25*(iTime-14.), 0., 1.));
+
+    // Add guard objects for debugging
+    float dr = .03;
+    vec3 y = mod(x,dr)-.5*dr;
+    float guard = -length(max(abs(y)-vec3(.5*dr*c.xx, .6),0.));
+    guard = abs(guard)+dr*.1;
+    sdf.x = min(sdf.x, guard);
     
     return sdf;
 }
@@ -956,7 +978,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 //         }
 //     }
 //     else
-    if(iTime < 28.) // "Enter the Logic Farm" logo/title, t < 31.
+    if(iTime < 16.) // Team210 Logo 
     {
         vec3 c1 = c.yyy;
         
@@ -966,6 +988,43 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         if(hit) hit = false;
         else d = -ro.z/dir.z;
         raymarch(texteffect, x, ro, d, dir, s, 200, 2.e-5, hit);
+        
+        if(hit)
+        {
+            vec3 n;
+            calcnormal(scene, n, 2.e-4, x);
+
+            float rs = 1.9;
+            vec3 l = x+1.*c.yyx,
+                //l = -1.*c.yxy+1.5*c.yyx, 
+                re = normalize(reflect(-l,n)), v = normalize(x-ro);
+            float rev = (dot(re,v)), ln = (dot(l,n));
+
+            c1 = color(rev, ln, s.y, uv, x);
+        }
+        else c1 = background2((ro-ro.z/dir.z*dir).xy);
+        
+        col += c1;
+    }
+    else if(iTime < 28.) // "Endeavour" text
+    {
+        vec3 c1 = c.yyy;
+        
+        camerasetup(camera0, ro, r, u, t, uv, dir);
+//         d = (.8-ro.z)/dir.z;
+        raymarch(textpre2, x, ro, d, dir, s, 100, 2.e-5, hit);
+        if(hit) 
+        {
+            hit = false;
+        }
+        else 
+        {
+            d = -ro.z/dir.z;
+        }
+        
+        {
+            raymarch(texteffect2, x, ro, d, dir, s, 200, 2.e-5, hit);
+        }
         
         if(hit)
         {
