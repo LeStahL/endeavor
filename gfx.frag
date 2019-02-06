@@ -30,7 +30,7 @@ uniform float iExecutableSize;
 const vec3 c = vec3(1.,0.,-1.);
 const float pi = acos(-1.);
 float a; // Aspect ratio
-#define FSAA 2 // Antialiasing
+#define FSAA 1 // Antialiasing
 
 // Global variables
 // vec3 col = c.yyy;
@@ -108,9 +108,9 @@ float rfloats(int off)
 
 // TODO: COPY THIS FROM SFX SHADER TO ACHIEVE SYNC
 #define NTRK 2
-#define NMOD 5
+#define NMOD 3
 #define NPTN 2
-#define NNOT 32
+#define NNOT 11
 
 int trk_sep(int index)      {return int(rfloats(index));}
 int trk_syn(int index)      {return int(rfloats(index+1+1*NTRK));}
@@ -139,6 +139,10 @@ float scale(float t)
 
     // mod for looping
     float BT = mod(BPS * t, max_mod_off);
+    
+    if(BT > max_mod_off) return 0.;
+    t = SPB*BT;
+    
     float Bon = 0.;
     float Boff = 0.;
     
@@ -168,6 +172,7 @@ float scale(float t)
             int _noteL = plen;
             for(int i=0; i<plen; i++) if(B <= note_off(psep + i ) + trk_rel(trk)) {_noteL = i; break;}
            
+            iNBeats = 0.;
             for(int _note = _noteL; _note <= _noteU; _note++)
             {
                 Bon    = note_on(psep + _note);
@@ -176,8 +181,7 @@ float scale(float t)
                 int Bdrum = int(note_pitch(psep + _note));
                 if(Bdrum != 0)
                 {
-                    float env = (1.-smoothstep(Bon, Bon+.1, B));
-                    d = max(d, env);
+                    d = max(d, 1.-smoothstep(Bon, Bon+.1, B));
                     iNBeats += 1.;
                 }
             }
@@ -892,7 +896,7 @@ vec3 color(float rev, float ln, float mat, vec2 uv, vec3 x)
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-//     iScale = scale(iTime+.1); //TODO: ADD THIS! IT SYNCS
+    iScale = scale(iTime+.1); //TODO: ADD THIS! IT SYNCS
     a = iResolution.x/iResolution.y;
     vec3 ro, r, u, t, x, dir;
     vec2 s, uv;
@@ -912,17 +916,33 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 #else 
     uv = (-iResolution.xy + 2.*fragCoord)/iResolution.y;
 #endif
+    // Test font glyphs TODO: Remove
 //     if(iTime < 1000.)
 //     {
-// //         vec3 c1 = texture(iSequence, uv).rgb;
-//         vec3 c1 = c.yyy;
-// //         float st = scale(iTime);
-//         iScale = scale(iTime-uv.x);
-//         if(uv.y > 0.)  
-//             c1 += step(uv.y, iNBeats/16.);
-//         c1 = mix(c1, c.xxy, step(abs(uv.x), .01));
-//         col += c1;
+//         float ds = .1;
+//         // Need 32-126
+//         vec2 xa = mod(uv+iResolution.xy/iResolution.y, ds)-.5*ds,
+//         ind = ceil((uv-xa)/ds);
+//         float da = dglyph(xa,  32.+ind.x+20.*ind.y, .3*ds);
+//         da = stroke(da, .1*ds);
+//         col += mix(c.yyy, c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, da));
 //     }
+//     else 
+//================================
+// //     if(iTime < 1000.)
+// //     {
+// // //         vec3 c1 = texture(iSequence, uv).rgb;
+// //         vec3 c1 = c.yyy;
+// // //         float st = scale(iTime);
+// //         iScale = scale(iTime-uv.x);
+// //         if(uv.y > 0.)  
+// //         {
+// //             c1 += c.xyy*step(uv.y,iScale);
+// //             c1 += c.yyx*step(uv.y,iNBeats/16.);
+// //         }
+// //         c1 = mix(c1, c.xxy, step(abs(uv.x), .01));
+// //         col += c1;
+// //     }
 //     if(iTime < 1000.)
 //     {
 //         float d = dglyph(uv, 57., .1);
