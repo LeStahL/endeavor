@@ -181,7 +181,7 @@ float scale(float t)
                 int Bdrum = int(note_pitch(psep + _note));
                 if(Bdrum != 0)
                 {
-                    d = max(d, 1.-smoothstep(Bon, Bon+.1, B));
+                    d = max(d, smoothstep(Bon,Bon+.1,B)*(1.-smoothstep(Bon+.1, Bon+.2, B)));
                     iNBeats += 1.;
                 }
             }
@@ -598,19 +598,8 @@ vec2 textpre(vec3 x)
 // graph traversal for endeavour text effect
 vec2 textpre2(vec3 x)
 {
-    vec2 sdf = vec2(x.z, 7.);
-    
-    // build up endeavour text
-    // Show demo name: "Endeavor" (t < 25.)
-    float endeavor = dstring(x.xy+2.*(-6.+1.2*iTime-1.2*14.)*c.xy, 0., .8);
-    endeavor = stroke(endeavor, .2);
-    float structure = mix(0., endeavor, clamp(.25*(iTime-14.), 0., 1.));
     float blend = smoothstep(15., 16., iTime)*(1.-smoothstep(24.,25.,iTime));
-    if(structure < 0. && blend >= 1.e-3)
-    {
-        sdf = vec2(stroke(zextrude(x.z, -endeavor, iScale*(.5+.5*snoise_2d(24.*x.xy-iTime))*blend), .05*blend), 7.);
-    }
-    sdf.x = abs(sdf.x)-.1;
+    vec2 sdf = vec2(min(x.z, box(x, vec3(2.,1.6,.5*iScale*blend))), 7.);
     return sdf;
 }
 
@@ -657,14 +646,13 @@ vec2 texteffect2(vec3 x) // text effect for endeavor text (bounce with rhythm
     
     // build up endeavour text
     // Show demo name: "Endeavor" (t < 25.)
-    float endeavor = dstring(cind+2.*(-6.+1.2*iTime-1.2*14.)*c.xy, 0., .8);
+    float endeavor = dstring(cind+2.*(1.2*iTime-22.8)*c.xy, 0., .8);
     endeavor = stroke(endeavor, .2);
     float structure = mix(0., endeavor, clamp(.25*(iTime-14.), 0., 1.));
     float blend = smoothstep(15., 16., iTime)*(1.-smoothstep(24.,25.,iTime));
     if(structure < 0. && blend >= 1.e-3)
     {
-//         sdf = vec2(stroke(zextrude(x.z, 2.*x.z-stroke(logo(cind.xy+.3*c.xy,.6),.25), (.5+.5*snoise_2d(24.*cind.xy-iTime))*blend*clamp(1.-exp(-(ind.x-34.)-8.*iTime), 0., 1.)), .05*blend), 7.);
-        sdf = vec2(stroke(zextrude(x.z, -endeavor, iScale*(.5+.5*snoise_2d(24.*cind.xy-iTime))*blend), .05*blend), 7.);
+        sdf = vec2(stroke(zextrude(x.z, -endeavor, .25*iScale*(.5+.5*snoise_2d(24.*cind.xy-iTime))*blend), .05*blend), 7.);
     }
 
     // Add guard objects for debugging
@@ -983,7 +971,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         vec3 c1 = c.yyy;
         
         camerasetup(camera0, ro, r, u, t, uv, dir);
-//         d = (.8-ro.z)/dir.z;
+        d = (.5-ro.z)/dir.z;
         raymarch(textpre, x, ro, d, dir, s, 100, 2.e-5, hit);
         if(hit) hit = false;
         else d = -ro.z/dir.z;
@@ -1011,8 +999,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         vec3 c1 = c.yyy;
         
         camerasetup(camera0, ro, r, u, t, uv, dir);
-//         d = (.8-ro.z)/dir.z;
-        raymarch(textpre2, x, ro, d, dir, s, 100, 2.e-5, hit);
+        d = (.25-ro.z)/dir.z;
+        raymarch(textpre2, x, ro, d, dir, s, 50, 2.e-5, hit);
         if(hit) 
         {
             hit = false;
