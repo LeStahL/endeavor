@@ -944,11 +944,19 @@ float drevision(vec2 x)
 
 vec3 smallogo(vec2 uv)
 {
-    uv *= rot2(iTime);
-    float d = drevision(uv), d2 = abs(d-.01)-.002;
-    vec3 col = mix(c.yyy, .3*c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d));
-    col = mix(col, vec3(1.,0.27,0.), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d2));
-    return col;
+    if(iTime < 33.)
+    {
+        uv *= rot2(iTime);
+        float d = drevision(uv), d2 = abs(d-.01)-.002;
+        vec3 col = mix(c.yyy, (.3+.4*iScale)*c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d));
+        col = mix(col, vec3(1.,0.27,0.), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d2));
+        col *= smoothstep(28., 29., iTime)*(1.-smoothstep(32., 33., iTime));
+        return col;
+    }
+    else
+    {
+        
+    }
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
