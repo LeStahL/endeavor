@@ -32,9 +32,6 @@ const float pi = acos(-1.);
 float a; // Aspect ratio
 #define FSAA 1 // Antialiasing
 
-// Global variables
-// vec3 col = c.yyy;
-
 // Read short value from texture at index off
 float rshort(float off)
 {
@@ -233,7 +230,10 @@ float mfsnoise_2d(vec2 x, float f0, float f1, float phi)
         a = a*phi;
         n += 1.;
     }
+    
+    // Normalization
     sum *= (1.-phi)/(1.-pow(phi, n));
+    
     return sum;
 }
 
@@ -243,6 +243,12 @@ mat3 rot(vec3 p)
     return mat3(c.xyyy, cos(p.x), sin(p.x), 0., -sin(p.x), cos(p.x))
         *mat3(cos(p.y), 0., -sin(p.y), c.yxy, sin(p.y), 0., cos(p.y))
         *mat3(cos(p.z), -sin(p.z), 0., sin(p.z), cos(p.z), c.yyyx);
+}
+
+mat2 rot2(float p)
+{
+    vec2 cs = vec2(cos(p), sin(p));
+    return mat2(cs.x,-cs.y,cs.y, cs.x);
 }
 
 // add object to scene
@@ -904,6 +910,47 @@ vec3 color(float rev, float ln, float mat, vec2 uv, vec3 x)
     return .1*c.xyy + .3*c.xyy * abs(ln) + .8*c.xxy * abs(pow(rev,8.));
 }
 
+// Revision logo of width 1.
+float drevision(vec2 x)
+{
+    float l = length(x),
+        p = atan(x.y,x.x),
+	    d = abs(l-.07)-.02, 
+        k1 = abs(l-.16)-.03,
+        k2 = abs(l-.21)-.02, 
+        k3 = abs(l-.35)-.03,
+        k4 = abs(l-.45)-.02;
+    d = min(d, mix(d, abs(l-.11)-.03, step(p, -1.71)*step(-2.73, p)));
+    d = min(d, mix(d, k1, step(p, 3.08)*step(2.82,p)));
+    d = min(d, mix(d, k1, step(p, 1.47)*step(.81,p)));
+    d = min(d, mix(d, k1, step(p, -.43)*step(-1.19,p)));
+    d = min(d, mix(d, k2, step(p, -2.88)*step(-pi,p)));
+    d = min(d, mix(d, k2, step(p, pi)*step(2.38,p)));
+    d = min(d, mix(d, k2, step(p, 2.1)*step(.51,p)));
+    d = min(d, mix(d, k2, step(p, .3)*step(-1.6,p)));
+    d = min(d, abs(l-.24)-.02);
+    d = min(d, mix(d, k3, step(p, -2.18)*step(-pi, p)));
+    d = min(d, mix(d, k3, step(p, -1.23)*step(-1.7, p)));
+    d = min(d, mix(d, k3, step(p, -.58)*step(-.78, p)));
+    d = min(d, mix(d, k3, step(p, 0.)*step(-.29, p)));
+    d = min(d, mix(d, k3, step(p, 1.25)*step(1.06, p)));
+    d = min(d, mix(d, k3, step(p, 1.99)*step(.5*pi, p)));
+    d = min(d, abs(l-.41)-.03);
+    d = min(d, mix(d, k4, step(p, 1.04)*step(.04, p)));
+    d = min(d, mix(d, k4, step(p, -2.2)*step(-2.34, p)));
+    
+    return d-.005;
+}
+
+vec3 smallogo(vec2 uv)
+{
+    uv *= rot2(iTime);
+    float d = drevision(uv), d2 = abs(d-.01)-.002;
+    vec3 col = mix(c.yyy, .3*c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d));
+    col = mix(col, vec3(1.,0.27,0.), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d2));
+    return col;
+}
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     iScale = scale(iTime+.1); //TODO: ADD THIS! IT SYNCS
@@ -1030,6 +1077,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         else c1 = background2((ro-ro.z/dir.z*dir).xy);
         
         col += c1;
+    }
+    else if(iTime < 38.) // Endeavour small logo; revision logo
+    {
+        col += smallogo(uv);
     }
     else if(iTime < 10000.)
     {
