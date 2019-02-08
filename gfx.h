@@ -13,6 +13,7 @@ const char *gfx_frag =
  "uniform float iFontWidth;"
  "uniform sampler2D iSequence;"
  "uniform float iSequenceWidth,iExecutableSize;"
+ "uniform int iFSAA,iTXAA;"
  "const vec3 c=vec3(1.,0.,-1.);"
  "const float pi=acos(-1.);"
  "float a;\n"

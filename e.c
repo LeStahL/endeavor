@@ -145,7 +145,9 @@ int w = 1920, h = 1080,
     sfx_texs_location,
     sfx_sequence_texture_location, sfx_sequence_width_location,
     gfx_sequence_texture_location, gfx_sequence_width_location,
-    gfx_executable_size_location;
+    gfx_executable_size_location,
+    fsaa = 1, txaa = 1,
+    gfx_fsaa_location, gfx_txaa_location;
     
 // Demo globals
 double t_start = 0., 
@@ -184,6 +186,9 @@ void draw()
     glUniform1i(gfx_sequence_texture_location, 1);
     glUniform1f(gfx_sequence_width_location, sequence_texture_size);
     glUniform1f(gfx_executable_size_location, executable_size);
+
+    glUniform1i(gfx_fsaa_location, fsaa);
+    glUniform1i(gfx_txaa_location, txaa);
     
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, font_texture_handle);
@@ -278,10 +283,10 @@ LRESULT CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_COMMAND:
             UINT id =  LOWORD(wParam);
             HWND hSender = (HWND)lParam;
+            int index = SendMessage(hSender, CB_GETCURSEL, 0, 0);
             switch(id)
             {
                 case 5:
-                    int index = SendMessage(hSender, CB_GETCURSEL, 0, 0);
                     if(index == 0)
                     {
                         w = 1920;
@@ -291,6 +296,11 @@ LRESULT CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     {
                         w = 960;
                         h = 540;
+                    }
+                    else if(index == 2)
+                    {
+                        w = 1024;
+                        h = 768;
                     }
                     break;
                 case 6:
@@ -303,6 +313,12 @@ LRESULT CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 case 7:
                     DestroyWindow(hwnd);
                     PostQuitMessage(0);
+                    break;
+                case 8: // Full screen Antialiasing
+                    fsaa = index + 1;
+                    break;
+                case 9: // Temporal Antialiasing
+                    txaa = index + 1;
                     break;
             }
             break;
@@ -361,14 +377,16 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     // Add resolution Combo box
     HWND hResolutionComboBox = CreateWindow(WC_COMBOBOX, TEXT(""), 
      CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
-     100, 10, 150, 80, lwnd, (HMENU)5, hInstance,
+     100, 10, 175, 80, lwnd, (HMENU)5, hInstance,
      NULL);
     
     // Add items to resolution combo box and select full HD
-    const char *fullhd = "1920 x 1080",
-        *halfhd = "960 x 540";
+    const char *fullhd = "1920*1080",
+        *halfhd = "960*540",
+        *normal = "1024*768";
     SendMessage(hResolutionComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (fullhd)); 
     SendMessage(hResolutionComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (halfhd));
+    SendMessage(hResolutionComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (normal));
     SendMessage(hResolutionComboBox, CB_SETCURSEL, 0, 0);
     
     // Add mute checkbox
@@ -377,6 +395,42 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
                      10, 40, 100, 20,        
                      lwnd, (HMENU) 6, hInstance, NULL);
     
+    // Add "Antialiasing: " text
+    HWND hAntialiasingText = CreateWindow(WC_STATIC, "Antialiasing: ", WS_VISIBLE | WS_CHILD | SS_LEFT, 10,65,100,100, lwnd, NULL, hInstance, NULL);
+    
+    // Add Fullscreen Antialiasing combo box
+    HWND hFSAAComboBox= CreateWindow(WC_COMBOBOX, TEXT(""), 
+     CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
+     100, 60, 175, 80, lwnd, (HMENU)8, hInstance,
+     NULL);
+    
+    // Populate with entries
+    const char *fsaa1= "None",
+        *fsaa4 = "4*FSAA",
+        *fsaa9 = "9*FSAA",
+        *fsaa16 = "16*FSAA";
+    SendMessage(hFSAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (fsaa1)); 
+    SendMessage(hFSAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (fsaa4));
+    SendMessage(hFSAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (fsaa9)); 
+    SendMessage(hFSAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (fsaa16));
+    SendMessage(hFSAAComboBox, CB_SETCURSEL, 0, 0);
+    
+    HWND hTXAAComboBox= CreateWindow(WC_COMBOBOX, TEXT(""), 
+     CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
+     100, 90, 175, 80, lwnd, (HMENU)9, hInstance,
+     NULL);
+    
+    // Populate with entries
+    const char *txaa1= "None",
+        *txaa4 = "4*TXAA",
+        *txaa9 = "9*TXAA",
+        *txaa16 = "16*TXAA";
+    SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (txaa1)); 
+    SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (txaa4));
+    SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (txaa9)); 
+    SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (txaa16));
+    SendMessage(hTXAAComboBox, CB_SETCURSEL, 0, 0);
+
     // Add start button
     HWND hwndButton = CreateWindow( 
     WC_BUTTON,  // Predefined class; Unicode assumed 
@@ -749,6 +803,12 @@ int main(int argc, char **args)
 #ifndef VAR_IEXECUTABLESIZE
     #define VAR_IEXECUTABLESIZE "iExecutableSize"
 #endif
+#ifndef VAR_IFSAA
+    #define VAR_IFSAA "iFSAA"
+#endif
+#ifndef VAR_ITXAA
+    #define VAR_ITXAA "iTXAA"
+#endif
     int gfx_size = strlen(gfx_frag),
         gfx_handle = glCreateShader(GL_FRAGMENT_SHADER);
     gfx_program = glCreateProgram();
@@ -765,6 +825,8 @@ int main(int argc, char **args)
     gfx_sequence_texture_location = glGetUniformLocation(gfx_program, VAR_ISEQUENCE);
     gfx_sequence_width_location = glGetUniformLocation(gfx_program, VAR_ISEQUENCEWIDTH);
     gfx_executable_size_location = glGetUniformLocation(gfx_program, VAR_IEXECUTABLESIZE);
+    gfx_fsaa_location = glGetUniformLocation(gfx_program, VAR_IFSAA);
+    gfx_txaa_location = glGetUniformLocation(gfx_program, VAR_ITXAA);
     
     glUseProgram(gfx_program);
     glViewport(0, 0, w, h);

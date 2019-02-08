@@ -25,6 +25,8 @@ uniform float iFontWidth;
 uniform sampler2D iSequence;
 uniform float iSequenceWidth;
 uniform float iExecutableSize;
+uniform int iFSAA;
+uniform int iTXAA;
 
 // Global constants
 const vec3 c = vec3(1.,0.,-1.);
