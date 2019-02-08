@@ -460,6 +460,7 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     if(muted)printf("muted");
     else printf("playing");
     printf("\nResolution: %d * %d\n", w, h);
+    printf("FSAA: %d*\n", fsaa);
 
     // Display demo window
     CHAR WindowClass[]  = "Team210 Demo Window";

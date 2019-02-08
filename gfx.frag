@@ -18,21 +18,15 @@
 #version 130
 
 float iScale, iNBeats = 0.;
-uniform float iTime;
+uniform float iTime, iFontWidth, iSequenceWidth, iExecutableSize;
 uniform vec2 iResolution;
-uniform sampler2D iFont;
-uniform float iFontWidth;
-uniform sampler2D iSequence;
-uniform float iSequenceWidth;
-uniform float iExecutableSize;
-uniform int iFSAA;
-uniform int iTXAA;
+uniform sampler2D iFont, iSequence;
+uniform int iFSAA, iTXAA;
 
 // Global constants
 const vec3 c = vec3(1.,0.,-1.);
 const float pi = acos(-1.);
 float a; // Aspect ratio
-#define FSAA 1 // Antialiasing
 
 // Read short value from texture at index off
 float rshort(float off)
@@ -106,10 +100,7 @@ float rfloats(int off)
 }
 
 // TODO: COPY THIS FROM SFX SHADER TO ACHIEVE SYNC
-#define NTRK 2
-#define NMOD 3
-#define NPTN 2
-#define NNOT 11
+const int NTRK = 2, NMOD = 3, NPTN = 2, NNOT = 11;
 
 int trk_sep(int index)      {return int(rfloats(index));}
 int trk_syn(int index)      {return int(rfloats(index+1+1*NTRK));}
@@ -974,207 +965,199 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec3 col = c.yyy;
     
     // Antialiasing
-#if FSAA!=1
-    for(int jii=0; jii<FSAA; ++jii)
-    for(int jij=0; jij<FSAA; ++jij)
-    {
-    vec2 o = vec2(float(jii),float(jij)) / float(FSAA) - .5;
-    uv = (-iResolution.xy + 2.*(fragCoord+o))/iResolution.y;
-#else 
-    uv = (-iResolution.xy + 2.*fragCoord)/iResolution.y;
-#endif
-    // Test font glyphs TODO: Remove
-//     if(iTime < 1000.)
-//     {
-//         float ds = .1;
-//         // Need 32-126
-//         vec2 xa = mod(uv+iResolution.xy/iResolution.y, ds)-.5*ds,
-//         ind = ceil((uv-xa)/ds);
-//         float da = dglyph(xa,  32.+ind.x+20.*ind.y, .3*ds);
-//         da = stroke(da, .1*ds);
-//         col += mix(c.yyy, c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, da));
-//     }
-//     else 
-//================================
-// //     if(iTime < 1000.)
-// //     {
-// // //         vec3 c1 = texture(iSequence, uv).rgb;
-// //         vec3 c1 = c.yyy;
-// // //         float st = scale(iTime);
-// //         iScale = scale(iTime-uv.x);
-// //         if(uv.y > 0.)  
-// //         {
-// //             c1 += c.xyy*step(uv.y,iScale);
-// //             c1 += c.yyx*step(uv.y,iNBeats/16.);
-// //         }
-// //         c1 = mix(c1, c.xxy, step(abs(uv.x), .01));
-// //         col += c1;
-// //     }
-//     if(iTime < 1000.)
-//     {
-//         float d = dglyph(uv, 57., .1);
-//         //float d = dstring(uv-.1, 1., .05);
-//         float d = dfloat(uv, rfloats(3.), .05);
-//         if(d == 1.)col += c.yxy;
-//         else
-//         {
-//             d = stroke(d, .01);
-//             col +=  mix(c.yyy, c.xyy, smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
-//         }
-//     }
-//     else
-    if(iTime < 16.) // Team210 Logo 
-    {
-        vec3 c1 = c.yyy;
-        
-        camerasetup(camera0, ro, r, u, t, uv, dir);
-        d = (.5-ro.z)/dir.z;
-        raymarch(textpre, x, ro, d, dir, s, 100, 2.e-5, hit);
-        if(hit) hit = false;
-        else d = -ro.z/dir.z;
-        raymarch(texteffect, x, ro, d, dir, s, 200, 2.e-5, hit);
-        
-        if(hit)
+    for(int jii=0; jii<iFSAA; ++jii)
+        for(int jij=0; jij<iFSAA; ++jij)
         {
-            vec3 n;
-            calcnormal(scene, n, 2.e-4, x);
+        vec2 o = vec2(float(jii),float(jij)) / float(iFSAA) - .5;
+        uv = (-iResolution.xy + 2.*(fragCoord+o))/iResolution.y;
 
-            float rs = 1.9;
-            vec3 l = x+1.*c.yyx,
-                //l = -1.*c.yxy+1.5*c.yyx, 
-                re = normalize(reflect(-l,n)), v = normalize(x-ro);
-            float rev = (dot(re,v)), ln = (dot(l,n));
-
-            c1 = color(rev, ln, s.y, uv, x);
-        }
-        else c1 = background2((ro-ro.z/dir.z*dir).xy);
-        
-        col += c1;
-    }
-    else if(iTime < 28.) // "Endeavour" text
-    {
-        vec3 c1 = c.yyy;
-        
-        camerasetup(camera0, ro, r, u, t, uv, dir);
-        d = (.25-ro.z)/dir.z;
-        raymarch(textpre2, x, ro, d, dir, s, 50, 2.e-5, hit);
-        if(hit) 
+        // Test font glyphs TODO: Remove
+    //     if(iTime < 1000.)
+    //     {
+    //         float ds = .1;
+    //         // Need 32-126
+    //         vec2 xa = mod(uv+iResolution.xy/iResolution.y, ds)-.5*ds,
+    //         ind = ceil((uv-xa)/ds);
+    //         float da = dglyph(xa,  32.+ind.x+20.*ind.y, .3*ds);
+    //         da = stroke(da, .1*ds);
+    //         col += mix(c.yyy, c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, da));
+    //     }
+    //     else 
+    //================================
+    // //     if(iTime < 1000.)
+    // //     {
+    // // //         vec3 c1 = texture(iSequence, uv).rgb;
+    // //         vec3 c1 = c.yyy;
+    // // //         float st = scale(iTime);
+    // //         iScale = scale(iTime-uv.x);
+    // //         if(uv.y > 0.)  
+    // //         {
+    // //             c1 += c.xyy*step(uv.y,iScale);
+    // //             c1 += c.yyx*step(uv.y,iNBeats/16.);
+    // //         }
+    // //         c1 = mix(c1, c.xxy, step(abs(uv.x), .01));
+    // //         col += c1;
+    // //     }
+    //     if(iTime < 1000.)
+    //     {
+    //         float d = dglyph(uv, 57., .1);
+    //         //float d = dstring(uv-.1, 1., .05);
+    //         float d = dfloat(uv, rfloats(3.), .05);
+    //         if(d == 1.)col += c.yxy;
+    //         else
+    //         {
+    //             d = stroke(d, .01);
+    //             col +=  mix(c.yyy, c.xyy, smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
+    //         }
+    //     }
+    //     else
+        if(iTime < 16.) // Team210 Logo 
         {
-            hit = false;
-        }
-        else 
-        {
-            d = -ro.z/dir.z;
-        }
-        
-        {
-            raymarch(texteffect2, x, ro, d, dir, s, 200, 2.e-5, hit);
-        }
-        
-        if(hit)
-        {
-            vec3 n;
-            calcnormal(scene, n, 2.e-4, x);
-
-            float rs = 1.9;
-            vec3 l = x+1.*c.yyx,
-                //l = -1.*c.yxy+1.5*c.yyx, 
-                re = normalize(reflect(-l,n)), v = normalize(x-ro);
-            float rev = (dot(re,v)), ln = (dot(l,n));
-
-            c1 = color(rev, ln, s.y, uv, x);
-        }
-        else c1 = background2((ro-ro.z/dir.z*dir).xy);
-        
-        col += c1;
-    }
-    else if(iTime < 38.) // Endeavour small logo; revision logo
-    {
-        col += smallogo(uv);
-    }
-    else if(iTime < 10000.)
-    {
-        vec3 c1 = c.yyy;
-        camerasetup(camera1, ro, r, u, t, uv, dir);
-        d = 0.;
-        raymarch(inset, x, ro, d, dir, s, 40, 1.e-4, hit);
-        if(hit) hit = false;
-        raymarch(scene, x, ro, d, dir, s, 300, 1.e-4, hit);
-        
-        if(hit)
-        {
-            vec3 n;
-            calcnormal(scene, n, 2.e-4, x);
-
-            float rs = 1.9;
-            vec3 //l = .7*rs*c.yyx-.6*c.yxy,
-                l = -1.*c.yxy+1.5*c.yyx, 
-                re = normalize(reflect(-l,n)), v = normalize(x-ro);
-            float rev = (dot(re,v)), ln = (dot(l,n));
-
-            c1 = color(rev, ln, s.y, uv, x);
-
-//             // Soft shadows
-//             /*
-//             vec3 ddir = normalize(x-l), xx;
-//             vec2 ss;
-//             float dd;
-//             raymarch(sscene, xx, l, dd, ddir, ss, 450, 1.e-4, hit);
-//             if(dd<1.e-4)
-//                 col = mix(col, c.yyy, .5);
-//             */
-// 
-//             // Reflections
-            if(s.y == 1.)
+            vec3 c1 = c.yyy;
+            
+            camerasetup(camera0, ro, r, u, t, uv, dir);
+            d = (.5-ro.z)/dir.z;
+            raymarch(textpre, x, ro, d, dir, s, 100, 2.e-5, hit);
+            if(hit) hit = false;
+            else d = -ro.z/dir.z;
+            raymarch(texteffect, x, ro, d, dir, s, 200, 2.e-5, hit);
+            
+            if(hit)
             {
-                for(float k = .7; k >= .7; k -= .1)
-                {
-                    dir = (reflect(dir, n));
-                    d = 2.e-4;
-                    ro = x;
-                    raymarch(inset, x, ro, d, dir, s, 20, 1.e-4, hit);
-                    raymarch(scene, x, ro, d, dir, s, 300, 1.e-4, hit);
-                    if(hit)
-                    {
-                        vec3 n2;
-                        calcnormal(scene, n2, 2.e-4, x);
-//                         l = -1.*c.yxy+1.5*c.yyx;
-                        re = normalize(reflect(-l,n)); 
-                        v = normalize(x-ro);
-                        rev = abs(dot(re,v));
-                        ln = abs(dot(l,n));
+                vec3 n;
+                calcnormal(scene, n, 2.e-4, x);
 
-                        c1 = mix(c1, color(rev, ln, s.y, uv, x), k);
+                float rs = 1.9;
+                vec3 l = x+1.*c.yyx,
+                    //l = -1.*c.yxy+1.5*c.yyx, 
+                    re = normalize(reflect(-l,n)), v = normalize(x-ro);
+                float rev = (dot(re,v)), ln = (dot(l,n));
+
+                c1 = color(rev, ln, s.y, uv, x);
+            }
+            else c1 = background2((ro-ro.z/dir.z*dir).xy);
+            
+            col += c1;
+        }
+        else if(iTime < 28.) // "Endeavour" text
+        {
+            vec3 c1 = c.yyy;
+            
+            camerasetup(camera0, ro, r, u, t, uv, dir);
+            d = (.25-ro.z)/dir.z;
+            raymarch(textpre2, x, ro, d, dir, s, 50, 2.e-5, hit);
+            if(hit) 
+            {
+                hit = false;
+            }
+            else 
+            {
+                d = -ro.z/dir.z;
+            }
+            
+            {
+                raymarch(texteffect2, x, ro, d, dir, s, 200, 2.e-5, hit);
+            }
+            
+            if(hit)
+            {
+                vec3 n;
+                calcnormal(scene, n, 2.e-4, x);
+
+                float rs = 1.9;
+                vec3 l = x+1.*c.yyx,
+                    //l = -1.*c.yxy+1.5*c.yyx, 
+                    re = normalize(reflect(-l,n)), v = normalize(x-ro);
+                float rev = (dot(re,v)), ln = (dot(l,n));
+
+                c1 = color(rev, ln, s.y, uv, x);
+            }
+            else c1 = background2((ro-ro.z/dir.z*dir).xy);
+            
+            col += c1;
+        }
+        else if(iTime < 38.) // Endeavour small logo; revision logo
+        {
+            col += smallogo(uv);
+        }
+        else if(iTime < 10000.)
+        {
+            vec3 c1 = c.yyy;
+            camerasetup(camera1, ro, r, u, t, uv, dir);
+            d = 0.;
+            raymarch(inset, x, ro, d, dir, s, 40, 1.e-4, hit);
+            if(hit) hit = false;
+            raymarch(scene, x, ro, d, dir, s, 300, 1.e-4, hit);
+            
+            if(hit)
+            {
+                vec3 n;
+                calcnormal(scene, n, 2.e-4, x);
+
+                float rs = 1.9;
+                vec3 //l = .7*rs*c.yyx-.6*c.yxy,
+                    l = -1.*c.yxy+1.5*c.yyx, 
+                    re = normalize(reflect(-l,n)), v = normalize(x-ro);
+                float rev = (dot(re,v)), ln = (dot(l,n));
+
+                c1 = color(rev, ln, s.y, uv, x);
+
+    //             // Soft shadows
+    //             /*
+    //             vec3 ddir = normalize(x-l), xx;
+    //             vec2 ss;
+    //             float dd;
+    //             raymarch(sscene, xx, l, dd, ddir, ss, 450, 1.e-4, hit);
+    //             if(dd<1.e-4)
+    //                 col = mix(col, c.yyy, .5);
+    //             */
+    // 
+    //             // Reflections
+                if(s.y == 1.)
+                {
+                    for(float k = .7; k >= .7; k -= .1)
+                    {
+                        dir = (reflect(dir, n));
+                        d = 2.e-4;
+                        ro = x;
+                        raymarch(inset, x, ro, d, dir, s, 20, 1.e-4, hit);
+                        raymarch(scene, x, ro, d, dir, s, 300, 1.e-4, hit);
+                        if(hit)
+                        {
+                            vec3 n2;
+                            calcnormal(scene, n2, 2.e-4, x);
+    //                         l = -1.*c.yxy+1.5*c.yyx;
+                            re = normalize(reflect(-l,n)); 
+                            v = normalize(x-ro);
+                            rev = abs(dot(re,v));
+                            ln = abs(dot(l,n));
+
+                            c1 = mix(c1, color(rev, ln, s.y, uv, x), k);
+                        }
+                        else c1 = mix(c1,background(uv), k);
                     }
-                    else c1 = mix(c1,background(uv), k);
                 }
             }
-        }
-        else c1 = background(uv);
+            else c1 = background(uv);
 
-        // lens flare
-        for(float k=0.; k<8.; k+=1.)
-        {
-            vec2 dx = .15*vec2(-1.+2.*rand(c.xx+k), -1.+2.*rand(c.xx+k+1.));
-            vec3 cx = c.xxx-.2*vec3(rand(c.xx+k+2.), rand(c.xx+k+3.), rand(c.xx+k+4.));
-            float sx = .05+.05*rand(c.xx+k+5.);
-            float da = dpoly_min(uv-.15*c.yx+dx, 6., sx);
-            c1 = mix(c1, mix(c1,cx, .5), smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, da));
+            // lens flare
+            for(float k=0.; k<8.; k+=1.)
+            {
+                vec2 dx = .15*vec2(-1.+2.*rand(c.xx+k), -1.+2.*rand(c.xx+k+1.));
+                vec3 cx = c.xxx-.2*vec3(rand(c.xx+k+2.), rand(c.xx+k+3.), rand(c.xx+k+4.));
+                float sx = .05+.05*rand(c.xx+k+5.);
+                float da = dpoly_min(uv-.15*c.yx+dx, 6., sx);
+                c1 = mix(c1, mix(c1,cx, .5), smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, da));
+            }
+            
+            // fog
+            //c1 = mix(c1, mix(vec3(1., .56, .44), vec3(1.,1.,.87), abs(uv.y)), tanh(.*d));
+            
+            col += mix(mix(c.yyy, c1, clamp(iTime-29., 0., 1.)), c.yyy, clamp(iTime-44., 0., 1.));
         }
         
-        // fog
-        //c1 = mix(c1, mix(vec3(1., .56, .44), vec3(1.,1.,.87), abs(uv.y)), tanh(.*d));
-        
-        col += mix(mix(c.yyy, c1, clamp(iTime-29., 0., 1.)), c.yyy, clamp(iTime-44., 0., 1.));
     }
-    
-    
-        
-#if FSAA!=1
-    }
-    col /= float(FSAA*FSAA);
-#else
-#endif
+    col /= float(iFSAA*iFSAA);
     
     // Post-process
     post(col, uv);
