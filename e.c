@@ -396,7 +396,10 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
                      lwnd, (HMENU) 6, hInstance, NULL);
     
     // Add "Antialiasing: " text
-    HWND hAntialiasingText = CreateWindow(WC_STATIC, "Antialiasing: ", WS_VISIBLE | WS_CHILD | SS_LEFT, 10,65,100,100, lwnd, NULL, hInstance, NULL);
+    HWND hAntialiasingText = CreateWindow(WC_STATIC, "FSAA: ", WS_VISIBLE | WS_CHILD | SS_LEFT, 10,65,100,100, lwnd, NULL, hInstance, NULL);
+    
+    // Add "Antialiasing: " text
+    HWND hTXAAText = CreateWindow(WC_STATIC, "TxAA: ", WS_VISIBLE | WS_CHILD | SS_LEFT, 10,95,100,100, lwnd, NULL, hInstance, NULL);
     
     // Add Fullscreen Antialiasing combo box
     HWND hFSAAComboBox= CreateWindow(WC_COMBOBOX, TEXT(""), 
