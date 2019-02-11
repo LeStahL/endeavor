@@ -71,7 +71,7 @@ float rfloat(float off)
 
     // Return full float16
     if(exponent == 0.)
-         return mix(1., -1., sign) * 5.960464477539063e-08 * significand;
+        return mix(1., -1., sign) * 5.960464477539063e-08 * significand;
     return mix(1., -1., sign) * (1. + significand * 9.765625e-4) * pow(2.,exponent-15.);
 }
 
@@ -95,7 +95,7 @@ float rfloats(int off)
         significand = d-sign*32768.-exponent*1024.;
 
     if(exponent == 0.)
-         return mix(1., -1., sign) * 5.960464477539063e-08 * significand;
+        return mix(1., -1., sign) * 5.960464477539063e-08 * significand;
     return mix(1., -1., sign) * (1. + significand * 9.765625e-4) * pow(2.,exponent-15.);
 }
 
@@ -144,7 +144,7 @@ float scale(float t)
 
         int _modU = tlen-1;
         for(int i=0; i<tlen-1; i++) if(BT < mod_on(tsep + i + 1)) {_modU = i; break;}
-               
+            
         int _modL = tlen-1;
         for(int i=0; i<tlen-1; i++) if(BT < mod_off(tsep + i) + trk_rel(trk)) {_modL = i; break;}
         
@@ -161,7 +161,7 @@ float scale(float t)
 
             int _noteL = plen;
             for(int i=0; i<plen; i++) if(B <= note_off(psep + i ) + trk_rel(trk)) {_noteL = i; break;}
-           
+        
             iNBeats = 0.;
             for(int _note = _noteL; _note <= _noteU; _note++)
             {
@@ -280,7 +280,7 @@ float circlesegment(vec2 x, float r, float p0, float p1)
     float p = atan(x.y, x.x);
     vec2 philo = vec2(max(p0, p1), min(p0, p1));
     if((p < philo.x && p > philo.y) || (p+2.*pi < philo.x && p+2.*pi > philo.y) || (p-2.*pi < philo.x && p-2.*pi > philo.y))
-    	return abs(length(x)-r);
+        return abs(length(x)-r);
     return min(
         length(x-r*vec2(cos(p0), sin(p0))),
         length(x-r*vec2(cos(p1), sin(p1)))
@@ -298,8 +298,8 @@ float dpoly_min(vec2 x, float N, float R)
 // 2D box
 float box(vec2 x, vec2 b)
 {
-  vec2 d = abs(x) - b;
-  return length(max(d,c.yy)) + min(max(d.x,d.y),0.);
+vec2 d = abs(x) - b;
+return length(max(d,c.yy)) + min(max(d.x,d.y),0.);
 }
 
 // Get glyph data from texture
@@ -520,21 +520,28 @@ float box( vec3 x, vec3 b )
 vec2 inset(vec3 x)
 {
     float rs = 1.9;
-    return vec2(-.11+min(x.y+.4, abs(length(x)-rs)), 2.);
+    return vec2(min(x.y+.4, abs(length(x)-rs+.15)), 9.);
+}
+
+vec2 inset2(vec3 x)
+{
+    float rs = 1.9;
+    return vec2(abs(length(x)-rs+.15), 9.);
 }
 
 // Hangar scene
 vec2 scene(vec3 x) 
 {
     // Start with floor (floor material: 1)
-    vec2 sdf = vec2(x.y+.4/*+.01*snoise_2d(2.*x.xz-iTime)+.01*snoise_2d(4.1*x.xz-iTime*c.yx)*/, 1.);
+    // Water: /*+.01*snoise_2d(2.*x.xz-iTime)+.01*snoise_2d(4.1*x.xz-iTime*c.yx)*/
+    vec2 sdf = vec2(x.y+.4, 1.);
         
     // Add glass sphere (glass material: 2)
     float rs = 1.9;
-    //sdf = add(sdf, vec2(stroke(length(x)-rs,.05), 2.));
+//     sdf = add(sdf, vec2(stroke(length(x)-rs,.05), 2.));
 
     // Add skydome
-    sdf = add(sdf, vec2(abs(length(x)-2.*rs), 0.));
+    //sdf = add(sdf, vec2(abs(length(x)-2.*rs), 0.));
     
     // Add hexagonal windows to glass sphere (ceil material: 3)
     vec2 pt = vec2(atan(x.x,x.y+.4), -acos(x.z/length(x+.4*c.yxy)));
@@ -549,7 +556,7 @@ vec2 scene(vec3 x)
     }
     
     // Add floor panel below windows, material: 4
-    d = stroke(zextrude(x.y+.4, -stroke(length(x.xz)-rs,.2),.1),.05);
+    d = stroke(zextrude(x.y+.4, -stroke(length(x.xz)-rs,.1),.1),.05);
     sdf = add(sdf, vec2(d, 4.));
     
     // Add lamps
@@ -563,13 +570,16 @@ vec2 scene(vec3 x)
     // Add piano
     
     // Add guard objects for debugging
-    float dr = .1;
+    float dr = .2;
     vec3 y = mod(x,dr)-.5*dr;
     float guard = -length(max(abs(y)-vec3(.5*dr*c.xx, .6),0.));
     guard = abs(guard)+dr*.1;
     sdf.x = min(sdf.x, guard);
     
+//     sdf.x = abs(sdf.x)-.008;
     return sdf;
+    
+//     return vec2(abs(sdf.x)-.001, sdf.y);
 }
 
 // Greetings scene
@@ -813,23 +823,23 @@ vec3 background(vec2 x)
     
     // Add sun
     float d = length(vec2(x.x, abs(x.y+.15))-.3*c.yx)-.15;
-    col = mix(col, c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d));
+//     col = mix(col, c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d));
     
     // Add clouds
-    float da = .5*snoise_2d(2.*vec2(x.x, abs(x.y+.15))-.4*iTime);
-    float dx = da+mfsnoise_2d(vec2(x.x-.2*iTime, abs(x.y+.15)), 1.e0, 1.e3, .55);
-    col = mix(col, .8*vec3(1.,.7,.57), clamp(2.5+dx, 0., 1.));
-    col = mix(col, .9*vec3(1.,.7,.57), clamp(2.3+dx, 0., 1.));
-    col = mix(col, vec3(1.,.7,.57), clamp(2.1+dx, 0., 1.));
+    float da = .5+.5*snoise_2d(5.*vec2(x.x, abs(x.y+.15))-.4*iTime);
+    float dx = .5*(da+.5+.5*mfsnoise_2d(vec2(x.x-.2*iTime, abs(x.y+.15)), 1.e1, 1.e4, .45));
+    col = mix(col, vec3(1.,.7,.57), clamp(dx, 0., 1.));
+    col = mix(col, .9*vec3(1.,.7,.57), clamp(.14+dx, 0., 1.));
+    col = mix(col, .8*vec3(1.,.7,.57), clamp(.05+dx, 0., 1.));
     
     // And more clouds
-    da = .5*snoise_2d(2.*vec2(x.x, abs(x.y+.15))-.4*iTime-15.);
-    dx = da+mfsnoise_2d(vec2(x.x-.1*iTime-15., abs(x.y+.15)), 1.e0, 1.e3, .55);
-    col = mix(col, .8*vec3(1.,1.,.87), clamp(2.5+dx, 0., 1.));
-    col = mix(col, .9*vec3(1.,1.,.87), clamp(2.3+dx, 0., 1.));
-    col = mix(col, vec3(1.,1.,.87), clamp(1.6+dx, 0., 1.));
+//     da = .5+.5*snoise_2d(2.*vec2(x.x, abs(x.y+.15))-.4*iTime-15.);
+//     dx = .5*(da+.5+.5*mfsnoise_2d(vec2(x.x-.1*iTime-15., abs(x.y+.15)), 1.e0, 1.e3, .55));
+//     col = mix(col, .8*vec3(1.,1.,.87), clamp(.15+dx, 0., 1.));
+//     col = mix(col, .9*vec3(1.,1.,.87), clamp(.12+dx, 0., 1.));
+//     col = mix(col, vec3(1.,1.,.87), clamp(.09+dx, 0., 1.));
     
-    col = mix(col, c.xxx, .9*smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d));
+    col = mix(col, c.xxx, .4*smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d));
     
     
     return col;
@@ -887,10 +897,6 @@ vec3 background2(vec2 uv)
 
 vec3 color(float rev, float ln, float mat, vec2 uv, vec3 x)
 {
-    if(mat == 7.)
-        return background2(x.xy);
-    if(mat == 6.)
-        return clamp(.7*c.xxx + .7*c.xxy*(ln) + c.xxx*abs(pow(rev,8.)), 0., 1.);
     if(mat == 2.)
     {
         vec3 col = .1*c.xyy + .3*c.xyy * abs(ln) + .8*c.xxy * abs(pow(rev,8.));
@@ -900,6 +906,12 @@ vec3 color(float rev, float ln, float mat, vec2 uv, vec3 x)
         col = mix(col, mix(col, vec3(1.,0.27,0.),m), smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
         return col;
     }
+    if(mat == 7.)
+        return background2(x.xy);
+    if(mat == 6.)
+        return clamp(.7*c.xxx + .7*c.xxy*abs(ln) + c.xxx*abs(pow(rev,8.)), 0., 1.);
+    if(mat == 9.)
+        return c.xyy;
     return .1*c.xyy + .3*c.xyy * abs(ln) + .8*c.xxy * abs(pow(rev,8.));
 }
 
@@ -908,7 +920,7 @@ float drevision(vec2 x)
 {
     float l = length(x),
         p = atan(x.y,x.x),
-	    d = abs(l-.07)-.02, 
+        d = abs(l-.07)-.02, 
         k1 = abs(l-.16)-.03,
         k2 = abs(l-.21)-.02, 
         k3 = abs(l-.35)-.03,
@@ -1086,57 +1098,39 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
             vec3 c1 = c.yyy;
             camerasetup(camera1, ro, r, u, t, uv, dir);
             d = 0.;
-//             raymarch(inset, x, ro, d, dir, s, 140, 1.e-4, hit);
-//             if(hit) hit = false;
-            raymarch(scene, x, ro, d, dir, s, 600, 1.e-4, hit);
+            raymarch(inset, x, ro, d, dir, s, 40, 1.e-4, hit);
+            raymarch(scene, x, ro, d, dir, s, 250, 1.e-4, hit);
             
             if(hit)
             {
                 vec3 n;
-                calcnormal(scene, n, 2.e-3, x);
+                calcnormal(scene, n, 2.e-4, x);
 
                 float rs = 1.9;
-                vec3 //l = .7*rs*c.yyx-.6*c.yxy,
-                    l = -1.*c.yxy+1.5*c.yyx, 
-                    re = normalize(reflect(-l,n)), v = normalize(x-ro);
-                float rev = (dot(re,v)), ln = (dot(l,n));
+                vec3 l = -1.*c.yxy+1.5*c.yyx, 
+                    re = normalize(reflect(-l,n));
+                float rev = abs(dot(re,dir)), ln = abs(dot(l,n));
 
                 c1 = color(rev, ln, s.y, uv, x);
 
-    //             // Soft shadows
-    //             /*
-    //             vec3 ddir = normalize(x-l), xx;
-    //             vec2 ss;
-    //             float dd;
-    //             raymarch(sscene, xx, l, dd, ddir, ss, 450, 1.e-4, hit);
-    //             if(dd<1.e-4)
-    //                 col = mix(col, c.yyy, .5);
-    //             */
-    // 
-    //             // Reflections
+                // Reflections
                 if(s.y == 1.)
                 {
-                    for(float k = .7; k >= .7; k -= .1)
+                    dir = reflect(dir, n);
+                    d = 1.1e-4;
+                    ro = x;
+                    raymarch(inset2, x, ro, d, dir, s, 40, 1.e-4, hit);
+                    raymarch(scene, x, ro, d, dir, s, 250, 1.e-4, hit);
+                    if(hit)
                     {
-                        dir = (reflect(dir, n));
-                        d = 2.e-3;
-                        ro = x;
-                        raymarch(inset, x, ro, d, dir, s, 20, 1.e-4, hit);
-                        raymarch(scene, x, ro, d, dir, s, 300, 1.e-4, hit);
-                        if(hit)
-                        {
-                            vec3 n2;
-                            calcnormal(scene, n2, 2.e-4, x);
-    //                         l = -1.*c.yxy+1.5*c.yyx;
-                            re = normalize(reflect(-l,n)); 
-                            v = normalize(x-ro);
-                            rev = abs(dot(re,v));
-                            ln = abs(dot(l,n));
-
-                            c1 = mix(c1, color(rev, ln, s.y, uv, x), k);
-                        }
-                        else c1 = mix(c1,background(uv), k);
+                        vec3 n2 = c.yyy;
+                        calcnormal(scene, n2, 2.e-4, x);
+                        re = normalize(reflect(-l,n2)); 
+                        rev = abs(dot(re,dir));
+                        ln = abs(dot(l,n2));
+                        c1 = mix(c1, color(rev, ln, s.y, uv, x), .7);
                     }
+                    else c1 = mix(c1,background(uv), .7);
                 }
             }
             else c1 = background(uv);
