@@ -559,6 +559,9 @@ vec2 scene(vec3 x)
     d = stroke(zextrude(x.y+.4, -stroke(length(x.xz)-rs,.1),.1),.05);
     sdf = add(sdf, vec2(d, 4.));
     
+    // Add mountains in the background
+    sdf = add(sdf, vec2(x.y+.45-.1*step(rs, length(x.xz))-(.5+mfsnoise_2d(x.xz, 2., 4.e3, .35))*smoothstep(1.3*rs, 4.*rs, length(x.xz)), 4.));
+    
     // Add lamps
     // TODO: circle of lamps that look like cups with spheres in them
     /*
@@ -1117,7 +1120,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
                 if(s.y == 1.)
                 {
                     dir = reflect(dir, n);
-                    d = 1.1e-4;
+                    d = -1.1e-4;//1.1e-4;
                     ro = x;
                     raymarch(inset2, x, ro, d, dir, s, 40, 1.e-4, hit);
                     raymarch(scene, x, ro, d, dir, s, 250, 1.e-4, hit);
