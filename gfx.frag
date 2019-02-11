@@ -1098,6 +1098,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 //         else 
         if(iTime < 10000.)
         {
+            hexagon((2.+2.*iTime)*vec2(5.,10.)*uv);
+            uv = mix(ind, uv, smoothstep(0., 4., iTime)); // TODO: add smooth transition from 2d texture
+        
             vec3 c1 = c.yyy;
             camerasetup(camera1, ro, r, u, t, uv, dir);
             d = 0.;

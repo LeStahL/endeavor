@@ -613,6 +613,8 @@ const char *gfx_frag =
          "uv=(-iResolution.xy+2.*(fragCoord+o))/iResolution.y;"
          "if(iTime<10000.)"
            "{"
+             "hexagon((2.+2.*iTime)*vec2(5.,10.)*uv);"
+             "uv=mix(ind,uv,smoothstep(0.,4.,iTime));"
              "vec3 c1=c.yyy;"
              "camerasetup(camera1,ro,r,u,t,uv,dir);"
              "d=0.;"
