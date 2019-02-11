@@ -283,10 +283,12 @@ LRESULT CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_COMMAND:
             UINT id =  LOWORD(wParam);
             HWND hSender = (HWND)lParam;
-            int index = SendMessage(hSender, CB_GETCURSEL, 0, 0);
+            
             switch(id)
             {
                 case 5:
+                {
+                    int index = SendMessage(hSender, CB_GETCURSEL, 0, 0);
                     if(index == 0)
                     {
                         w = 1920;
@@ -302,6 +304,7 @@ LRESULT CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         w = 1024;
                         h = 768;
                     }
+                }
                     break;
                 case 6:
                     muted = !muted;
@@ -315,10 +318,16 @@ LRESULT CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     PostQuitMessage(0);
                     break;
                 case 8: // Full screen Antialiasing
+                {
+                    int index = SendMessage(hSender, CB_GETCURSEL, 0, 0);
                     fsaa = index + 1;
+                }
                     break;
                 case 9: // Temporal Antialiasing
+                {
+                    int index = SendMessage(hSender, CB_GETCURSEL, 0, 0);
                     txaa = index + 1;
+                }
                     break;
             }
             break;
