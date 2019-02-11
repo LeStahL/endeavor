@@ -134,8 +134,6 @@ void debug(int shader_handle)
 
 //TODO: use full hd again
 // Graphics shader globals
-// int w = 1366, h = 768,
-// int w = 800, h = 450,
 int w = 1920, h = 1080,
     gfx_handle, gfx_program, 
     time_location, resolution_location, 
@@ -222,49 +220,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 case VK_ESCAPE:
                     ExitProcess(0);
                     break;
-#ifndef SUPER_SMALL
-                case VK_SPACE:
-                    // pause/unpaused render timer
-                    paused = !paused;
-                    if(paused)
-                    {
-                        SetTimer(hwnd, 1, USER_TIMER_MAXIMUM, NULL);
-                        if(!muted)
-                            waveOutPause(hWaveOut);
-                        
-                        t_paused = t_now;
-                    }
-                    else
-                    {
-                        SetTimer(hwnd, 1, 1000./60., NULL);
-                        if(!muted)
-                            waveOutRestart(hWaveOut);
-                        
-                        SYSTEMTIME st_now;
-                        GetSystemTime(&st_now);            
-                        t_now = (float)st_now.wMinute*60.+(float)st_now.wSecond+(float)st_now.wMilliseconds/1000.;
-                        t_start += t_now - t_paused;
-                    }
-                    break;
-#endif
             }
             break;
         
         case WM_RBUTTONDOWN:
             ExitProcess(0);
-            break;
-            
-        case WM_TIMER:
-            HDC hdc = GetDC(hwnd);
-                 
-            SYSTEMTIME st_now;
-            GetSystemTime(&st_now);            
-            t_now = (float)st_now.wMinute*60.+(float)st_now.wSecond+(float)st_now.wMilliseconds/1000.;
-            
-            draw();
-            
-            SwapBuffers(hdc);
-            
             break;
             
         default:
@@ -461,7 +421,7 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     ShowWindow(lwnd, TRUE);
     UpdateWindow(lwnd);
     
-    MSG msg;
+    MSG msg = { 0 };
     while(GetMessage(&msg, NULL, 0, 0) > 0)
     {
         TranslateMessage(&msg);
@@ -583,8 +543,6 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     glActiveTexture = (PFNGLACTIVETEXTUREPROC) wglGetProcAddress("glActiveTexture");
     glUniform1i = (PFNGLUNIFORM1IPROC) wglGetProcAddress("glUniform1i");
     
-    // Set render timer to 60 fps
-    UINT_PTR t = SetTimer(hwnd, 1, 1000./60., NULL);
 #else
 int main(int argc, char **args)
 {
@@ -876,24 +834,32 @@ int main(int argc, char **args)
 	
 	WAVEHDR header = { smusic1, 4*music1_size, 0, 0, 0, 0, 0, 0 };
 	waveOutPrepareHeader(hWaveOut, &header, sizeof(WAVEHDR));
-	if(!muted)
-        waveOutWrite(hWaveOut, &header, sizeof(WAVEHDR));
+// 	if(!muted)
+    waveOutWrite(hWaveOut, &header, sizeof(WAVEHDR));
 #endif
     
     // Main loop
 #ifdef _MSC_VER
-    // Get start time for relative time sync
-    SYSTEMTIME st_start;
-    GetSystemTime(&st_start);
-    t_start = (float)st_start.wMinute*60.+(float)st_start.wSecond+(float)st_start.wMilliseconds/1000.;
-    
-//     MSG msg;
-    while(GetMessage(&msg, NULL, 0, 0) > 0)
+    t_start = 0.;
+    while(1)
     {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg); 
+        while ( PeekMessageA( &msg, NULL, 0, 0, PM_REMOVE ) ) 
+        {
+            if ( msg.message == WM_QUIT ) {
+                return 0;
+            }
+            TranslateMessage( &msg );
+            DispatchMessageA( &msg );
+        }
+        
+        static MMTIME MMTime = { TIME_SAMPLES, 0};
+        int err = waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
+        t_now = ((double)MMTime.u.sample)/( 44100.0);
+        
+        draw();
+        
+        SwapBuffers(hdc);
     }
-    
     return msg.wParam;
 }
 #else

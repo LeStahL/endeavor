@@ -1026,53 +1026,58 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     //         }
     //     }
     //     else
-//         if(iTime < 16.) // Team210 Logo 
-//         {
-//             vec3 c1 = c.yyy;
-//             
-//             camerasetup(camera0, ro, r, u, t, uv, dir);
-//             d = (.5-ro.z)/dir.z;
-//             raymarch(textpre, x, ro, d, dir, s, 100, 2.e-5, hit);
-//             if(hit) hit = false;
-//             else d = -ro.z/dir.z;
-//             raymarch(texteffect, x, ro, d, dir, s, 200, 2.e-5, hit);
-//             
-//             if(hit)
-//             {
-//                 vec3 n;
-//                 calcnormal(scene, n, 2.e-4, x);
-// 
-//                 float rs = 1.9;
-//                 vec3 l = x+1.*c.yyx,
-//                     //l = -1.*c.yxy+1.5*c.yyx, 
-//                     re = normalize(reflect(-l,n)), v = normalize(x-ro);
-//                 float rev = (dot(re,v)), ln = (dot(l,n));
-// 
-//                 c1 = color(rev, ln, s.y, uv, x);
-//             }
-//             else c1 = background2((ro-ro.z/dir.z*dir).xy);
-//             
-//             col += c1;
-//         }
+        if(iTime < 16.) // Team210 Logo 
+        {
+            vec3 c1 = c.yyy;
+            
+            camerasetup(camera0, ro, r, u, t, uv, dir);
+            d = (.5-ro.z)/dir.z;
+            raymarch(textpre, x, ro, d, dir, s, 100, 2.e-5, hit);
+            if(hit) hit = false;
+            else d = -ro.z/dir.z;
+            raymarch(texteffect, x, ro, d, dir, s, 200, 2.e-5, hit);
+            
+            if(hit)
+            {
+                vec3 n;
+                calcnormal(scene, n, 2.e-4, x);
+
+                float rs = 1.9;
+                vec3 l = x+1.*c.yyx,
+                    //l = -1.*c.yxy+1.5*c.yyx, 
+                    re = normalize(reflect(-l,n)), v = normalize(x-ro);
+                float rev = (dot(re,v)), ln = (dot(l,n));
+
+                c1 = color(rev, ln, s.y, uv, x);
+            }
+            else c1 = background2((ro-ro.z/dir.z*dir).xy);
+            
+            col += c1;
+        }
 //         else if(iTime < 28.) // "Endeavour" text
 //         {
 //             vec3 c1 = c.yyy;
-//             
-//             camerasetup(camera0, ro, r, u, t, uv, dir);
-//             d = (.25-ro.z)/dir.z;
-//             raymarch(textpre2, x, ro, d, dir, s, 50, 2.e-5, hit);
-//             if(hit) 
 //             {
-//                 hit = false;
+//                 camerasetup(camera0, ro, r, u, t, uv, dir);
 //             }
-//             else 
-//             {
-//                 d = -ro.z/dir.z;
-//             }
-//             
-//             {
-//                 raymarch(texteffect2, x, ro, d, dir, s, 200, 2.e-5, hit);
-//             }
+// //             {
+// // //                 d = (.25-ro.z)/dir.z;
+// //             }
+// //             {
+// //                 raymarch(textpre2, x, ro, d, dir, s, 50, 2.e-5, hit);
+// //             }
+// //             if(hit) 
+// //             {
+// //                 hit = false;
+// //             }
+// //             else 
+// //             {
+// //                 d = -ro.z/dir.z;
+// //             }
+// //             
+// //             {
+// //                 raymarch(texteffect2, x, ro, d, dir, s, 200, 2.e-5, hit);
+// //             }
 //             
 //             if(hit)
 //             {
@@ -1091,15 +1096,17 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 //             
 //             col += c1;
 //         }
-//         else if(iTime < 38.) // Endeavour small logo; revision logo
-//         {
-//             col += smallogo(uv);
-//         }
-//         else 
-        if(iTime < 10000.)
+        else if(iTime < 38.) // Endeavour small logo; revision logo
         {
-            hexagon((2.+2.*iTime)*vec2(5.,10.)*uv);
-            uv = mix(ind, uv, smoothstep(0., 4., iTime)); // TODO: add smooth transition from 2d texture
+            col += smallogo(uv);
+        }
+//         else 
+        else if(iTime < 10000.)
+        {
+            //hexagon((2.+2.*iTime)*vec2(5.,10.)*uv);
+            hexagon((2.+2.*(iTime-38.))*vec2(5.,10.)*uv);
+            //uv = mix(ind, uv, smoothstep(0., 4., iTime)); // TODO: add smooth transition from 2d texture
+            uv = mix(ind, uv, smoothstep(38., 42., iTime)); // TODO: add smooth transition from 2d texture
         
             vec3 c1 = c.yyy;
             camerasetup(camera1, ro, r, u, t, uv, dir);
@@ -1131,7 +1138,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
                     {
                         vec3 n2 = c.yyy;
                         calcnormal(scene, n2, 2.e-4, x);
-                        re = normalize(reflect(-l,n2)); 
+                        re = normalize(reflect(-l,n2));
                         rev = abs(dot(re,dir));
                         ln = abs(dot(l,n2));
                         c1 = mix(c1, color(rev, ln, s.y, uv, x), .7);
