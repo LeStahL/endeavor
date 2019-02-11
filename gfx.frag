@@ -598,7 +598,7 @@ vec2 textpre(vec3 x)
 vec2 textpre2(vec3 x)
 {
     float blend = smoothstep(15., 16., iTime)*(1.-smoothstep(24.,25.,iTime));
-    vec2 sdf = vec2(min(x.z, box(x, vec3(2.,1.6,.5*iScale*blend))), 7.);
+    vec2 sdf = vec2(min(x.z, box(x, vec3(2.,1.6,.25*iScale*blend))), 7.);
     return sdf;
 }
 
@@ -655,11 +655,11 @@ vec2 texteffect2(vec3 x) // text effect for endeavor text (bounce with rhythm
     }
 
     // Add guard objects for debugging
-    float dr = .03;
-    vec3 y = mod(x,dr)-.5*dr;
-    float guard = -length(max(abs(y)-vec3(.5*dr*c.xx, .6),0.));
-    guard = abs(guard)+dr*.1;
-    sdf.x = min(sdf.x, guard);
+//     float dr = .04;
+//     vec3 y = mod(x,dr)-.5*dr;
+//     float guard = -length(max(abs(y)-vec3(.5*dr*c.xx, .6),0.));
+//     guard = abs(guard)+dr*.1;
+//     sdf.x = min(sdf.x, guard);
     
     return sdf;
 }
@@ -780,10 +780,10 @@ vec3 post1(vec2 uv, vec3 col)
 //camera for scene 1
 void camera1(out vec3 ro, out vec3 r, out vec3 u, out vec3 t)
 {
-    ro = c.yyx-1.*c.yyx+.1*(iTime-28.)*c.yyx;
+    ro = c.yyx;//-1.*c.yyx+.1*(iTime-28.)*c.yyx;
     r = c.xyy;
     u = c.yxy;
-    t = c.yyy-1.*c.yyx+.1*(iTime-28.)*c.yyx;
+    t = c.yyy;//-1.*c.yyx+.1*(iTime-28.)*c.yyx;
 }
 
 // static camera
@@ -1011,88 +1011,89 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     //         }
     //     }
     //     else
-        if(iTime < 16.) // Team210 Logo 
-        {
-            vec3 c1 = c.yyy;
-            
-            camerasetup(camera0, ro, r, u, t, uv, dir);
-            d = (.5-ro.z)/dir.z;
-            raymarch(textpre, x, ro, d, dir, s, 100, 2.e-5, hit);
-            if(hit) hit = false;
-            else d = -ro.z/dir.z;
-            raymarch(texteffect, x, ro, d, dir, s, 200, 2.e-5, hit);
-            
-            if(hit)
-            {
-                vec3 n;
-                calcnormal(scene, n, 2.e-4, x);
-
-                float rs = 1.9;
-                vec3 l = x+1.*c.yyx,
-                    //l = -1.*c.yxy+1.5*c.yyx, 
-                    re = normalize(reflect(-l,n)), v = normalize(x-ro);
-                float rev = (dot(re,v)), ln = (dot(l,n));
-
-                c1 = color(rev, ln, s.y, uv, x);
-            }
-            else c1 = background2((ro-ro.z/dir.z*dir).xy);
-            
-            col += c1;
-        }
-        else if(iTime < 28.) // "Endeavour" text
-        {
-            vec3 c1 = c.yyy;
-            
-            camerasetup(camera0, ro, r, u, t, uv, dir);
-            d = (.25-ro.z)/dir.z;
-            raymarch(textpre2, x, ro, d, dir, s, 50, 2.e-5, hit);
-            if(hit) 
-            {
-                hit = false;
-            }
-            else 
-            {
-                d = -ro.z/dir.z;
-            }
-            
-            {
-                raymarch(texteffect2, x, ro, d, dir, s, 200, 2.e-5, hit);
-            }
-            
-            if(hit)
-            {
-                vec3 n;
-                calcnormal(scene, n, 2.e-4, x);
-
-                float rs = 1.9;
-                vec3 l = x+1.*c.yyx,
-                    //l = -1.*c.yxy+1.5*c.yyx, 
-                    re = normalize(reflect(-l,n)), v = normalize(x-ro);
-                float rev = (dot(re,v)), ln = (dot(l,n));
-
-                c1 = color(rev, ln, s.y, uv, x);
-            }
-            else c1 = background2((ro-ro.z/dir.z*dir).xy);
-            
-            col += c1;
-        }
-        else if(iTime < 38.) // Endeavour small logo; revision logo
-        {
-            col += smallogo(uv);
-        }
-        else if(iTime < 10000.)
+//         if(iTime < 16.) // Team210 Logo 
+//         {
+//             vec3 c1 = c.yyy;
+//             
+//             camerasetup(camera0, ro, r, u, t, uv, dir);
+//             d = (.5-ro.z)/dir.z;
+//             raymarch(textpre, x, ro, d, dir, s, 100, 2.e-5, hit);
+//             if(hit) hit = false;
+//             else d = -ro.z/dir.z;
+//             raymarch(texteffect, x, ro, d, dir, s, 200, 2.e-5, hit);
+//             
+//             if(hit)
+//             {
+//                 vec3 n;
+//                 calcnormal(scene, n, 2.e-4, x);
+// 
+//                 float rs = 1.9;
+//                 vec3 l = x+1.*c.yyx,
+//                     //l = -1.*c.yxy+1.5*c.yyx, 
+//                     re = normalize(reflect(-l,n)), v = normalize(x-ro);
+//                 float rev = (dot(re,v)), ln = (dot(l,n));
+// 
+//                 c1 = color(rev, ln, s.y, uv, x);
+//             }
+//             else c1 = background2((ro-ro.z/dir.z*dir).xy);
+//             
+//             col += c1;
+//         }
+//         else if(iTime < 28.) // "Endeavour" text
+//         {
+//             vec3 c1 = c.yyy;
+//             
+//             camerasetup(camera0, ro, r, u, t, uv, dir);
+//             d = (.25-ro.z)/dir.z;
+//             raymarch(textpre2, x, ro, d, dir, s, 50, 2.e-5, hit);
+//             if(hit) 
+//             {
+//                 hit = false;
+//             }
+//             else 
+//             {
+//                 d = -ro.z/dir.z;
+//             }
+//             
+//             {
+//                 raymarch(texteffect2, x, ro, d, dir, s, 200, 2.e-5, hit);
+//             }
+//             
+//             if(hit)
+//             {
+//                 vec3 n;
+//                 calcnormal(scene, n, 2.e-4, x);
+// 
+//                 float rs = 1.9;
+//                 vec3 l = x+1.*c.yyx,
+//                     //l = -1.*c.yxy+1.5*c.yyx, 
+//                     re = normalize(reflect(-l,n)), v = normalize(x-ro);
+//                 float rev = (dot(re,v)), ln = (dot(l,n));
+// 
+//                 c1 = color(rev, ln, s.y, uv, x);
+//             }
+//             else c1 = background2((ro-ro.z/dir.z*dir).xy);
+//             
+//             col += c1;
+//         }
+//         else if(iTime < 38.) // Endeavour small logo; revision logo
+//         {
+//             col += smallogo(uv);
+//         }
+//         else 
+        if(iTime < 10000.)
         {
             vec3 c1 = c.yyy;
             camerasetup(camera1, ro, r, u, t, uv, dir);
             d = 0.;
-            raymarch(inset, x, ro, d, dir, s, 40, 1.e-4, hit);
-            if(hit) hit = false;
-            raymarch(scene, x, ro, d, dir, s, 300, 1.e-4, hit);
+//             raymarch(inset, x, ro, d, dir, s, 140, 1.e-4, hit);
+//             if(hit) hit = false;
+            raymarch(scene, x, ro, d, dir, s, 600, 1.e-4, hit);
             
             if(hit)
             {
                 vec3 n;
-                calcnormal(scene, n, 2.e-4, x);
+                calcnormal(scene, n, 2.e-3, x);
 
                 float rs = 1.9;
                 vec3 //l = .7*rs*c.yyx-.6*c.yxy,
@@ -1118,7 +1119,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
                     for(float k = .7; k >= .7; k -= .1)
                     {
                         dir = (reflect(dir, n));
-                        d = 2.e-4;
+                        d = 2.e-3;
                         ro = x;
                         raymarch(inset, x, ro, d, dir, s, 20, 1.e-4, hit);
                         raymarch(scene, x, ro, d, dir, s, 300, 1.e-4, hit);
@@ -1153,7 +1154,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
             // fog
             //c1 = mix(c1, mix(vec3(1., .56, .44), vec3(1.,1.,.87), abs(uv.y)), tanh(.*d));
             
-            col += mix(mix(c.yyy, c1, clamp(iTime-29., 0., 1.)), c.yyy, clamp(iTime-44., 0., 1.));
+            col += c1;
+//             col += mix(mix(c.yyy, c1, clamp(iTime-29., 0., 1.)), c.yyy, clamp(iTime-44., 0., 1.));
         }
         
     }
