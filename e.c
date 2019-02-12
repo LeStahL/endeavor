@@ -704,8 +704,6 @@ int main(int argc, char **args)
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
             
-    //         glActiveTexture(GL_TEXTURE1);
-            
             glBegin(GL_QUADS);
             glVertex3f(-1,-1,0);
             glVertex3f(-1,1,0);
