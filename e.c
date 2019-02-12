@@ -90,6 +90,7 @@ void *malloc( unsigned int size )
 PFNGLGETPROGRAMIVPROC glGetProgramiv;
 PFNGLGETSHADERIVPROC glGetShaderiv;
 PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
+PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
 PFNGLCREATESHADERPROC glCreateShader;
 PFNGLCREATEPROGRAMPROC glCreateProgram;
 PFNGLSHADERSOURCEPROC glShaderSource;
@@ -129,6 +130,25 @@ void debug(int shader_handle)
     else 
         printf("shader compilation successful.\n");
 //     Sleep(20000); TODO ADDN
+}
+
+void debugp(int program)
+{
+    printf("debugging program.\n");
+    int compile_status = 0;
+    glGetShaderiv(program, GL_LINK_STATUS, &compile_status);
+    if(compile_status != GL_TRUE)
+    {
+        printf("FAILED.\n");
+        int len = 4618;
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &len);
+        printf("log length: %d\n", len);
+        GLchar CompileLog[4618];
+        glGetProgramInfoLog(program, len, NULL, CompileLog);
+        printf("error: %s\n", CompileLog);
+    }
+    else 
+        printf("shader linking successful.\n");
 }
 // TODO: remove above
 
@@ -531,6 +551,7 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     
     // OpenGL extensions
     glGetProgramiv = (PFNGLGETPROGRAMIVPROC) wglGetProcAddress("glGetProgramiv");
+    glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC) wglGetProcAddress("glGetProgramInfoLog");
     glGetShaderiv = (PFNGLGETSHADERIVPROC) wglGetProcAddress("glGetShaderiv");
     glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC) wglGetProcAddress("glGetShaderInfoLog");
     glCreateShader = (PFNGLCREATESHADERPROC) wglGetProcAddress("glCreateShader");
@@ -802,6 +823,7 @@ int main(int argc, char **args)
     debug(gfx_handle);
     glAttachShader(gfx_program, gfx_handle);
     glLinkProgram(gfx_program);
+    debugp(gfx_program);
     glUseProgram(gfx_program);
     time_location =  glGetUniformLocation(gfx_program, VAR_ITIME);
     resolution_location = glGetUniformLocation(gfx_program, VAR_IRESOLUTION);

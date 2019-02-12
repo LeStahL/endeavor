@@ -15,7 +15,7 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#version 130
+#version 330
 
 float iScale, iNBeats = 0.;
 uniform float iTime, iFontWidth, iSequenceWidth, iExecutableSize;
@@ -136,19 +136,19 @@ float scale(float t)
     float Bon = 0.;
     float Boff = 0.;
     
-    for(int trk = 0; trk < NTRK; trk++)
+    for(int trk = 0; trk < max(NTRK,0); trk++)
     {
         if(trk_syn(trk) != drum_index) continue;
         int tsep = trk_sep(trk);
         int tlen = trk_sep(trk+1) - tsep;
 
         int _modU = tlen-1;
-        for(int i=0; i<tlen-1; i++) if(BT < mod_on(tsep + i + 1)) {_modU = i; break;}
+        for(int i=0; i<max(tlen-1,0); i++) if(BT < mod_on(tsep + i + 1)) {_modU = i; break;}
             
         int _modL = tlen-1;
-        for(int i=0; i<tlen-1; i++) if(BT < mod_off(tsep + i) + trk_rel(trk)) {_modL = i; break;}
+        for(int i=0; i<max(tlen-1,0); i++) if(BT < mod_off(tsep + i) + trk_rel(trk)) {_modL = i; break;}
         
-        for(int _mod = _modL; _mod <= _modU; _mod++)
+        for(int _mod = _modL; _mod <= max(_modL,_modU); _mod++)
         {
             float B = BT - mod_on(tsep + _mod);
 
@@ -157,13 +157,13 @@ float scale(float t)
             int plen = ptn_sep(ptn+1) - psep;
             
             int _noteU = plen;
-            for(int i=0; i<plen; i++) if(B < note_on(psep + i + 1)) {_noteU = i; break;}
+            for(int i=0; i<max(plen,0); i++) if(B < note_on(psep + i + 1)) {_noteU = i; break;}
 
             int _noteL = plen;
-            for(int i=0; i<plen; i++) if(B <= note_off(psep + i ) + trk_rel(trk)) {_noteL = i; break;}
+            for(int i=0; i<max(plen,0); i++) if(B <= note_off(psep + i ) + trk_rel(trk)) {_noteL = i; break;}
         
             iNBeats = 0.;
-            for(int _note = _noteL; _note <= _noteU; _note++)
+            for(int _note = _noteL; _note <= max(_noteL, _noteU); _note++)
             {
                 Bon    = note_on(psep + _note);
                 Boff   = note_off(psep + _note);
@@ -217,7 +217,7 @@ float mfsnoise_2d(vec2 x, float f0, float f1, float phi)
     float a = 1.2;
     float n = 0.;
     
-    for(float f = f0; f<f1; f = f*2.)
+    for(float f = f0; f<max(f0,f1); f = f*2.)
     {
         sum = a*snoise_2d(f*x) + sum;
         a = a*phi;
@@ -262,7 +262,7 @@ float lineseg(vec2 x, vec2 p1, vec2 p2)
     return length(x-mix(p1, p2, clamp(dot(x-p1, d)/dot(d,d),0.,1.)));
 }
 
-float lineseg(vec3 x, vec3 p1, vec3 p2)
+float lineseg3(vec3 x, vec3 p1, vec3 p2)
 {
     vec3 d = p2-p1;
     return length(x-mix(p1, p2, clamp(dot(x-p1, d)/dot(d,d),0.,1.)));
@@ -313,7 +313,7 @@ float dglyph(vec2 x, float ordinal, float size)
     float nglyphs = rfloat(1.),
         offset = 0;
         
-    for(float i=0.; i<nglyphs; i+=1.)
+    for(float i=0.; i<max(nglyphs,0); i+=1.)
     {
         float ord = floor(rfloat(2.+2.*i));
         if(ord == ordinal)
@@ -331,7 +331,7 @@ float dglyph(vec2 x, float ordinal, float size)
     // Lines
     float nlines = floor(rfloat(offset));
     offset += 1.;
-    for(float i=0.; i<nlines; i+=1.)
+    for(float i=0.; i<max(nlines,0); i+=1.)
     {
         float x1 = rfloat(offset);
         offset += 1.;
@@ -347,7 +347,7 @@ float dglyph(vec2 x, float ordinal, float size)
     // Circles
     float ncircles = floor(rfloat(offset));
     offset += 1.;
-    for(float i=0.; i<ncircles; i+=1.)
+    for(float i=0.; i<max(ncircles,0); i+=1.)
     {
         float xc = rfloat(offset);
         offset += 1.;
@@ -361,7 +361,7 @@ float dglyph(vec2 x, float ordinal, float size)
     // Circle segments
     float nsegments = floor(rfloat(offset));
     offset += 1.;
-    for(float i=0.; i<nsegments; i+=1.)
+    for(float i=0.; i<max(nsegments,0); i+=1.)
     {
         float xc = rfloat(offset);
         offset += 1.;
@@ -391,8 +391,10 @@ float dstring(vec2 x, float ordinal, float size)
     // Return 1 if wrong ordinal is supplied
     float nstrings = floor(rfloat(stroff0));
     if(ordinal >= nstrings)
+    {
         return 1.;
-        
+    }
+    
     // Get offset and length of string from string database index
     float stroff = floor(rfloat(stroff0+1.+2.*ordinal));
     float len = floor(rfloat(stroff0+2.+2.*ordinal));
@@ -411,7 +413,9 @@ float dstring(vec2 x, float ordinal, float size)
     // Bounding box
     float bound = box(x-size*(len-3.)*c.xy, vec2(size*len, 1.*size));
     if(bound > 0.)
+    {
         return bound+.5*size;
+    }
     return dglyph(dx, floor(rfloat(stroff+ind.x)), .7*size);
 }
 
@@ -431,12 +435,12 @@ float dfloat(vec2 x, float num, float size)
     }
     
     // The first power of ten that floors num to anything not zero is the exponent
-    for(exp = -15.; exp < 15.; exp += 1.)
+    for(exp = -15.; exp < max(15., -32.+sign); exp += 1.)
         if(floor(num*pow(10.,exp)) != 0.)
             break;
     exp *= -1.;
     // Determine the significand and output it
-    for(float i = exp; i >= exp-5.; i -= 1.)
+    for(float i = exp; i >= max(exp-5.,-33); i -= 1.)
     {
         float po = pow(10.,i);
         float ca = floor(num/po);
@@ -740,17 +744,19 @@ vec3 post1(vec2 uv, vec3 col)
 //eps:	 exit criterion
 //flag:  name of the flag to set if raymarching succeeded
 #define raymarch(scene, xc, ro, d, dir, s, N, eps, flag) \
-    flag = false;\
-    for(int ia=0; ia<N; ++ia)\
     {\
-        xc = ro + d*dir;\
-        s = scene(xc);\
-        if(s.x < eps)\
+        flag = false;\
+        for(int ia=0; ia<N; ++ia)\
         {\
-            flag = true;\
-            break;\
+            xc = ro + d*dir;\
+            s = scene(xc);\
+            if(s.x < eps)\
+            {\
+                flag = true;\
+                break;\
+            }\
+            d += s.x;\
         }\
-        d += s.x;\
     }
 
 //computes normal with finite differences
@@ -758,10 +764,10 @@ vec3 post1(vec2 uv, vec3 col)
 //n:	 name of the normal variable
 //eps:	 precision of the computation
 //xc:	 location of normal evaluation
-#define calcnormal(scene, n, eps, xc) \
+#define calcnormal(scene, _n, eps, xc) \
     {\
         float ss = scene(xc).x;\
-        n = normalize(vec3(scene(xc+eps*c.xyy).x-ss,\
+        _n = normalize(vec3(scene(xc+eps*c.xyy).x-ss,\
                         scene(xc+eps*c.yxy).x-ss,\
                         scene(xc+eps*c.yyx).x-ss));\
     }
@@ -972,16 +978,16 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     iScale = scale(iTime+.1); //TODO: ADD THIS! IT SYNCS
     a = iResolution.x/iResolution.y;
     vec3 ro, r, u, t, x, dir;
-    vec2 s, uv;
+    vec2 s = c.xy, uv;
     
     float d = 0.;
-    bool hit;
+    bool hit = false;
     
     vec3 col = c.yyy;
     
     // Antialiasing
-    for(int jii=0; jii<iFSAA; ++jii)
-        for(int jij=0; jij<iFSAA; ++jij)
+    for(int jii=0; jii<max(iFSAA, 0); ++jii)
+        for(int jij=0; jij<max(iFSAA,0); ++jij)
         {
         vec2 o = vec2(float(jii),float(jij)) / float(iFSAA) - .5;
         uv = (-iResolution.xy + 2.*(fragCoord+o))/iResolution.y;
@@ -1032,21 +1038,20 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
             
             camerasetup(camera0, ro, r, u, t, uv, dir);
             d = (.5-ro.z)/dir.z;
-            raymarch(textpre, x, ro, d, dir, s, 100, 2.e-5, hit);
+            raymarch(textpre, x, ro, d, dir, s, 100, 2.e-4, hit);
             if(hit) hit = false;
             else d = -ro.z/dir.z;
-            raymarch(texteffect, x, ro, d, dir, s, 200, 2.e-5, hit);
+            raymarch(texteffect, x, ro, d, dir, s, 200, 2.e-4, hit);
             
             if(hit)
             {
                 vec3 n;
-                calcnormal(scene, n, 2.e-4, x);
+                calcnormal(texteffect, n, 2.e-4, x);
 
                 float rs = 1.9;
                 vec3 l = x+1.*c.yyx,
-                    //l = -1.*c.yxy+1.5*c.yyx, 
-                    re = normalize(reflect(-l,n)), v = normalize(x-ro);
-                float rev = (dot(re,v)), ln = (dot(l,n));
+                    re = normalize(reflect(-l,n));
+                float rev = abs(dot(re,dir)), ln = abs(dot(l,n));
 
                 c1 = color(rev, ln, s.y, uv, x);
             }
@@ -1057,42 +1062,39 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 //         else if(iTime < 28.) // "Endeavour" text
 //         {
 //             vec3 c1 = c.yyy;
+//             camerasetup(camera0, ro, r, u, t, uv, dir);
+//             d = (.25-ro.z)/dir.z;
+//             raymarch(textpre2, x, ro, d, dir, s, 50, 2.e-4, hit);
+//             if(!hit) 
 //             {
-//                 camerasetup(camera0, ro, r, u, t, uv, dir);
+//                 d = -ro.z/dir.z;
 //             }
-// //             {
-// // //                 d = (.25-ro.z)/dir.z;
-// //             }
-// //             {
-// //                 raymarch(textpre2, x, ro, d, dir, s, 50, 2.e-5, hit);
-// //             }
-// //             if(hit) 
-// //             {
-// //                 hit = false;
-// //             }
-// //             else 
-// //             {
-// //                 d = -ro.z/dir.z;
-// //             }
-// //             
-// //             {
-// //                 raymarch(texteffect2, x, ro, d, dir, s, 200, 2.e-5, hit);
-// //             }
+//             raymarch(texteffect2, x, ro, d, dir, s, 200, 2.e-4, hit);
 //             
 //             if(hit)
 //             {
-//                 vec3 n;
-//                 calcnormal(scene, n, 2.e-4, x);
+// //                 vec3 n2 = c.yyy;
+// // //                 {
+// //                     float ss = texteffect2(x).x,
+// //                         eps = 2.e-4;
+// //                     vec3 xd = x + eps*c.xyy;
+// //                     float s1 = texteffect2(xd).x-ss;
+// //                     n2 = vec3(texteffect2(x+eps*c.xyy).x-ss, texteffect2(x+eps*c.yxy).x-ss, texteffect2(x+eps*c.yyx).x-ss);
+// //                     n2 = normalize();
+// //                 }
+// //                 calcnormal(texteffect2, n2, 2.e-4, x); //BUG
 // 
-//                 float rs = 1.9;
-//                 vec3 l = x+1.*c.yyx,
-//                     //l = -1.*c.yxy+1.5*c.yyx, 
-//                     re = normalize(reflect(-l,n)), v = normalize(x-ro);
-//                 float rev = (dot(re,v)), ln = (dot(l,n));
-// 
-//                 c1 = color(rev, ln, s.y, uv, x);
+// //                 float rs = 1.9;
+// //                 vec3 l = x+1.*c.yyx,
+// //                     re = normalize(reflect(-l,n2));
+// //                 float rev = abs(dot(re,dir)), ln = abs(dot(l,n2));
+// // 
+// //                 c1 = color(rev, ln, s.y, uv, x);
 //             }
-//             else c1 = background2((ro-ro.z/dir.z*dir).xy);
+//             else 
+//             {
+//                 c1 = background2((ro-ro.z/dir.z*dir).xy);
+//             }
 //             
 //             col += c1;
 //         }

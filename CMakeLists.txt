@@ -20,12 +20,12 @@ project(endeavor)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(WIN32)
-    find_program(SHADER_MINIFIER shader_minifier.exe HINTS ${PROJECT_BINARY_DIR})
     find_program(KKRUNCHY_K7 kkrunchy_k7.exe HINTS ${PROJECT_BINARY_DIR})
     
     add_custom_target(minification
-        COMMAND ${SHADER_MINIFIER} "${PROJECT_SOURCE_DIR}/gfx.frag" -o "${PROJECT_SOURCE_DIR}/gfx.h"  --preserve-all-globals --no-renaming --preserve-externals
-        COMMAND ${SHADER_MINIFIER}  -o "${PROJECT_SOURCE_DIR}/sfx.h" "${PROJECT_SOURCE_DIR}/sfx.frag" --preserve-externals
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/minification/
+        COMMAND python shader-compressor.py "${PROJECT_SOURCE_DIR}/gfx.frag" -o "${PROJECT_SOURCE_DIR}/gfx.h"  --no-minification
+        COMMAND python shader-compressor.py  -o "${PROJECT_SOURCE_DIR}/sfx.h" "${PROJECT_SOURCE_DIR}/sfx.frag" --no-minification
     )
     
     add_custom_target(texture_packing
