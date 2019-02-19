@@ -35,6 +35,24 @@ float doubleslope(float t, float a, float d, float s)
 
 
 
+// One-dimensional value noise from https://www.shadertoy.com/view/wdj3D1 (NR4)
+
+float lpnoise(float t, float fq) // kudos to Dmitry Andreev - and'2014!
+{
+    t *= fq;
+
+    float tt = fract(t);
+    float tn = t - tt;
+    tt = smoothstep(0.0, 1.0, tt);
+
+    // does pseudorandom(...) somehow equal hash22 noise?
+    float n0 = pseudorandom(floor(tn + 0.0) / fq);
+    float n1 = pseudorandom(floor(tn + 1.0) / fq);
+
+    return mix(n0, n1, tt);
+}
+
+
 float env_AHDSR(float x, float L, float A, float H, float D, float S, float R)
 {
     float att = x/A;
@@ -312,23 +330,24 @@ float reverbsnrrev(float time, float f, float tL, float vel, float IIRgain, floa
 
 float AMAYSYN(float t, float B, float Bon, float Boff, float note, int Bsyn, float vel, float Brel)
 {
-    float Bprog = B-Bon;
-    float Bproc = Bprog/(Boff-Bon);
+    Boff += Brel;
     float L = Boff-Bon;
+    float Bprog = B-Bon;
+    float Bproc = Bprog/L;
     float tL = SPB*L;
     float _t = SPB*(B-Bon);
     float f = freqC1(note);
 
-    float env = theta(B-Bon) * (1. - smoothstep(Boff, Boff+Brel, B));
+    float env = theta(B-Bon) * (1. - smoothstep(Boff-Brel, Boff, B));
 	float s = _sin(t*f);
 
 	if(Bsyn == 0){}
-    else if(Bsyn == 3){
+    else if(Bsyn == 4){
       s = .8*env_AHDSR(_t,tL,.001,0.,.1,1.,.3)*(supershape(clip(1.6*QFM((_t-0.0*(1.+2.*_sin(.15*_t))),f,0.,.00787*127.*pow(vel,12.*7.87e-3),.00787*112.*pow(vel,63.*7.87e-3),.00787*127.*pow(vel,26.*7.87e-3),.00787*96.*pow(vel,120.*7.87e-3),.5,1.,1.5,1.,.00787*0.,.00787*0.,.00787*0.,.00787*50.,8.)),.3,.2,.8,.4,.8,.8)
       +supershape(clip(1.6*QFM((_t-2.0e-03*(1.+2.*_sin(.15*_t))),f,0.,.00787*127.*pow(vel,12.*7.87e-3),.00787*112.*pow(vel,63.*7.87e-3),.00787*127.*pow(vel,26.*7.87e-3),.00787*96.*pow(vel,120.*7.87e-3),.5,1.,1.5,1.,.00787*0.,.00787*0.,.00787*0.,.00787*50.,8.)),.3,.2,.8,.4,.8,.8)
       +supershape(clip(1.6*QFM((_t-4.0e-03*(1.+2.*_sin(.15*_t))),f,0.,.00787*127.*pow(vel,12.*7.87e-3),.00787*112.*pow(vel,63.*7.87e-3),.00787*127.*pow(vel,26.*7.87e-3),.00787*96.*pow(vel,120.*7.87e-3),.5,1.,1.5,1.,.00787*0.,.00787*0.,.00787*0.,.00787*50.,8.)),.3,.2,.8,.4,.8,.8));
     }
-    else if(Bsyn == 9){
+    else if(Bsyn == 10){
       s = env_AHDSR(_t,tL,.002,0.,.15,.25,.13)*bandpassBPsaw1(_t,f,tL,vel,(2000.+(1500.*_sin(.25*B))),10.,100.);
     }
     
@@ -374,7 +393,7 @@ float rfloat(int off)
 #define NTRK 4
 #define NMOD 19
 #define NPTN 5
-#define NNOT 65
+#define NNOT 62
 
 int trk_sep(int index)      {return int(rfloat(index));}
 int trk_syn(int index)      {return int(rfloat(index+1+1*NTRK));}
@@ -395,7 +414,7 @@ float note_slide(int index) {return     rfloat(index+2+5*NTRK+4*NMOD+NPTN+4*NNOT
 float mainSynth(float time)
 {
     float max_mod_off = 12.;
-    int drum_index = 24;
+    int drum_index = 25;
     
     
     float r = 0.;
