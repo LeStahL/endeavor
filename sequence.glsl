@@ -25,7 +25,7 @@ const float Tsample = 1./Fsample;
 
 const float filterthreshold = 1e-3;
 
-const float sequence_texture[68] = float[68](0.,1.,3.,3.,24.,.449951171875,1.,.60009765625,1.,0.,0.,2.,4.,2.,4.,0.,1.,1.,0.,0.,0.,0.,1.,11.,0.,0.,.125,.25,.75,.875,1.,1.125,1.25,1.5,1.75,4.,.125,.25,.375,.875,1.,1.125,1.25,1.375,1.625,1.875,13.,2.,2.,2.,2.,2.,2.,2.,2.,2.,2.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.);
+const float sequence_texture[428] = float[428](0.,3.,14.,15.,19.,3.,24.,9.,24.,.89990234375,.7998046875,.300048828125,1.,.60009765625,1.,.7001953125,1.,.5,0.,.114990234375,0.,0.,4.,8.,1.,2.,3.,4.,5.,6.,7.,8.,9.,10.,11.,4.,8.,9.,10.,11.,4.,8.,12.,2.,3.,4.,5.,6.,7.,8.,9.,10.,11.,12.,8.,9.,10.,11.,12.,1.,1.,3.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,2.,4.,4.,4.,4.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,-12.,0.,0.,0.,0.,0.,4.,30.,58.,61.,65.,0.,.25,.5,.75,0.,.125,.25,.375,.625,.75,1.,1.125,1.25,1.375,1.625,1.75,1.875,2.,2.125,2.25,2.375,2.625,2.75,2.875,3.,3.25,3.375,3.5,3.625,3.75,0.,.125,.25,.375,.5,.625,.75,1.,1.125,1.25,1.375,1.5,1.625,1.75,2.125,2.25,2.375,2.5,2.625,2.75,2.875,3.,3.125,3.25,3.375,3.5,3.625,3.75,0.,2.5,2.5,0.,.25,.5,.75,.0625,.375,.5625,.875,.125,.25,.375,.5,.75,1.,1.125,1.25,1.375,1.5,1.75,1.875,2.,2.125,2.25,2.375,2.5,2.75,2.875,3.,3.125,3.375,3.5,3.625,3.75,4.,.125,.25,.375,.5,.625,.75,1.,1.125,1.25,1.375,1.5,1.625,1.75,2.125,2.25,2.375,2.5,2.625,2.75,2.875,3.,3.125,3.25,3.375,3.5,3.625,3.75,4.,2.5,4.,4.,.0625,.3125,.5625,.875,3.,3.,3.,3.,14.,26.,29.,14.,14.,17.,14.,26.,29.,14.,14.,17.,29.,14.,26.,29.,14.,26.,29.,14.,17.,17.,19.,16.,14.,12.,45.,50.,53.,45.,48.,52.,57.,45.,48.,53.,53.,52.,48.,43.,50.,53.,45.,52.,55.,52.,48.,45.,48.,41.,45.,43.,41.,40.,26.,24.,36.,0.,0.,0.,0.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,.89990234375,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,0.,0.,0.,0.,0.,0.,0.,0.,0.,-3.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,2.,0.,0.,-1.,0.,0.,-2.,-5.,0.,-1.,-2.,0.,1.,2.,4.,0.,-1.,0.,-2.,-1.,1.,2.,1.,-1.,3.,-2.,1.,1.,1.,-24.,-12.,0.,0.,0.,0.,0.);
 
 
 float doubleslope(float t, float a, float d, float s)
@@ -136,7 +136,7 @@ float QFM(float t, float f, float phase, float LV1, float LV2, float LV3, float 
     return s_atan(sum);
 }
 
-float reverbFsaw3_IIR(float time, float f, float tL, float IIRgain, float IIRdel1, float IIRdel2, float IIRdel3, float IIRdel4)
+float reverbFsaw3_IIR(float time, float f, float tL, float vel, float IIRgain, float IIRdel1, float IIRdel2, float IIRdel3, float IIRdel4)
 {
     int imax = int(log(filterthreshold)/log(IIRgain));
     float delay[4] = float[4](IIRdel1, IIRdel2, IIRdel3, IIRdel4);
@@ -158,11 +158,11 @@ float reverbFsaw3_IIR(float time, float f, float tL, float IIRgain, float IIRdel
     return .25*sum;
 }
 
-float reverbFsaw3_AP1(float time, float f, float tL, float IIRgain, float IIRdel1, float IIRdel2, float IIRdel3, float IIRdel4, float APgain, float APdel1)
+float reverbFsaw3_AP1(float time, float f, float tL, float vel, float IIRgain, float IIRdel1, float IIRdel2, float IIRdel3, float IIRdel4, float APgain, float APdel1)
 {
     // first allpass delay line
     float _TIME = time;
-    float sum = -APgain * reverbFsaw3_IIR(_TIME, f, tL, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4);
+    float sum = -APgain * reverbFsaw3_IIR(_TIME, f, tL, vel, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4);
     float fac = 1. - APgain * APgain;
     
     int imax = 1 + int((log(filterthreshold)-log(fac))/log(APgain));
@@ -170,18 +170,18 @@ float reverbFsaw3_AP1(float time, float f, float tL, float IIRgain, float IIRdel
     for(int i=0; i<imax; i++)
     {
         _TIME -= APdel1 * (.9 + 0.2*pseudorandom(time));
-        sum += fac * reverbFsaw3_IIR(_TIME, f, tL, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4);
+        sum += fac * reverbFsaw3_IIR(_TIME, f, tL, vel, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4);
         fac *= APgain * (1. + 0.01*pseudorandom(_TIME));
     }
     return sum;        
 }
 
-float reverbFsaw3(float time, float f, float tL, float IIRgain, float IIRdel1, float IIRdel2, float IIRdel3, float IIRdel4, float APgain, float APdel1, float APdel2)
+float reverbFsaw3(float time, float f, float tL, float vel, float IIRgain, float IIRdel1, float IIRdel2, float IIRdel3, float IIRdel4, float APgain, float APdel1, float APdel2)
 {   // // based on this Schroeder Reverb from Paul Wittschen: http://www.paulwittschen.com/files/schroeder_paper.pdf
     // todo: add some noise...
     // second allpass delay line
     float _TIME = time;
-    float sum = -APgain * reverbFsaw3_AP1(_TIME, f, tL, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4, APgain, APdel1);
+    float sum = -APgain * reverbFsaw3_AP1(_TIME, f, tL, vel, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4, APgain, APdel1);
     float fac = 1. - APgain * APgain;
 
     int imax = 1 + int((log(filterthreshold)-log(fac))/log(APgain));
@@ -189,12 +189,38 @@ float reverbFsaw3(float time, float f, float tL, float IIRgain, float IIRdel1, f
     for(int i=0; i<imax; i++)
     {
         _TIME -= APdel2 * (.9 + 0.2*pseudorandom(time));
-        sum += fac * reverbFsaw3_AP1(_TIME, f, tL, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4, APgain, APdel1);
+        sum += fac * reverbFsaw3_AP1(_TIME, f, tL, vel, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4, APgain, APdel1);
         fac *= APgain * (1. + 0.01*pseudorandom(_TIME));
     }
     return sum;        
 }
-float avglpBDbody3f(float time, float f, float tL, float N)
+float bandpassBPsaw1(float time, float f, float tL, float vel, float fcenter, float bw, float M)
+{
+    float y = 0.;
+        
+    float facM = 2.*PI/M;
+    float facL = 2.*PI*Tsample * (fcenter - bw);
+    float facH = 2.*PI*Tsample * (fcenter + bw);
+    
+    if(facL < 0.) facL = 0.;
+    if(facH > PI) facH = PI;
+    
+    float _TIME, mm, w, h;
+    
+    M--;
+    for(float m=1.; m<=M; m++)
+    {
+        mm = m - .5*M;
+        w = .42 - .5 * cos(mm*facM) - .08 * cos(2.*mm*facM);
+        h = 1./(PI*mm) * (sin(mm*facH) - sin(mm*facL));
+        
+        _TIME = time - m*Tsample;
+        y += w*h*(2.*fract(f*_TIME+0.)-1.);
+    }
+    
+    return s_atan(M*M*y); // I DO NOT CARE ANYMORE
+}
+float avglpBDbody3f(float time, float f, float tL, float vel, float N)
 {    
     int iN = int(N);
 
@@ -208,7 +234,21 @@ float avglpBDbody3f(float time, float f, float tL, float N)
     }
     return avg;
 }
-float reverbsnrrev_IIR(float time, float f, float tL, float IIRgain, float IIRdel1, float IIRdel2, float IIRdel3, float IIRdel4)
+float avglpBDbody3ff(float time, float f, float tL, float vel, float N)
+{    
+    int iN = int(N);
+
+    float _TIME = time;
+    float avg = 0.;
+    
+    for(int i = 0; i < iN; i++)
+    {
+          _TIME = time - float(i)*Tsample;
+          avg += avglpBDbody3f(_TIME,f,tL,vel,2.) / N;
+    }
+    return avg;
+}
+float reverbsnrrev_IIR(float time, float f, float tL, float vel, float IIRgain, float IIRdel1, float IIRdel2, float IIRdel3, float IIRdel4)
 {
     int imax = int(log(filterthreshold)/log(IIRgain));
     float delay[4] = float[4](IIRdel1, IIRdel2, IIRdel3, IIRdel4);
@@ -230,11 +270,11 @@ float reverbsnrrev_IIR(float time, float f, float tL, float IIRgain, float IIRde
     return .25*sum;
 }
 
-float reverbsnrrev_AP1(float time, float f, float tL, float IIRgain, float IIRdel1, float IIRdel2, float IIRdel3, float IIRdel4, float APgain, float APdel1)
+float reverbsnrrev_AP1(float time, float f, float tL, float vel, float IIRgain, float IIRdel1, float IIRdel2, float IIRdel3, float IIRdel4, float APgain, float APdel1)
 {
     // first allpass delay line
     float _TIME = time;
-    float sum = -APgain * reverbsnrrev_IIR(_TIME, f, tL, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4);
+    float sum = -APgain * reverbsnrrev_IIR(_TIME, f, tL, vel, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4);
     float fac = 1. - APgain * APgain;
     
     int imax = 1 + int((log(filterthreshold)-log(fac))/log(APgain));
@@ -242,18 +282,18 @@ float reverbsnrrev_AP1(float time, float f, float tL, float IIRgain, float IIRde
     for(int i=0; i<imax; i++)
     {
         _TIME -= APdel1 * (.9 + 0.2*pseudorandom(time));
-        sum += fac * reverbsnrrev_IIR(_TIME, f, tL, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4);
+        sum += fac * reverbsnrrev_IIR(_TIME, f, tL, vel, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4);
         fac *= APgain * (1. + 0.01*pseudorandom(_TIME));
     }
     return sum;        
 }
 
-float reverbsnrrev(float time, float f, float tL, float IIRgain, float IIRdel1, float IIRdel2, float IIRdel3, float IIRdel4, float APgain, float APdel1, float APdel2)
+float reverbsnrrev(float time, float f, float tL, float vel, float IIRgain, float IIRdel1, float IIRdel2, float IIRdel3, float IIRdel4, float APgain, float APdel1, float APdel2)
 {   // // based on this Schroeder Reverb from Paul Wittschen: http://www.paulwittschen.com/files/schroeder_paper.pdf
     // todo: add some noise...
     // second allpass delay line
     float _TIME = time;
-    float sum = -APgain * reverbsnrrev_AP1(_TIME, f, tL, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4, APgain, APdel1);
+    float sum = -APgain * reverbsnrrev_AP1(_TIME, f, tL, vel, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4, APgain, APdel1);
     float fac = 1. - APgain * APgain;
 
     int imax = 1 + int((log(filterthreshold)-log(fac))/log(APgain));
@@ -261,7 +301,7 @@ float reverbsnrrev(float time, float f, float tL, float IIRgain, float IIRdel1, 
     for(int i=0; i<imax; i++)
     {
         _TIME -= APdel2 * (.9 + 0.2*pseudorandom(time));
-        sum += fac * reverbsnrrev_AP1(_TIME, f, tL, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4, APgain, APdel1);
+        sum += fac * reverbsnrrev_AP1(_TIME, f, tL, vel, IIRgain, IIRdel1, IIRdel2, IIRdel3, IIRdel4, APgain, APdel1);
         fac *= APgain * (1. + 0.01*pseudorandom(_TIME));
     }
     return sum;        
@@ -288,9 +328,12 @@ float AMAYSYN(float t, float B, float Bon, float Boff, float note, int Bsyn, flo
       +supershape(clip(1.6*QFM((_t-2.0e-03*(1.+2.*_sin(.15*_t))),f,0.,.00787*127.*pow(vel,12.*7.87e-3),.00787*112.*pow(vel,63.*7.87e-3),.00787*127.*pow(vel,26.*7.87e-3),.00787*96.*pow(vel,120.*7.87e-3),.5,1.,1.5,1.,.00787*0.,.00787*0.,.00787*0.,.00787*50.,8.)),.3,.2,.8,.4,.8,.8)
       +supershape(clip(1.6*QFM((_t-4.0e-03*(1.+2.*_sin(.15*_t))),f,0.,.00787*127.*pow(vel,12.*7.87e-3),.00787*112.*pow(vel,63.*7.87e-3),.00787*127.*pow(vel,26.*7.87e-3),.00787*96.*pow(vel,120.*7.87e-3),.5,1.,1.5,1.,.00787*0.,.00787*0.,.00787*0.,.00787*50.,8.)),.3,.2,.8,.4,.8,.8));
     }
+    else if(Bsyn == 9){
+      s = env_AHDSR(_t,tL,.002,0.,.15,.25,.13)*bandpassBPsaw1(_t,f,tL,vel,(2000.+(1500.*_sin(.25*B))),10.,100.);
+    }
     
-    else if(Bsyn == -2){
-      s = 3.*s_atan(smoothstep(0.,.015,_t)*smoothstep(.1+.15,.15,_t)*MADD(_t,(50.+(200.-50.)*smoothstep(-.12, 0.,-_t)),5.,10,1,.8,1.,1.,1.,.1,.1,0.,1) + .4*.5*step(_t,.03)*_sin(_t*1100.*1.*_saw(_t*800.*1.)) + .4*(1.-exp(-1000.*_t))*exp(-40.*_t)*_sin((400.-200.*_t)*_t*_sin(1.*(50.+(200.-50.)*smoothstep(-.12, 0.,-_t))*_t)));
+    else if(Bsyn == -3){
+      s = 4.*avglpBDbody3ff(_t,f,tL,vel,2.);
     }
     
 	return clamp(env,0.,1.) * s_atan(s);
@@ -299,30 +342,31 @@ float AMAYSYN(float t, float B, float Bon, float Boff, float note, int Bsyn, flo
 
 float rfloat(int off){return sequence_texture[off];}
 
-#define NTRK 2
-#define NMOD 3
-#define NPTN 2
-#define NNOT 11
+#define NTRK 4
+#define NMOD 19
+#define NPTN 5
+#define NNOT 65
 
 int trk_sep(int index)      {return int(rfloat(index));}
 int trk_syn(int index)      {return int(rfloat(index+1+1*NTRK));}
 float trk_norm(int index)   {return     rfloat(index+1+2*NTRK);}
 float trk_rel(int index)    {return     rfloat(index+1+3*NTRK);}
-float mod_on(int index)     {return     rfloat(index+1+4*NTRK);}
-float mod_off(int index)    {return     rfloat(index+1+4*NTRK+1*NMOD);}
-int mod_ptn(int index)      {return int(rfloat(index+1+4*NTRK+2*NMOD));}
-float mod_transp(int index) {return     rfloat(index+1+4*NTRK+3*NMOD);}
-int ptn_sep(int index)      {return int(rfloat(index+1+4*NTRK+4*NMOD));}
-float note_on(int index)    {return     rfloat(index+2+4*NTRK+4*NMOD+NPTN);}
-float note_off(int index)   {return     rfloat(index+2+4*NTRK+4*NMOD+NPTN+1*NNOT);}
-float note_pitch(int index) {return     rfloat(index+2+4*NTRK+4*NMOD+NPTN+2*NNOT);}
-float note_vel(int index)   {return     rfloat(index+2+4*NTRK+4*NMOD+NPTN+3*NNOT);}
+float trk_slide(int index)  {return     rfloat(index+1+4*NTRK);}
+float mod_on(int index)     {return     rfloat(index+1+5*NTRK);}
+float mod_off(int index)    {return     rfloat(index+1+5*NTRK+1*NMOD);}
+int mod_ptn(int index)      {return int(rfloat(index+1+5*NTRK+2*NMOD));}
+float mod_transp(int index) {return     rfloat(index+1+5*NTRK+3*NMOD);}
+int ptn_sep(int index)      {return int(rfloat(index+1+5*NTRK+4*NMOD));}
+float note_on(int index)    {return     rfloat(index+2+5*NTRK+4*NMOD+NPTN);}
+float note_off(int index)   {return     rfloat(index+2+5*NTRK+4*NMOD+NPTN+1*NNOT);}
+float note_pitch(int index) {return     rfloat(index+2+5*NTRK+4*NMOD+NPTN+2*NNOT);}
+float note_vel(int index)   {return     rfloat(index+2+5*NTRK+4*NMOD+NPTN+3*NNOT);}
+float note_slide(int index) {return     rfloat(index+2+5*NTRK+4*NMOD+NPTN+4*NNOT);}
 
 float mainSynth(float time)
 {
-    float max_mod_off = 4.;
+    float max_mod_off = 12.;
     int drum_index = 24;
-    float drum_synths = 10.;
     
     
     float r = 0.;
@@ -335,61 +379,62 @@ float mainSynth(float time)
 
     float r_sidechain = 1.;
 
-    float Bon = 0.;
-    float Boff = 0.;
+    float B, Bon, Boff, pitch, Bproc;
+    int trk, tsep, tsep1, i, _modU, _modL, _mod, ptn, psep, psep1, _noteU, _noteL, _note, Bdrum;
 
-    for(int trk = 0; trk < NTRK; trk++)
+    for(trk = 0; trk < NTRK; trk++)
     {
-        int tsep = trk_sep(trk);
-        int tlen = trk_sep(trk+1) - tsep;
+        tsep = trk_sep(trk);
+        tsep1 = trk_sep(trk+1);
 
-        int _modU = tlen-1;
-        for(int i=0; i<tlen-1; i++) if(BT < mod_on(tsep + i)) {_modU = i; break;}
+        _modU = tsep1 - 1;
+        for(i = tsep; i < tsep1 - 1; i++) if(BT < mod_on(i)) {_modU = i; break;}
                
-        int _modL = tlen-1;
-        for(int i=0; i<tlen-1; i++) if(BT < mod_off(tsep + i) + trk_rel(trk)) {_modL = i; break;}
+        _modL = tsep - 1;
+        for(i = tsep; i < tsep1 - 1; i++) if(BT < mod_off(i) + trk_rel(trk)) {_modL = i; break;}
        
-        for(int _mod = _modL; _mod <= _modU; _mod++)
+        for(_mod = _modL; _mod <= _modU; _mod++)
         {
-            float B = BT - mod_on(tsep + _mod);
+            B = BT - mod_on(_mod);
 
-            int ptn = mod_ptn(tsep + _mod);
-            int psep = ptn_sep(ptn);
-            int plen = ptn_sep(ptn+1) - psep;
-            
-            int _noteU = plen-1;
-            for(int i=0; i<plen-1; i++) if(B < note_on(psep + i + 1)) {_noteU = i; break;}
+            ptn = mod_ptn(_mod);
+            psep = ptn_sep(ptn);
+            psep1 = ptn_sep(ptn+1);
+                         
+            _noteU = psep1 - 1;
+            for(i = psep; i < psep1 - 1; i++) if(B < note_on(i + 1)) {_noteU = i; break;}
 
-            int _noteL = plen-1;
-            for(int i=0; i<plen-1; i++) if(B <= note_off(psep + i ) + trk_rel(trk)) {_noteL = i; break;}
+            _noteL = psep1 - 1;
+            for(i = psep; i < psep1 - 1; i++) if(B <= note_off(i ) + trk_rel(trk)) {_noteL = i; break;}
            
-            for(int _note = _noteL; _note <= _noteU; _note++)
+            for(_note = _noteL; _note <= _noteU; _note++)
             {
-                Bon    = note_on(psep + _note);
-                Boff   = note_off(psep + _note);
+                Bon  = note_on(_note);
+                Boff = note_off(_note);
 
                 if(trk_syn(trk) == drum_index)
                 {
-                    int Bdrum = int(note_pitch(psep + _note)); //int(mod(note_pitch(psep + _note), drum_synths));
+                    Bdrum = int(note_pitch(_note));
 
                     if(Bdrum == 0) // "sidechaining"
                     {
-                        r_sidechain = 1. - smoothstep(Bon,Bon+1e-4,B) + smoothstep(Bon,Boff,B);
+                        Bproc = (B-Bon)/(Boff-Bon);
+                        r_sidechain = min(r_sidechain, 1. - smoothstep(Bon,Bon+1e-4,B) + pow(Bproc,8.));
                     }
                     else
-                        d += trk_norm(trk) * AMAYSYN(time, B, Bon, Boff, mod_transp(tsep + _mod),
-                                                     -Bdrum, note_vel(psep + _note), trk_rel(trk));
+                        d += trk_norm(trk) * AMAYSYN(time, B, Bon, Boff, mod_transp(_mod), -Bdrum, note_vel(_note), trk_rel(trk));
                 }
                 else
                 {
-                    r += trk_norm(trk) * AMAYSYN(time, B, Bon, Boff, note_pitch(psep+_note) + mod_transp(tsep+_mod),
-                                                 trk_syn(trk), note_vel(psep + _note), trk_rel(trk));
+                    pitch = note_pitch(_note) + mod_transp(_mod)
+                            + note_slide(_note) * 2. * (1. - smoothstep(Bon - trk_slide(trk), Bon + trk_slide(trk), B));
+                    r += trk_norm(trk) * AMAYSYN(time, B, Bon, Boff, pitch, trk_syn(trk), note_vel(_note), trk_rel(trk));
                 }
             }
         }
     }
 
-    return s_atan(s_atan(r_sidechain * r + d));
+    return s_atan(r_sidechain * r + d);
 }
 
 vec2 mainSound(float t)
