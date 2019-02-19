@@ -746,7 +746,7 @@ vec3 post1(vec2 uv, vec3 col)
 #define raymarch(scene, xc, ro, d, dir, s, N, eps, flag) \
     {\
         flag = false;\
-        for(int ia=0; ia<N; ++ia)\
+        for(int ia=0; ia<max(N,0); ++ia)\
         {\
             xc = ro + d*dir;\
             s = scene(xc);\
@@ -1019,19 +1019,19 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     // //         c1 = mix(c1, c.xxy, step(abs(uv.x), .01));
     // //         col += c1;
     // //     }
-    //     if(iTime < 1000.)
-    //     {
-    //         float d = dglyph(uv, 57., .1);
-    //         //float d = dstring(uv-.1, 1., .05);
-    //         float d = dfloat(uv, rfloats(3.), .05);
-    //         if(d == 1.)col += c.yxy;
-    //         else
-    //         {
-    //             d = stroke(d, .01);
-    //             col +=  mix(c.yyy, c.xyy, smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
-    //         }
-    //     }
-    //     else
+//         if(iTime < 1000.)
+//         {
+//             float d = dglyph(uv, 57., .1);
+//             //float d = dstring(uv-.1, 1., .05);
+//             float d = dfloat(uv, rfloats(3.), .05);
+//             if(d == 1.)col += c.yxy;
+//             else
+//             {
+//                 d = stroke(d, .01);
+//                 col +=  mix(c.yyy, c.xyy, smoothstep(-1.5/iResolution.y, 1.5/iResolution.y, d));
+//             }
+//         }
+//         else
         if(iTime < 16.) // Team210 Logo 
         {
             vec3 c1 = c.yyy;
@@ -1073,23 +1073,15 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 //             
 //             if(hit)
 //             {
-// //                 vec3 n2 = c.yyy;
-// // //                 {
-// //                     float ss = texteffect2(x).x,
-// //                         eps = 2.e-4;
-// //                     vec3 xd = x + eps*c.xyy;
-// //                     float s1 = texteffect2(xd).x-ss;
-// //                     n2 = vec3(texteffect2(x+eps*c.xyy).x-ss, texteffect2(x+eps*c.yxy).x-ss, texteffect2(x+eps*c.yyx).x-ss);
-// //                     n2 = normalize();
-// //                 }
-// //                 calcnormal(texteffect2, n2, 2.e-4, x); //BUG
+//                 vec3 n = c.yyy;
+//                 calcnormal(texteffect2, n, 2.e-4, x); //BUG
 // 
-// //                 float rs = 1.9;
-// //                 vec3 l = x+1.*c.yyx,
-// //                     re = normalize(reflect(-l,n2));
-// //                 float rev = abs(dot(re,dir)), ln = abs(dot(l,n2));
-// // 
-// //                 c1 = color(rev, ln, s.y, uv, x);
+//                 float rs = 1.9;
+//                 vec3 l = x+1.*c.yyx,
+//                     re = normalize(reflect(-l,n));
+//                 float rev = abs(dot(re,dir)), ln = abs(dot(l,n));
+// 
+//                 c1 = color(rev, ln, s.y, uv, x);
 //             }
 //             else 
 //             {
