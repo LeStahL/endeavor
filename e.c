@@ -202,23 +202,33 @@ void draw()
         exit(0);
 #endif
     
-    glUniform1i(font_texture_location, 0);
-    glUniform1f(font_width_location, font_texture_size);
-    glUniform1i(gfx_sequence_texture_location, 1);
-    glUniform1f(gfx_sequence_width_location, sequence_texture_size);
-    glUniform1f(gfx_executable_size_location, executable_size);
+    if(loading)
+    {
+        glUseProgram(load_program);
+        glUniform1f(load_progress_location, .5);
+        glUniform2f(load_resolution_location, w, h);
+        glUniform1f(load_time_location, t_now-t_start);
+    }
+    else
+    {
+        glUniform1i(font_texture_location, 0);
+        glUniform1f(font_width_location, font_texture_size);
+        glUniform1i(gfx_sequence_texture_location, 1);
+        glUniform1f(gfx_sequence_width_location, sequence_texture_size);
+        glUniform1f(gfx_executable_size_location, executable_size);
 
-    glUniform1i(gfx_fsaa_location, fsaa);
-    glUniform1i(gfx_txaa_location, txaa);
-    
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, font_texture_handle);
-    
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
-    
-    glUniform1f(time_location, t_now-t_start);
-    glUniform2f(resolution_location, w, h);
+        glUniform1i(gfx_fsaa_location, fsaa);
+        glUniform1i(gfx_txaa_location, txaa);
+        
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, font_texture_handle);
+        
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
+        
+        glUniform1f(time_location, t_now-t_start);
+        glUniform2f(resolution_location, w, h);
+    }
     
     glBegin(GL_QUADS);
     
