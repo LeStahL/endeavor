@@ -114,41 +114,42 @@ PFNGLACTIVETEXTUREPROC glActiveTexture;
 // TODO: remove below
 void debug(int shader_handle)
 {
-    printf("debugging shader.\n");
+    printf("    Debugging shader.\n");
     int compile_status = 0;
     glGetShaderiv(shader_handle, GL_COMPILE_STATUS, &compile_status);
     if(compile_status != GL_TRUE)
     {
-        printf("FAILED.\n");
-        int len = 4618;
-        glGetShaderiv(shader_handle, GL_INFO_LOG_LENGTH, &len);
-        printf("log length: %d\n", len);
-        GLchar CompileLog[4618];
-        glGetShaderInfoLog(shader_handle, len, NULL, CompileLog);
-        printf("error: %s\n", CompileLog);
+        printf("    FAILED.\n");
+//         GLint len;
+//         glGetShaderiv(shader_handle, GL_INFO_LOG_LENGTH, &len);
+//         printf("    Log length: %d\n", len);
+        GLchar CompileLog[20000];
+        glGetShaderInfoLog(shader_handle, 20000, NULL, CompileLog);
+        printf("    Error messages:\n%s\n", CompileLog);
+//         free(CompileLog);
     }
     else 
-        printf("shader compilation successful.\n");
-//     Sleep(20000); TODO ADDN
+        printf("    Shader compilation successful.\n");
 }
 
 void debugp(int program)
 {
-    printf("debugging program.\n");
+    printf("    Debugging program.\n");
     int compile_status = 0;
     glGetShaderiv(program, GL_LINK_STATUS, &compile_status);
     if(compile_status != GL_TRUE)
     {
-        printf("FAILED.\n");
-        int len = 4618;
-        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &len);
-        printf("log length: %d\n", len);
-        GLchar CompileLog[4618];
-        glGetProgramInfoLog(program, len, NULL, CompileLog);
-        printf("error: %s\n", CompileLog);
+        printf("    FAILED.\n");
+//         GLint len;
+//         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &len);
+//         printf("    Log length: %d\n", len);
+        GLchar CompileLog[20000];
+        glGetProgramInfoLog(program, 20000, NULL, CompileLog);
+        printf("    Error messages:\n%s\n", CompileLog);
+//         free(CompileLog);
     }
     else 
-        printf("shader linking successful.\n");
+        printf("    Program linking successful.\n");
 }
 // TODO: remove above
 
@@ -163,6 +164,8 @@ int w = 1920, h = 1080,
     sfx_sequence_texture_location, sfx_sequence_width_location,
     gfx_sequence_texture_location, gfx_sequence_width_location,
     gfx_executable_size_location,
+    load_program, load_resolution_location, load_time_location,
+    load_progress_location,
     fsaa = 1, txaa = 1,
     gfx_fsaa_location, gfx_txaa_location;
     
@@ -172,6 +175,7 @@ double t_start = 0.,
     t_end = 180.; // TODO: set to sensible end
 unsigned int font_texture_handle, sequence_texture_handle;
 float executable_size = 0.;
+unsigned int loading = 1;
 
 // Music shader globals
 int sample_rate = 44100, channels = 2;
@@ -431,18 +435,7 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     SendMessage(hTXAAComboBox, CB_SETCURSEL, 0, 0);
 
     // Add start button
-    HWND hwndButton = CreateWindow( 
-    WC_BUTTON,  // Predefined class; Unicode assumed 
-    "Abfahrt!",      // Button text 
-    WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-    185,         // x position 
-    165,         // y position 
-    90,        // Button width
-    90,        // Button height
-    lwnd,     // Parent window
-    (HMENU)7,       // No menu.
-    hInstance, 
-    NULL);      // Pointer not needed.
+    HWND hwndButton = CreateWindow(WC_BUTTON,"Abfahrt!",WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,185,165,90,90,lwnd,(HMENU)7,hInstance,NULL);
     
     // Show the selector
     ShowWindow(lwnd, TRUE);
@@ -535,6 +528,7 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     HGLRC glrc = wglCreateContext(hdc);
     wglMakeCurrent (hdc, glrc);
     
+    /*
     // Draw black screen with loading bar
     glClearColor(0.,0.,0.,1.);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -548,6 +542,7 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     glEnd();
     
     SwapBuffers(hdc);
+    */
     
     // OpenGL extensions
     glGetProgramiv = (PFNGLGETPROGRAMIVPROC) wglGetProcAddress("glGetProgramiv");
@@ -634,6 +629,36 @@ int main(int argc, char **args)
     
 #endif
     
+    // Load loading bar shader
+#undef VAR_ITIME
+#undef VAR_IPROGRESS
+#undef VAR_IRESOLUTION
+#include "gfx/load.h"
+#ifndef VAR_ITIME
+#define VAR_ITIME "iTime"
+#endif
+#ifndef VAR_IPROGRESS
+#define VAR_IPROGRESS "iProgress"
+#endif
+#ifndef VAR_IRESOLUTION
+#define VAR_IRESOLUTION "iResolution"
+#endif
+    int load_size = strlen(load_frag),
+        load_handle = glCreateShader(GL_FRAGMENT_SHADER);
+    load_program = glCreateProgram();
+    glShaderSource(load_handle, 1, (GLchar **)&load_frag, &load_size);
+    glCompileShader(load_handle);
+    printf("---> Load shader:\n");
+    debug(load_handle);
+    glAttachShader(load_program, load_handle);
+    glLinkProgram(load_program);
+    debugp("---> Load program:\n");
+    glUseProgram(load_program);
+    load_progress_location = glGetUniformLocation(load_program, VAR_IPROGRESS);
+    load_time_location = glGetUniformLocation(load_program, VAR_ITIME);
+    load_resolution_location = glGetUniformLocation(load_program, VAR_IRESOLUTION);
+    printf("++++ Loading bar created.\n");
+    
     int nblocks1 = sample_rate*duration1/block_size+1;
         music1_size = nblocks1*block_size; 
         smusic1 = (float*)malloc(4*music1_size);
@@ -644,6 +669,9 @@ int main(int argc, char **args)
 #undef VAR_IBLOCKOFFSET
 #undef VAR_ISAMPLERATE
 #undef VAR_IVOLUME
+#undef VAR_ITEXSIZE
+#undef VAR_ISEQUENCE
+#undef VAR_ISEQUENCEWIDTH
 #include "sfx.h"
 #ifndef VAR_IVOLUME
     #define VAR_IVOLUME "iVolume"
