@@ -100,7 +100,7 @@ float rfloats(int off)
 }
 
 // TODO: COPY THIS FROM SFX SHADER TO ACHIEVE SYNC
-const int NTRK = 2, NMOD = 3, NPTN = 2, NNOT = 11;
+const int NTRK = 4, NMOD = 19, NPTN = 5, NNOT = 62;
 
 int trk_sep(int index)      {return int(rfloats(index));}
 int trk_syn(int index)      {return int(rfloats(index+1+1*NTRK));}
@@ -123,8 +123,8 @@ const float SPB = 60./BPM;
 // Extract drum signal
 float scale(float t)
 {
-    float max_mod_off = 4.;
-    int drum_index = 24;
+    float max_mod_off = 12.;
+    int drum_index = 25;
     float d = 0.;
 
     // mod for looping
@@ -975,7 +975,7 @@ vec3 smallogo(vec2 uv)
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    iScale = scale(iTime+.1); //TODO: ADD THIS! IT SYNCS
+//     iScale = scale(iTime+.1); //TODO: ADD THIS! IT SYNCS
     a = iResolution.x/iResolution.y;
     vec3 ro, r, u, t, x, dir;
     vec2 s = c.xy, uv;
@@ -1005,20 +1005,20 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     //     }
     //     else 
     //================================
-    // //     if(iTime < 1000.)
-    // //     {
-    // // //         vec3 c1 = texture(iSequence, uv).rgb;
-    // //         vec3 c1 = c.yyy;
-    // // //         float st = scale(iTime);
-    // //         iScale = scale(iTime-uv.x);
-    // //         if(uv.y > 0.)  
-    // //         {
-    // //             c1 += c.xyy*step(uv.y,iScale);
-    // //             c1 += c.yyx*step(uv.y,iNBeats/16.);
-    // //         }
-    // //         c1 = mix(c1, c.xxy, step(abs(uv.x), .01));
-    // //         col += c1;
-    // //     }
+//         if(iTime < 1000.)
+//         {
+//     // // //         vec3 c1 = texture(iSequence, uv).rgb;
+//             vec3 c1 = c.yyy;
+// //             float st = scale(iTime);
+//             iScale = scale(iTime-uv.x);
+//             if(uv.y > 0.)  
+//             {
+//                 c1 += c.xyy*step(uv.y,iScale);
+//                 c1 += c.yyx*step(uv.y,iNBeats/16.);
+//             }
+//             c1 = mix(c1, c.xxy, step(abs(uv.x), .01));
+//             col += c1;
+//         }
 //         if(iTime < 1000.)
 //         {
 //             float d = dglyph(uv, 57., .1);
