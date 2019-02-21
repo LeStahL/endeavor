@@ -19,8 +19,6 @@
 //#define SUPER_SMALL
 
 // WIN32 code
-#ifdef _MSC_VER
-
 const char *demoname = "Endeavour/Team210";
 unsigned int muted = 0.;
 
@@ -58,24 +56,6 @@ void *malloc( unsigned int size )
 {
     return GlobalAlloc(GMEM_ZEROINIT, size) ;
 }
-#else 
-
-#include <X11/X.h>
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-
-#include <GL/gl.h>
-#include <GL/glx.h>
-#include "glext.h"
-
-#include <time.h>
-#include <sys/time.h>
-
-#include <dlfcn.h>
-
-// #include <stdlib.h>
-#include <string.h>
-#endif
 
 // TODO: remove
 #include <stdio.h>
@@ -106,10 +86,7 @@ PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
 PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
 PFNGLNAMEDRENDERBUFFERSTORAGEEXTPROC glNamedRenderbufferStorageEXT;
 PFNGLUNIFORM1IPROC glUniform1i;
-
-#ifdef _MSC_VER
 PFNGLACTIVETEXTUREPROC glActiveTexture;
-#endif
 
 // TODO: remove below
 void debug(int shader_handle)
@@ -188,9 +165,7 @@ int block_size = texs*texs,
 unsigned int paused = 0;
 float progress = 0.;
 
-#ifdef _MSC_VER
 HWAVEOUT hWaveOut;
-#endif
 double t_paused;
 HANDLE load_music_thread;
 DWORD load_music_thread_id;
@@ -334,13 +309,9 @@ DWORD WINAPI LoadMusicThread( LPVOID lpParam)
 // Pure opengl drawing code, essentially cross-platform
 void draw()
 {
-    // End demo when it is over
+    // End demo when it is over TODO
     if(t_now-t_start > t_end)
-#ifdef _MSC_VER
         ExitProcess(0);
-#else
-        exit(0);
-#endif
         
     if(progress == 1.)
     {
@@ -386,7 +357,6 @@ void draw()
     glFlush();
 }
 
-#ifdef _MSC_VER
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch(uMsg)
@@ -418,9 +388,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
-#endif
 
-#ifdef _MSC_VER
 LRESULT CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch(uMsg)
@@ -483,9 +451,7 @@ LRESULT CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
-#endif
 
-#ifdef _MSC_VER
 int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
     //TODO: remove
@@ -682,22 +648,6 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     HGLRC glrc = wglCreateContext(hdc);
     wglMakeCurrent (hdc, glrc);
     
-    /*
-    // Draw black screen with loading bar
-    glClearColor(0.,0.,0.,1.);
-    glClear(GL_COLOR_BUFFER_BIT);
-    
-    glColor3f(.2, .2, .2);
-    glBegin(GL_QUADS);            
-    glVertex2f(-.5f, -.05f);
-    glVertex2f(-.5f, .05f);
-    glVertex2f(.5f, .05f);
-    glVertex2f(.5f, -0.05f);
-    glEnd();
-    
-    SwapBuffers(hdc);
-    */
-    
     // OpenGL extensions
     glGetProgramiv = (PFNGLGETPROGRAMIVPROC) wglGetProcAddress("glGetProgramiv");
     glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC) wglGetProcAddress("glGetProgramInfoLog");
@@ -719,69 +669,6 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     glNamedRenderbufferStorageEXT = (PFNGLNAMEDRENDERBUFFERSTORAGEEXTPROC) wglGetProcAddress("glNamedRenderbufferStorage");
     glActiveTexture = (PFNGLACTIVETEXTUREPROC) wglGetProcAddress("glActiveTexture");
     glUniform1i = (PFNGLUNIFORM1IPROC) wglGetProcAddress("glUniform1i");
-    
-#else
-int main(int argc, char **args)
-{
-    XInitThreads();
-    
-    Display                 *display;
-    Window                  root;
-    GLint                   att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
-    XVisualInfo             *vi;
-    Colormap                cmap;
-    XSetWindowAttributes    swa;
-    Window                  win;
-    GLXContext              glc;
-    XWindowAttributes       gwa;
-    XEvent                  xevent;
-
-    display = XOpenDisplay(NULL);
-    root = DefaultRootWindow(display);
-    vi = glXChooseVisual(display, 0, att);
-    cmap = XCreateColormap(display, root, vi->visual, AllocNone);
-    swa.colormap = cmap;
-    
-    swa.event_mask = ExposureMask | KeyPressMask;
-    win = XCreateWindow(display, root, 0, 0, w, h, 0, vi->depth, InputOutput, vi->visual, CWColormap | CWEventMask, &swa);
- 
-    Atom atoms[2] = { XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", True), None };
-    XChangeProperty(
-        display, 
-        win, 
-        XInternAtom(display, "_NET_WM_STATE", True),
-                    XA_ATOM, 32, PropModeReplace,(unsigned char*) atoms, 1
-    );
-    XMapWindow(display, win);
-    glc = glXCreateContext(display, vi, NULL, GL_TRUE);
-    glXMakeCurrent(display, win, glc);
-
-    // OpenGL extensions
-    void *gl = (void*)dlopen("libGL.so", RTLD_LAZY | RTLD_GLOBAL);
-    glGetProgramiv = (PFNGLGETPROGRAMIVPROC) dlsym(gl, "glGetProgramiv");
-    glGetShaderiv = (PFNGLGETSHADERIVPROC) dlsym(gl, "glGetShaderiv");
-    glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC) dlsym(gl, "glGetShaderInfoLog");
-    glCreateShader = (PFNGLCREATESHADERPROC) dlsym(gl, "glCreateShader");
-    glCreateProgram = (PFNGLCREATEPROGRAMPROC) dlsym(gl, "glCreateProgram");
-    glShaderSource = (PFNGLSHADERSOURCEPROC) dlsym(gl, "glShaderSource");
-    glCompileShader = (PFNGLCOMPILESHADERPROC) dlsym(gl, "glCompileShader");
-    glAttachShader = (PFNGLATTACHSHADERPROC) dlsym(gl, "glAttachShader");
-    glLinkProgram = (PFNGLLINKPROGRAMPROC) dlsym(gl, "glLinkProgram");
-    glUseProgram = (PFNGLUSEPROGRAMPROC) dlsym(gl, "glUseProgram");
-    glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC) dlsym(gl, "glGetUniformLocation");
-    glUniform2f = (PFNGLUNIFORM2FPROC) dlsym(gl, "glUniform2f");
-    glUniform1f = (PFNGLUNIFORM1FPROC) dlsym(gl, "glUniform1f");
-    glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC) dlsym(gl, "glGenFramebuffers");
-    glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC) dlsym(gl, "glBindFramebuffer");
-    glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC) dlsym(gl, "glFramebufferTexture2D");
-    glNamedRenderbufferStorageEXT = (PFNGLNAMEDRENDERBUFFERSTORAGEEXTPROC) dlsym(gl, "glNamedRenderbufferStorage");
-    glUniform1i = (PFNGLUNIFORM1IPROC) dlsym(gl, "glUniform1i");
-    
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    t_start = (double)tv.tv_sec+(double)tv.tv_usec/1.e6;
-    
-#endif
     
     // Load loading bar shader
 #undef VAR_ITIME
@@ -821,27 +708,6 @@ int main(int argc, char **args)
             NULL,          // argument to thread function 
             0,                      // use default creation flags 
             &load_music_thread_id); // returns the thread identifier 
-    
-//     glClearColor(0.,0.,0.,1.);
-//     glClear(GL_COLOR_BUFFER_BIT);
-//     
-//     glColor3f(.2, .2, .2);
-//     glBegin(GL_QUADS);            
-//     glVertex2f(-.5f, -.05f);
-//     glVertex2f(-.5f, .05f);
-//     glVertex2f(.5f, .05f);
-//     glVertex2f(.5f, -0.05f);
-//     glEnd();
-//     
-//     glColor3f(1., 1., 1.);
-//     glBegin(GL_QUADS);            
-//     glVertex2f(-.5f, -.05f);
-//     glVertex2f(-.5f, .05f);
-//     glVertex2f(0.f, .05f);
-//     glVertex2f(0.f, -0.05f);
-//     glEnd();
-//     
-//     SwapBuffers(hdc);
     
     // Load gfx shader
 #undef VAR_IRESOLUTION
@@ -924,10 +790,7 @@ int main(int argc, char **args)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, font_texture_size, font_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, font_texture);
     
-    // Play sound
-#ifdef _MSC_VER
-    
-    // TODO: play empty sound here
+    // Generate empty sound of length 1min (we are bad if our precalc ever takes this long; then we deserve to be disqualified)
     hWaveOut = 0;
     int n_bits_per_sample = 16;
 	WAVEFORMATEX wfx = { WAVE_FORMAT_PCM, channels, sample_rate, sample_rate*channels*n_bits_per_sample/8, channels*n_bits_per_sample/8, n_bits_per_sample, 0 };
@@ -936,10 +799,8 @@ int main(int argc, char **args)
 	WAVEHDR header = { smusic1, 4*music1_size, 0, 0, 0, 0, 0, 0 };
 	waveOutPrepareHeader(hWaveOut, &header, sizeof(WAVEHDR));
     waveOutWrite(hWaveOut, &header, sizeof(WAVEHDR));
-#endif
     
     // Main loop
-#ifdef _MSC_VER
     t_start = 0.;
     while(1)
     {
@@ -962,40 +823,4 @@ int main(int argc, char **args)
     }
     return msg.wParam;
 }
-#else
-    int x_file_descriptor = ConnectionNumber(display);
-    fd_set x_file_descriptor_set;
-    
-    // Main loop
-    while(1)
-    {
-        // Exit demo if any key is pressed.
-        while(XPending(display))
-        {
-            XNextEvent(display, &xevent);
-            if(xevent.type == KeyPress) 
-                exit(0);
-        }
-        
-        FD_ZERO(&x_file_descriptor_set);
-        FD_SET(x_file_descriptor, &x_file_descriptor_set);
-        
-        struct timeval t;
-        t.tv_usec = 1.e6/60.;
-        t.tv_sec = 0;
-        
-        int num_ready_fds = select(x_file_descriptor + 1, &x_file_descriptor_set, NULL, NULL, &t);
-        if (num_ready_fds == 0)    
-        {            
-            struct timeval tv_now;
-            gettimeofday(&tv_now, NULL);
-            t_now = (double)tv_now.tv_sec+(double)tv_now.tv_usec/1.e6;
 
-            draw();
-            
-            glXSwapBuffers(display, win);
-        }
-    }
-    return 0;
-}
-#endif
