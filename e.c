@@ -143,6 +143,8 @@ int w = 1920, h = 1080,
     gfx_executable_size_location,
     load_program, load_resolution_location, load_time_location,
     load_progress_location,
+    post_program, post_resolution_location, post_fsaa_location,
+    post_channel0_location,
     fsaa = 1, txaa = 1,
     gfx_fsaa_location, gfx_txaa_location;
     
@@ -169,6 +171,8 @@ HWAVEOUT hWaveOut;
 double t_paused;
 HANDLE load_music_thread;
 DWORD load_music_thread_id;
+HANDLE load_gfx_thread;
+DWORD load_gfx_thread_id;
 
 DWORD WINAPI LoadMusicThread( LPVOID lpParam)
 {    
@@ -248,7 +252,7 @@ DWORD WINAPI LoadMusicThread( LPVOID lpParam)
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, snd_texture, 0);
         
-        // Render sfx
+        // Render sfx TODO: NOT HERE! this does not work
         printf("nblocks: %d\n", nblocks1);
         for(int i=0; i<nblocks1; ++i)
         {
@@ -306,6 +310,83 @@ DWORD WINAPI LoadMusicThread( LPVOID lpParam)
     return 0;
 }
 
+//TODO: separate
+DWORD WINAPI LoadGFXThread( LPVOID lpParam)
+{
+    // Load gfx shader
+#undef VAR_IRESOLUTION
+#undef VAR_ITIME
+#undef VAR_IFONT
+#undef VAR_IFONTWIDTH
+#undef VAR_ISEQUENCE
+#undef VAR_ISEQUENCEWIDTH
+#include "gfx.h"
+#ifndef VAR_IRESOLUTION
+    #define VAR_IRESOLUTION "iResolution"
+#endif
+#ifndef VAR_ITIME
+    #define VAR_ITIME "iTime"
+#endif
+#ifndef VAR_IFONT
+    #define VAR_IFONT "iFont"
+#endif
+#ifndef VAR_IFONTWIDTH
+    #define VAR_IFONTWIDTH "iFontWidth"
+#endif
+#ifndef VAR_ISEQUENCE
+    #define VAR_ISEQUENCE "iSequence"
+#endif
+#ifndef VAR_ISEQUENCEWIDTH
+    #define VAR_ISEQUENCEWIDTH "iSequenceWidth"
+#endif
+#ifndef VAR_IEXECUTABLESIZE
+    #define VAR_IEXECUTABLESIZE "iExecutableSize"
+#endif
+#ifndef VAR_IFSAA
+    #define VAR_IFSAA "iFSAA"
+#endif
+#ifndef VAR_ITXAA
+    #define VAR_ITXAA "iTXAA"
+#endif
+    int gfx_size = strlen(gfx_frag),
+        gfx_handle = glCreateShader(GL_FRAGMENT_SHADER);
+    gfx_program = glCreateProgram();
+    glShaderSource(gfx_handle, 1, (GLchar **)&gfx_frag, &gfx_size);
+    glCompileShader(gfx_handle);
+    debug(gfx_handle);
+    glAttachShader(gfx_program, gfx_handle);
+    glLinkProgram(gfx_program);
+    debugp(gfx_program);
+    glUseProgram(gfx_program);
+    time_location =  glGetUniformLocation(gfx_program, VAR_ITIME);
+    resolution_location = glGetUniformLocation(gfx_program, VAR_IRESOLUTION);
+    font_texture_location = glGetUniformLocation(gfx_program, VAR_IFONT);
+    font_width_location = glGetUniformLocation(gfx_program, VAR_IFONTWIDTH);
+    gfx_sequence_texture_location = glGetUniformLocation(gfx_program, VAR_ISEQUENCE);
+    gfx_sequence_width_location = glGetUniformLocation(gfx_program, VAR_ISEQUENCEWIDTH);
+    gfx_executable_size_location = glGetUniformLocation(gfx_program, VAR_IEXECUTABLESIZE);
+    gfx_fsaa_location = glGetUniformLocation(gfx_program, VAR_IFSAA);
+    gfx_txaa_location = glGetUniformLocation(gfx_program, VAR_ITXAA);
+    
+    glUseProgram(gfx_program);
+    
+    // Initialize font texture
+    printf("font texture width is: %d\n", font_texture_size); // TODO: remove
+    glGenTextures(1, &font_texture_handle);
+    glBindTexture(GL_TEXTURE_2D, font_texture_handle);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, font_texture_size, font_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, font_texture);
+    
+    progress += .5;
+    
+    return 0;
+}
+
+
+
 // Pure opengl drawing code, essentially cross-platform
 void draw()
 {
@@ -315,6 +396,7 @@ void draw()
         
     if(progress == 1.)
     {
+        //loading = 0;
     }
     
     if(loading)
@@ -326,6 +408,7 @@ void draw()
     }
     else
     {
+        glUseProgram(gfx_program);
         glUniform1i(font_texture_location, 0);
         glUniform1f(font_width_location, font_texture_size);
         glUniform1i(gfx_sequence_texture_location, 1);
@@ -701,94 +784,10 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     printf("++++ Loading bar created.\n");
     
     // Start loading thread
-    load_music_thread = CreateThread( 
-            NULL,                   // default security attributes
-            0,                      // use default stack size  
-            LoadMusicThread,       // thread function name
-            NULL,          // argument to thread function 
-            0,                      // use default creation flags 
-            &load_music_thread_id); // returns the thread identifier 
+    load_music_thread = CreateThread(NULL,0,LoadMusicThread,NULL,0,&load_music_thread_id);
+    load_gfx_thread = CreateThread(NULL,0,LoadGFXThread,NULL,0,&load_gfx_thread_id);
     
-    // Load gfx shader
-#undef VAR_IRESOLUTION
-#undef VAR_ITIME
-#undef VAR_IFONT
-#undef VAR_IFONTWIDTH
-#undef VAR_ISEQUENCE
-#undef VAR_ISEQUENCEWIDTH
-#include "gfx.h"
-#ifndef VAR_IRESOLUTION
-    #define VAR_IRESOLUTION "iResolution"
-#endif
-#ifndef VAR_ITIME
-    #define VAR_ITIME "iTime"
-#endif
-#ifndef VAR_IFONT
-    #define VAR_IFONT "iFont"
-#endif
-#ifndef VAR_IFONTWIDTH
-    #define VAR_IFONTWIDTH "iFontWidth"
-#endif
-#ifndef VAR_ISEQUENCE
-    #define VAR_ISEQUENCE "iSequence"
-#endif
-#ifndef VAR_ISEQUENCEWIDTH
-    #define VAR_ISEQUENCEWIDTH "iSequenceWidth"
-#endif
-#ifndef VAR_IEXECUTABLESIZE
-    #define VAR_IEXECUTABLESIZE "iExecutableSize"
-#endif
-#ifndef VAR_IFSAA
-    #define VAR_IFSAA "iFSAA"
-#endif
-#ifndef VAR_ITXAA
-    #define VAR_ITXAA "iTXAA"
-#endif
-    int gfx_size = strlen(gfx_frag),
-        gfx_handle = glCreateShader(GL_FRAGMENT_SHADER);
-    gfx_program = glCreateProgram();
-    glShaderSource(gfx_handle, 1, (GLchar **)&gfx_frag, &gfx_size);
-    glCompileShader(gfx_handle);
-    debug(gfx_handle);
-    glAttachShader(gfx_program, gfx_handle);
-    glLinkProgram(gfx_program);
-    debugp(gfx_program);
-    glUseProgram(gfx_program);
-    time_location =  glGetUniformLocation(gfx_program, VAR_ITIME);
-    resolution_location = glGetUniformLocation(gfx_program, VAR_IRESOLUTION);
-    font_texture_location = glGetUniformLocation(gfx_program, VAR_IFONT);
-    font_width_location = glGetUniformLocation(gfx_program, VAR_IFONTWIDTH);
-    gfx_sequence_texture_location = glGetUniformLocation(gfx_program, VAR_ISEQUENCE);
-    gfx_sequence_width_location = glGetUniformLocation(gfx_program, VAR_ISEQUENCEWIDTH);
-    gfx_executable_size_location = glGetUniformLocation(gfx_program, VAR_IEXECUTABLESIZE);
-    gfx_fsaa_location = glGetUniformLocation(gfx_program, VAR_IFSAA);
-    gfx_txaa_location = glGetUniformLocation(gfx_program, VAR_ITXAA);
     
-    glUseProgram(gfx_program);
-    glViewport(0, 0, w, h);
-    
-    glClearColor(0.,0.,0.,1.);
-    glClear(GL_COLOR_BUFFER_BIT);
-    
-    glColor3f(1., 1., 1.);
-    glBegin(GL_QUADS);            
-    glVertex2f(-.5f, -.05f);
-    glVertex2f(-.5f, .05f);
-    glVertex2f(0.5f, .05f);
-    glVertex2f(0.5f, -0.05f);
-    glEnd();
-    
-    SwapBuffers(hdc);
-    
-    // Initialize font texture
-    printf("font texture width is: %d\n", font_texture_size); // TODO: remove
-    glGenTextures(1, &font_texture_handle);
-    glBindTexture(GL_TEXTURE_2D, font_texture_handle);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, font_texture_size, font_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, font_texture);
     
     // Generate empty sound of length 1min (we are bad if our precalc ever takes this long; then we deserve to be disqualified)
     hWaveOut = 0;
