@@ -858,7 +858,7 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     
     
     
-    // Start loading thread
+    // Start loading threads
     load_music_thread = CreateThread(NULL,0,LoadMusicThread,NULL,0,&load_music_thread_id);
 //     load_gfx_thread = CreateThread(NULL,0,LoadGFXThread,NULL,0,&load_gfx_thread_id);
     
