@@ -21,13 +21,15 @@ uniform float iFSAA;
 uniform vec2 iResolution;
 uniform sampler2D iChannel0;
 
+out vec4 gl_FragColor;
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     vec4 col = vec4(0.);
-    float bound = sqrt(iFSAA);
+    float bound = sqrt(iFSAA)-1.;
    	for(float i = -.5*bound; i<=.5*bound; i+=1.)
         for(float j=-.5*bound; j<=.5*bound; j+=1.)
-     		col += texture(iChannel0, fragCoord/iResolution.xy+vec2(i,j)*1.5/iResolution.xy);
+     		col += texture(iChannel0, fragCoord/iResolution.xy+vec2(i,j)*3.0/max(bound,1.)/iResolution.xy);
     col /= iFSAA;
     fragColor = col;
 }

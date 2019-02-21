@@ -24,6 +24,8 @@ const char * load_frag =
 "uniform float iTime, iProgress;\n"
 "uniform vec2 iResolution;\n"
 "\n"
+"out vec4 gl_FragColor;\n"
+"\n"
 "// Global constants\n"
 "const float pi = acos(-1.);\n"
 "const vec3 c = vec3(1.0, 0.0, -1.0);\n"

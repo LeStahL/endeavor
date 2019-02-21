@@ -97,13 +97,13 @@ void debug(int shader_handle)
     if(compile_status != GL_TRUE)
     {
         printf("    FAILED.\n");
-//         GLint len;
-//         glGetShaderiv(shader_handle, GL_INFO_LOG_LENGTH, &len);
-//         printf("    Log length: %d\n", len);
-        GLchar CompileLog[20000];
+        GLint len;
+        glGetShaderiv(shader_handle, GL_INFO_LOG_LENGTH, &len);
+        printf("    Log length: %d\n", len);
+        GLchar *CompileLog = (GLchar*)malloc(len*sizeof(GLchar));
         glGetShaderInfoLog(shader_handle, 20000, NULL, CompileLog);
         printf("    Error messages:\n%s\n", CompileLog);
-//         free(CompileLog);
+        free(CompileLog);
     }
     else 
         printf("    Shader compilation successful.\n");
@@ -113,17 +113,17 @@ void debugp(int program)
 {
     printf("    Debugging program.\n");
     int compile_status = 0;
-    glGetShaderiv(program, GL_LINK_STATUS, &compile_status);
+    glGetProgramiv(program, GL_LINK_STATUS, &compile_status);
     if(compile_status != GL_TRUE)
     {
         printf("    FAILED.\n");
-//         GLint len;
-//         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &len);
-//         printf("    Log length: %d\n", len);
-        GLchar CompileLog[20000];
+        GLint len;
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &len);
+        printf("    Log length: %d\n", len);
+        GLchar *CompileLog = (GLchar*)malloc(len*sizeof(GLchar));
         glGetProgramInfoLog(program, 20000, NULL, CompileLog);
         printf("    Error messages:\n%s\n", CompileLog);
-//         free(CompileLog);
+        free(CompileLog);
     }
     else 
         printf("    Program linking successful.\n");
@@ -145,7 +145,7 @@ int w = 1920, h = 1080,
     load_progress_location,
     post_program, post_resolution_location, post_fsaa_location,
     post_channel0_location,
-    fsaa = 1, txaa = 1,
+    fsaa = 25, txaa = 1,
     gfx_fsaa_location, gfx_txaa_location;
     
 // Demo globals
@@ -173,6 +173,9 @@ HANDLE load_music_thread;
 DWORD load_music_thread_id;
 HANDLE load_gfx_thread;
 DWORD load_gfx_thread_id;
+
+GLuint first_pass_framebuffer = 0, first_pass_texture;
+
 
 DWORD WINAPI LoadMusicThread( LPVOID lpParam)
 {    
@@ -385,7 +388,16 @@ DWORD WINAPI LoadGFXThread( LPVOID lpParam)
     return 0;
 }
 
-
+void quad()
+{
+    glBegin(GL_QUADS);
+    glVertex3f(-1,-1,0);
+    glVertex3f(-1,1,0);
+    glVertex3f(1,1,0);
+    glVertex3f(1,-1,0);
+    glEnd();
+    glFlush();
+}
 
 // Pure opengl drawing code, essentially cross-platform
 void draw()
@@ -394,10 +406,13 @@ void draw()
     if(t_now-t_start > t_end)
         ExitProcess(0);
         
-    if(progress == 1.)
-    {
+    if(progress == 1.);//FIXME
         //loading = 0;
-    }
+    
+    // Render first pass
+    glBindFramebuffer(GL_FRAMEBUFFER, first_pass_framebuffer);
+    glViewport(0,0,w,h);
+    glClear(GL_COLOR_BUFFER_BIT);
     
     if(loading)
     {
@@ -406,38 +421,47 @@ void draw()
         glUniform2f(load_resolution_location, w, h);
         glUniform1f(load_time_location, t_now-t_start);
     }
-    else
-    {
-        glUseProgram(gfx_program);
-        glUniform1i(font_texture_location, 0);
-        glUniform1f(font_width_location, font_texture_size);
-        glUniform1i(gfx_sequence_texture_location, 1);
-        glUniform1f(gfx_sequence_width_location, sequence_texture_size);
-        glUniform1f(gfx_executable_size_location, executable_size);
-
-        glUniform1i(gfx_fsaa_location, fsaa);
-        glUniform1i(gfx_txaa_location, txaa);
-        
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, font_texture_handle);
-        
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
-        
-        glUniform1f(time_location, t_now-t_start);
-        glUniform2f(resolution_location, w, h);
-    }
+//     else
+//     {
+//         glUseProgram(gfx_program);
+//         glUniform1i(font_texture_location, 0);
+//         glUniform1f(font_width_location, font_texture_size);
+//         glUniform1i(gfx_sequence_texture_location, 1);
+//         glUniform1f(gfx_sequence_width_location, sequence_texture_size);
+//         glUniform1f(gfx_executable_size_location, executable_size);
+// 
+//         glUniform1i(gfx_fsaa_location, fsaa);
+//         glUniform1i(gfx_txaa_location, txaa);
+//         
+//         glActiveTexture(GL_TEXTURE0);
+//         glBindTexture(GL_TEXTURE_2D, font_texture_handle);
+//         
+//         glActiveTexture(GL_TEXTURE1);
+//         glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
+//         
+//         glUniform1f(time_location, t_now-t_start);
+//         glUniform2f(resolution_location, w, h);
+//     }
     
-    glBegin(GL_QUADS);
+    quad();
     
-    glVertex3f(-1,-1,0);
-    glVertex3f(-1,1,0);
-    glVertex3f(1,1,0);
-    glVertex3f(1,-1,0);
+    // Render second pass (Post processing) to screen
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glViewport(0,0,w,h);
     
-    glEnd();
+    glUseProgram(post_program);
+    glUniform2f(post_resolution_location, w, h);
+    glUniform1f(post_fsaa_location, fsaa);
+    glUniform1i(post_channel0_location, 0);
     
-    glFlush();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, first_pass_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    
+    quad();
+    
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -516,7 +540,7 @@ LRESULT CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 case 8: // Full screen Antialiasing
                 {
                     int index = SendMessage(hSender, CB_GETCURSEL, 0, 0);
-                    fsaa = index + 1;
+                    fsaa = (index + 1)*(index + 1);
                 }
                     break;
                 case 9: // Temporal Antialiasing
@@ -614,12 +638,14 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     const char *fsaa1= "None",
         *fsaa4 = "4*FSAA",
         *fsaa9 = "9*FSAA",
-        *fsaa16 = "16*FSAA";
+        *fsaa16 = "16*FSAA",
+        *fsaa25 = "25*FSAA";
     SendMessage(hFSAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (fsaa1)); 
     SendMessage(hFSAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (fsaa4));
     SendMessage(hFSAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (fsaa9)); 
     SendMessage(hFSAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (fsaa16));
-    SendMessage(hFSAAComboBox, CB_SETCURSEL, 0, 0);
+    SendMessage(hFSAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (fsaa25));
+    SendMessage(hFSAAComboBox, CB_SETCURSEL, 4, 0);
     
     HWND hTXAAComboBox= CreateWindow(WC_COMBOBOX, TEXT(""), 
      CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
@@ -817,9 +843,24 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     post_resolution_location = glGetUniformLocation(post_program, VAR_IRESOLUTION);
     printf("++++ Post shader created.\n");
     
+    // Create framebuffer for rendering first pass to
+    glGenFramebuffers(1, &first_pass_framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, first_pass_framebuffer);
+    glGenTextures(1, &first_pass_texture);
+    glBindTexture(GL_TEXTURE_2D, first_pass_texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, first_pass_texture, 0);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    
+    
+    
     // Start loading thread
     load_music_thread = CreateThread(NULL,0,LoadMusicThread,NULL,0,&load_music_thread_id);
-    load_gfx_thread = CreateThread(NULL,0,LoadGFXThread,NULL,0,&load_gfx_thread_id);
+//     load_gfx_thread = CreateThread(NULL,0,LoadGFXThread,NULL,0,&load_gfx_thread_id);
     
     
     
