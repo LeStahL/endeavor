@@ -754,6 +754,7 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     glUniform1i = (PFNGLUNIFORM1IPROC) wglGetProcAddress("glUniform1i");
     
     // Load loading bar shader
+    printf("++++ Creating Loading bar.\n");
 #undef VAR_ITIME
 #undef VAR_IPROGRESS
 #undef VAR_IRESOLUTION
@@ -776,12 +777,45 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     debug(load_handle);
     glAttachShader(load_program, load_handle);
     glLinkProgram(load_program);
-    debugp("---> Load program:\n");
+    printf("---> Load Program:\n");
+    debugp(load_program);
     glUseProgram(load_program);
     load_progress_location = glGetUniformLocation(load_program, VAR_IPROGRESS);
     load_time_location = glGetUniformLocation(load_program, VAR_ITIME);
     load_resolution_location = glGetUniformLocation(load_program, VAR_IRESOLUTION);
     printf("++++ Loading bar created.\n");
+    
+    // Load post processing shader
+    printf("++++ Creating Post Shader.\n");
+#undef VAR_IFSAA
+#undef VAR_IRESOLUTION
+#undef VAR_ICHANNEL0
+#include "gfx/post.h"
+#ifndef VAR_IFSAA
+#define VAR_IFSAA "iFSAA"
+#endif
+#ifndef VAR_IRESOLUTION
+#define VAR_IRESOLUTION "iResolution"
+#endif
+#ifndef VAR_ICHANNEL0
+#define VAR_ICHANNEL0 "iChannel0"
+#endif
+    int post_size = strlen(post_frag),
+        post_handle = glCreateShader(GL_FRAGMENT_SHADER);
+    post_program = glCreateProgram();
+    glShaderSource(post_handle, 1, (GLchar **)&post_frag, &post_size);
+    glCompileShader(post_handle);
+    printf("---> Post shader:\n");
+    debug(post_handle);
+    glAttachShader(post_program, post_handle);
+    glLinkProgram(post_program);
+    printf("---> Post Program:\n");
+    debugp(post_program);
+    glUseProgram(post_program);
+    post_channel0_location = glGetUniformLocation(post_program, VAR_ICHANNEL0);
+    post_fsaa_location = glGetUniformLocation(post_program, VAR_IFSAA);
+    post_resolution_location = glGetUniformLocation(post_program, VAR_IRESOLUTION);
+    printf("++++ Post shader created.\n");
     
     // Start loading thread
     load_music_thread = CreateThread(NULL,0,LoadMusicThread,NULL,0,&load_music_thread_id);
@@ -789,7 +823,7 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     
     
     
-    // Generate empty sound of length 1min (we are bad if our precalc ever takes this long; then we deserve to be disqualified)
+    // TODO: Generate empty sound of length 1min (we are bad if our precalc ever takes this long; then we deserve to be disqualified)
     hWaveOut = 0;
     int n_bits_per_sample = 16;
 	WAVEFORMATEX wfx = { WAVE_FORMAT_PCM, channels, sample_rate, sample_rate*channels*n_bits_per_sample/8, channels*n_bits_per_sample/8, n_bits_per_sample, 0 };
@@ -813,7 +847,7 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
         }
         
         static MMTIME MMTime = { TIME_SAMPLES, 0};
-        int err = waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
+        waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
         t_now = ((double)MMTime.u.sample)/( 44100.0);
         
         draw();

@@ -15,8 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
  
+#version 130
+
 uniform float iFSAA;
-uniform float iResolution;
+uniform vec2 iResolution;
 uniform sampler2D iChannel0;
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
@@ -28,4 +30,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
      		col += texture(iChannel0, fragCoord/iResolution.xy+vec2(i,j)*1.5/iResolution.xy);
     col /= iFSAA;
     fragColor = col;
+}
+
+void main()
+{
+    mainImage(gl_FragColor, gl_FragCoord.xy);
 }
