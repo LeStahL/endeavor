@@ -393,17 +393,7 @@ void draw()
         if(music_block >= nblocks1) 
         {
             if(!muted)
-            {
-                printf("Generating music.\n");
-                unsigned short *buf = (unsigned short*)smusic1;
-                short *dest = (short*)smusic1;
-                for(int j=0; j<2*nblocks1*block_size; ++j)
-                    dest[j] = (buf[j]-(1<<15));
-                FILE *f = fopen("MUSIC", "wt");
-                fwrite(smusic1, 1, 4*nblocks1*block_size, f);
-                fclose(f);
-            }
-            music_loading = 0;
+                music_loading = 0;
         }
         else
         {
@@ -428,6 +418,11 @@ void draw()
 
                 glReadPixels(0, 0, texs, texs, GL_RGBA, GL_UNSIGNED_BYTE, smusic1+music_block*block_size);
                 glFlush();
+                
+                unsigned short *buf = (unsigned short*)smusic1;
+                short *dest = (short*)smusic1;
+                for(int j=2*music_block*block_size; j<2*(music_block+1)*block_size; ++j)
+                    dest[j] = (buf[j]-(1<<15));
             }
             
             progress += .5*1./(float)nblocks1;
@@ -602,7 +597,7 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     HWND hAntialiasingText = CreateWindow(WC_STATIC, "FSAA: ", WS_VISIBLE | WS_CHILD | SS_LEFT, 10,65,100,100, lwnd, NULL, hInstance, NULL);
     
     // Add "Antialiasing: " text
-    HWND hTXAAText = CreateWindow(WC_STATIC, "TxAA: ", WS_VISIBLE | WS_CHILD | SS_LEFT, 10,95,100,100, lwnd, NULL, hInstance, NULL);
+    HWND hTXAAText = CreateWindow(WC_STATIC, "SFX Buffer: ", WS_VISIBLE | WS_CHILD | SS_LEFT, 10,95,100,100, lwnd, NULL, hInstance, NULL);
     
     // Add Fullscreen Antialiasing combo box
     HWND hFSAAComboBox= CreateWindow(WC_COMBOBOX, TEXT(""), 
