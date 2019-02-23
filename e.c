@@ -624,10 +624,10 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
      NULL);
     
     // Populate with entries
-    const char *buf128= "128^2",
-        *buf256 = "256^2",
-        *buf512 = "512^2",
-        *buf1024 = "1024^2";
+    const char *buf128= "128^2 px",
+        *buf256 = "256^2 px",
+        *buf512 = "512^2 px",
+        *buf1024 = "1024^2 px";
     SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf128)); 
     SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf256));
     SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf512)); 
