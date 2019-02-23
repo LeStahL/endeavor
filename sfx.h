@@ -493,7 +493,6 @@ const char * sfx_frag =
 "{\n"
 "    //enhance the stereo feel\n"
 "    float stereo_delay = 2e-4;\n"
-"      \n"
 "    return vec2(mainSynth(t), mainSynth(t-stereo_delay));\n"
 "}\n"
 "\n"
