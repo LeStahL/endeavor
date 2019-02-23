@@ -128,7 +128,6 @@ void debugp(int program)
     }
     else 
         printf("    Program linking successful.\n");
-//     Sleep(1000);
 }
 // TODO: remove above
 
@@ -181,17 +180,9 @@ DWORD load_gfx_thread_id;
 
 GLuint first_pass_framebuffer = 0, first_pass_texture;
 
-const char *sfx_blockoffset_name,
-    *sfx_samplerate_name,
-    *sfx_sequence_texture_name,
-    *sfx_sequence_width_name,
-    *sfx_texs_name,
-    *sfx_volume_name;
 HDC hdc;
 HGLRC glrc;
 GLenum error;
-// HGLRC music_glrc;
-unsigned int lock = 0;
 
 DWORD WINAPI LoadMusicThread( LPVOID lpParam)
 {
@@ -236,7 +227,6 @@ DWORD WINAPI LoadMusicThread( LPVOID lpParam)
     sfx_texs_location = glGetUniformLocation(sfx_program, VAR_ITEXSIZE);
     sfx_sequence_texture_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCE);
     sfx_sequence_width_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCEWIDTH);
-        
         
     music_loading = 1;
     progress += .1; //TODO: add better value here as soon as the real time is known
@@ -400,28 +390,8 @@ void draw()
         glBindFramebuffer(GL_FRAMEBUFFER, snd_framebuffer);
         glUseProgram(sfx_program);
         
-        // Render sfx 
-        if(music_block == 0)
-        {
-//             sfx_samplerate_location = glGetUniformLocation(sfx_program, sfx_samplerate_name);
-//             sfx_blockoffset_location = glGetUniformLocation(sfx_program, sfx_blockoffset_name);
-//             sfx_volumelocation = glGetUniformLocation(sfx_program, sfx_volume_name);
-//             sfx_texs_location = glGetUniformLocation(sfx_program, sfx_texs_name);
-//             sfx_sequence_texture_location = glGetUniformLocation(sfx_program, sfx_sequence_texture_name);
-//             sfx_sequence_width_location = glGetUniformLocation(sfx_program, sfx_sequence_width_name);
-            printf("Locations:\n->Samplerate %d\n->Blockoffset %d\n->Volume %d\n->TextureSize %d\n->Sequence %d\n->Sequence width %d\n", sfx_samplerate_location, sfx_blockoffset_location, sfx_volumelocation, sfx_texs_location, sfx_sequence_texture_location, sfx_sequence_width_location);
-        }
-        
         if(music_block >= nblocks1) 
         {
-            // Rescale music and stop rendering
-//             if(muted)
-//             {
-//                 printf("Generating silence.\n");
-//                 short *dest = (short*)smusic1;
-//                 for(int i=0; i<2*nblocks1*block_size; ++i)
-//                     dest[i] = 0.;
-//             }
             if(!muted)
             {
                 printf("Generating music.\n");
@@ -433,11 +403,6 @@ void draw()
                 fwrite(smusic1, 1, 4*nblocks1*block_size, f);
                 fclose(f);
             }
-            
-//             waveOutUnprepareHeader(hWaveOut,  &silence_header, sizeof(WAVEHDR));
-            
-            
-            
             music_loading = 0;
         }
         else
@@ -901,34 +866,12 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     
     draw();
     SwapBuffers(hdc);
-    
-    // Generate empty sound of length 1min (we are bad if our precalc ever takes this long; then we deserve to be disqualified)
-//     int silence_size = 60*sample_rate; 
-//     float *silence = (float*)malloc(4*silence_size);
-//     short *dest = (short*)silence;
-//     for(int i=0; i<2*silence_size; ++i)
-//         dest[i] = 0;
-//     
-//     hWaveOut = 0;
-//     int n_bits_per_sample = 16;
-// 	WAVEFORMATEX wfx = { WAVE_FORMAT_PCM, channels, sample_rate, sample_rate*channels*n_bits_per_sample/8, channels*n_bits_per_sample/8, n_bits_per_sample, 0 };
-// 	waveOutOpen(&hWaveOut, WAVE_MAPPER, &wfx, 0, 0, CALLBACK_NULL);
-// 	
-// 	silence_header.lpData = silence;
-//     silence_header.dwBufferLength = 4*silence_size;
-//     
-// 	waveOutPrepareHeader(hWaveOut, &silence_header, sizeof(WAVEHDR));
-//     waveOutWrite(hWaveOut, &silence_header, sizeof(WAVEHDR));
-    
-    
-    
+   
     draw();
     SwapBuffers(hdc);
-    // Start loading threads
-//     wglMakeCurrent(NULL, NULL);
+
+    // Load music shader
     LoadMusicThread(0);
-//     load_music_thread = CreateThread(NULL,0,LoadMusicThread,NULL,0,&load_music_thread_id);
-//     load_gfx_thread = CreateThread(NULL,0,LoadGFXThread,NULL,0,&load_gfx_thread_id);
     
     draw();
     SwapBuffers(hdc);
