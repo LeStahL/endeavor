@@ -164,8 +164,8 @@ int sample_rate = 44100, channels = 2;
 double duration1 = 312.*.43; //3 min running time
 float *smusic1;
 int music1_size;
-#define texs 256
-int block_size = texs*texs, 
+float texs = 256;
+int block_size = 256*256, 
     nblocks1;
 unsigned int paused = 0;
 float progress = 0.;
@@ -516,10 +516,13 @@ LRESULT CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     fsaa = (index + 1)*(index + 1);
                 }
                     break;
-                case 9: // Temporal Antialiasing
+                case 9: // Texture buffer size
                 {
                     int index = SendMessage(hSender, CB_GETCURSEL, 0, 0);
-                    txaa = index + 1;
+                    texs = 128;
+                    for(int i=0; i<index; ++i)
+                        texs *= 2;
+                    block_size = texs*texs;
                 }
                     break;
             }
@@ -626,15 +629,15 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
      NULL);
     
     // Populate with entries
-    const char *txaa1= "None",
-        *txaa4 = "4*TXAA",
-        *txaa9 = "9*TXAA",
-        *txaa16 = "16*TXAA";
-    SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (txaa1)); 
-    SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (txaa4));
-    SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (txaa9)); 
-    SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (txaa16));
-    SendMessage(hTXAAComboBox, CB_SETCURSEL, 0, 0);
+    const char *buf128= "128^2",
+        *buf256 = "256^2",
+        *buf512 = "512^2",
+        *buf1024 = "1024^2";
+    SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf128)); 
+    SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf256));
+    SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf512)); 
+    SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf1024));
+    SendMessage(hTXAAComboBox, CB_SETCURSEL, 1, 0);
 
     // Add start button
     HWND hwndButton = CreateWindow(WC_BUTTON,"Abfahrt!",WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,185,165,90,90,lwnd,(HMENU)7,hInstance,NULL);
@@ -885,7 +888,6 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     waveOutPrepareHeader(hWaveOut, &header, sizeof(WAVEHDR));
     waveOutWrite(hWaveOut, &header, sizeof(WAVEHDR));
     
-//     wglMakeCurrent(hdc, glrc);
     // Main loop
     t_start = 0.;
     while(1)
