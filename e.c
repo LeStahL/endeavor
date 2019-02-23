@@ -872,7 +872,6 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sequence_texture_size, sequence_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, sequence_texture);
         
-        unsigned int snd_framebuffer;
         glGenFramebuffers(1, &snd_framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, snd_framebuffer);
         glPixelStorei(GL_PACK_ALIGNMENT,  4);
