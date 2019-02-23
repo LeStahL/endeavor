@@ -127,7 +127,7 @@ void debugp(int program)
     }
     else 
         printf("    Program linking successful.\n");
-    Sleep(1000);
+//     Sleep(1000);
 }
 // TODO: remove above
 
@@ -180,46 +180,28 @@ DWORD load_gfx_thread_id;
 
 GLuint first_pass_framebuffer = 0, first_pass_texture;
 
+const char *sfx_blockoffset_name,
+    *sfx_samplerate_name,
+    *sfx_sequence_texture_name,
+    *sfx_sequence_width_name,
+    *sfx_texs_name,
+    *sfx_volume_name;
+HDC hdc;
+HGLRC glrc;
+// HGLRC music_glrc;
 
 DWORD WINAPI LoadMusicThread( LPVOID lpParam)
-{    
-     // Load sfx shader
-#undef VAR_IBLOCKOFFSET
-#undef VAR_ISAMPLERATE
-#undef VAR_IVOLUME
-#undef VAR_ITEXSIZE
-#undef VAR_ISEQUENCE
-#undef VAR_ISEQUENCEWIDTH
-#include "sfx.h"
-#ifndef VAR_IVOLUME
-    #define VAR_IVOLUME "iVolume"
-#endif
-#ifndef VAR_ISAMPLERATE
-    #define VAR_ISAMPLERATE "iSampleRate"
-#endif
-#ifndef VAR_IBLOCKOFFSET
-    #define VAR_IBLOCKOFFSET "iBlockOffset"
-#endif
-#ifndef VAR_ITEXSIZE
-    #define VAR_ITEXSIZE "iTexSize"
-#endif
-#ifndef VAR_ISEQUENCE
-    #define VAR_ISEQUENCE "iSequence"
-#endif
-#ifndef VAR_ISEQUENCEWIDTH
-    #define VAR_ISEQUENCEWIDTH "iSequenceWidth"
-#endif
-    printf("---> SFX shader:\n");
-    int sfx_size = strlen(sfx_frag);
-    printf("size %d\n", sfx_size);
-    glShaderSource(sfx_handle, 1, (GLchar **)&sfx_frag, &sfx_size);
+{
+//     music_glrc = wglCreateContext(hdc);
+//     wglMakeCurrent (hdc, music_glrc);
+    
     glCompileShader(sfx_handle);
     debug(sfx_handle);
     printf("---> SFX program:\n");
     glAttachShader(sfx_program, sfx_handle);
     glLinkProgram(sfx_program);
     debugp(sfx_program);
-    printf("++++ SFX shader finished.");
+    printf("++++ SFX shader finished.\n");
     
     music_loading = 1;
     progress += .5; //TODO: add better value here as soon as the real time is known
@@ -386,12 +368,13 @@ void draw()
         // Render sfx 
         if(music_block == 0)
         {
-            sfx_samplerate_location = glGetUniformLocation(sfx_program, VAR_ISAMPLERATE);
-            sfx_blockoffset_location = glGetUniformLocation(sfx_program, VAR_IBLOCKOFFSET);
-            sfx_volumelocation = glGetUniformLocation(sfx_program, VAR_IVOLUME);
-            sfx_texs_location = glGetUniformLocation(sfx_program, VAR_ITEXSIZE);
-            sfx_sequence_texture_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCE);
-            sfx_sequence_width_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCEWIDTH);
+            sfx_samplerate_location = glGetUniformLocation(sfx_program, sfx_samplerate_name);
+            sfx_blockoffset_location = glGetUniformLocation(sfx_program, sfx_blockoffset_name);
+            sfx_volumelocation = glGetUniformLocation(sfx_program, sfx_volume_name);
+            sfx_texs_location = glGetUniformLocation(sfx_program, sfx_texs_name);
+            sfx_sequence_texture_location = glGetUniformLocation(sfx_program, sfx_sequence_texture_name);
+            sfx_sequence_width_location = glGetUniformLocation(sfx_program, sfx_sequence_width_name);
+            printf("Locations:\n->Samplerate %d\n->Blockoffset %d\n->Volume %d\n->TextureSize %d\n->Sequence %d\n->Sequence width %d\n", sfx_samplerate_location, sfx_blockoffset_location, sfx_volumelocation, sfx_texs_location, sfx_sequence_texture_location, sfx_sequence_width_location);
         }
         
         if(music_block >= nblocks1) 
@@ -399,16 +382,21 @@ void draw()
             // Rescale music and stop rendering
             if(muted)
             {
+                printf("Generating silence.\n");
                 short *dest = (short*)smusic1;
                 for(int i=0; i<2*nblocks1*block_size; ++i)
                     dest[i] = 0.;
             }
             else
             {
+                printf("Generating music.\n");
                 unsigned short *buf = (unsigned short*)smusic1;
                 short *dest = (short*)smusic1;
                 for(int j=0; j<2*nblocks1*block_size; ++j)
                     dest[j] = (buf[j]-(1<<15));
+                FILE *f = fopen("MUSIC", "wt");
+                fwrite(smusic1, 1, 4*nblocks1*block_size, f);
+                fclose(f);
             }
             
             waveOutUnprepareHeader(hWaveOut,  &silence_header, sizeof(WAVEHDR));
@@ -736,12 +724,12 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
         0, 0, 0
     };
     
-    HDC hdc = GetDC(hwnd);
+    hdc = GetDC(hwnd);
     
     int  pf = ChoosePixelFormat(hdc, &pfd); 
     SetPixelFormat(hdc, pf, &pfd);
     
-    HGLRC glrc = wglCreateContext(hdc);
+    glrc = wglCreateContext(hdc);
     wglMakeCurrent (hdc, glrc);
     
     // OpenGL extensions
@@ -849,6 +837,45 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     smusic1 = (float*)malloc(4*music1_size);
     sfx_handle = glCreateShader(GL_FRAGMENT_SHADER);
     sfx_program = glCreateProgram();
+    
+    // Load sfx shader
+#undef VAR_IBLOCKOFFSET
+#undef VAR_ISAMPLERATE
+#undef VAR_IVOLUME
+#undef VAR_ITEXSIZE
+#undef VAR_ISEQUENCE
+#undef VAR_ISEQUENCEWIDTH
+#include "sfx.h"
+#ifndef VAR_IVOLUME
+    #define VAR_IVOLUME "iVolume"
+#endif
+#ifndef VAR_ISAMPLERATE
+    #define VAR_ISAMPLERATE "iSampleRate"
+#endif
+#ifndef VAR_IBLOCKOFFSET
+    #define VAR_IBLOCKOFFSET "iBlockOffset"
+#endif
+#ifndef VAR_ITEXSIZE
+    #define VAR_ITEXSIZE "iTexSize"
+#endif
+#ifndef VAR_ISEQUENCE
+    #define VAR_ISEQUENCE "iSequence"
+#endif
+#ifndef VAR_ISEQUENCEWIDTH
+    #define VAR_ISEQUENCEWIDTH "iSequenceWidth"
+#endif
+    printf("---> SFX shader:\n");
+    int sfx_size = strlen(sfx_frag);
+    printf("size %d\n", sfx_size);
+    glShaderSource(sfx_handle, 1, (GLchar **)&sfx_frag, &sfx_size);
+    
+    sfx_blockoffset_name = VAR_IBLOCKOFFSET;
+    sfx_samplerate_name = VAR_ISAMPLERATE;
+    sfx_sequence_texture_name = VAR_ISEQUENCE;
+    sfx_sequence_width_name = VAR_ISEQUENCEWIDTH;
+    sfx_texs_name = VAR_ITEXSIZE;
+    sfx_volume_name = VAR_IVOLUME;
+    
     // Initialize sequence texture
     printf("sequence texture width is: %d\n", sequence_texture_size); // TODO: remove
     glGenTextures(1, &sequence_texture_handle);
