@@ -489,6 +489,7 @@ vec2 mainSound(float t)
 {
     //enhance the stereo feel
     float stereo_delay = 2.002e-4;
+//     return vec2(sin(2.*PI*440.*t));
     return vec2(mainSynth(t), mainSynth(t-stereo_delay));
 }
 
