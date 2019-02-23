@@ -220,22 +220,22 @@ DWORD WINAPI LoadMusicThread( LPVOID lpParam)
 #ifndef VAR_ISEQUENCEWIDTH
     #define VAR_ISEQUENCEWIDTH "iSequenceWidth"
 #endif
-        int sfx_size = strlen(sfx_frag),
-            sfx_handle = glCreateShader(GL_FRAGMENT_SHADER);
-        sfx_program = glCreateProgram();
-        glShaderSource(sfx_handle, 1, (GLchar **)&sfx_frag, &sfx_size);
-        glCompileShader(sfx_handle);
-        debug(sfx_handle);
-        printf("sfx_debugged");
-        glAttachShader(sfx_program, sfx_handle);
-        glLinkProgram(sfx_program);
-        glUseProgram(sfx_program);
-        sfx_samplerate_location = glGetUniformLocation(sfx_program, VAR_ISAMPLERATE);
-        sfx_blockoffset_location = glGetUniformLocation(sfx_program, VAR_IBLOCKOFFSET);
-        sfx_volumelocation = glGetUniformLocation(sfx_program, VAR_IVOLUME);
-        sfx_texs_location = glGetUniformLocation(sfx_program, VAR_ITEXSIZE);
-        sfx_sequence_texture_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCE);
-        sfx_sequence_width_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCEWIDTH);
+    int sfx_size = strlen(sfx_frag),
+        sfx_handle = glCreateShader(GL_FRAGMENT_SHADER);
+    sfx_program = glCreateProgram();
+    glShaderSource(sfx_handle, 1, (GLchar **)&sfx_frag, &sfx_size);
+    glCompileShader(sfx_handle);
+    debug(sfx_handle);
+    printf("sfx_debugged");
+    glAttachShader(sfx_program, sfx_handle);
+    glLinkProgram(sfx_program);
+    glUseProgram(sfx_program);
+    sfx_samplerate_location = glGetUniformLocation(sfx_program, VAR_ISAMPLERATE);
+    sfx_blockoffset_location = glGetUniformLocation(sfx_program, VAR_IBLOCKOFFSET);
+    sfx_volumelocation = glGetUniformLocation(sfx_program, VAR_IVOLUME);
+    sfx_texs_location = glGetUniformLocation(sfx_program, VAR_ITEXSIZE);
+    sfx_sequence_texture_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCE);
+    sfx_sequence_width_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCEWIDTH);
         
         
     music_loading = 1;
@@ -415,14 +415,14 @@ void draw()
         if(music_block >= nblocks1) 
         {
             // Rescale music and stop rendering
-            if(muted)
-            {
-                printf("Generating silence.\n");
-                short *dest = (short*)smusic1;
-                for(int i=0; i<2*nblocks1*block_size; ++i)
-                    dest[i] = 0.;
-            }
-            else
+//             if(muted)
+//             {
+//                 printf("Generating silence.\n");
+//                 short *dest = (short*)smusic1;
+//                 for(int i=0; i<2*nblocks1*block_size; ++i)
+//                     dest[i] = 0.;
+//             }
+            if(!muted)
             {
                 printf("Generating music.\n");
                 unsigned short *buf = (unsigned short*)smusic1;
@@ -442,25 +442,28 @@ void draw()
         }
         else
         {
-            printf("Rendering SFX block %d/%d -> %le\n", music_block, nblocks1, .5*(float)music_block/(float)nblocks1);
-            double tstart = (double)(music_block*block_size);
-            
-            glViewport(0,0,texs,texs);
-            
-            glUniform1f(sfx_volumelocation, 1.);
-            glUniform1f(sfx_samplerate_location, (float)sample_rate);
-            glUniform1f(sfx_blockoffset_location, (float)tstart);
-            glUniform1i(sfx_texs_location, texs);
-            glUniform1i(sfx_sequence_texture_location, 0);
-            glUniform1f(sfx_sequence_width_location, sequence_texture_size);
-            
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
-            
-            quad();
+            if(!muted)
+            {
+                printf("Rendering SFX block %d/%d -> %le\n", music_block, nblocks1, .5*(float)music_block/(float)nblocks1);
+                double tstart = (double)(music_block*block_size);
+                
+                glViewport(0,0,texs,texs);
+                
+                glUniform1f(sfx_volumelocation, 1.);
+                glUniform1f(sfx_samplerate_location, (float)sample_rate);
+                glUniform1f(sfx_blockoffset_location, (float)tstart);
+                glUniform1i(sfx_texs_location, texs);
+                glUniform1i(sfx_sequence_texture_location, 0);
+                glUniform1f(sfx_sequence_width_location, sequence_texture_size);
+                
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
+                
+                quad();
 
-            glReadPixels(0, 0, texs, texs, GL_RGBA, GL_UNSIGNED_BYTE, smusic1+music_block*block_size);
-            glFlush();
+                glReadPixels(0, 0, texs, texs, GL_RGBA, GL_UNSIGNED_BYTE, smusic1+music_block*block_size);
+                glFlush();
+            }
             
             progress += .5*1./(float)nblocks1;
             
@@ -863,35 +866,38 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     
     // Generate music framebuffer
     // Initialize sequence texture
-        printf("sequence texture width is: %d\n", sequence_texture_size); // TODO: remove
-        glGenTextures(1, &sequence_texture_handle);
-        glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sequence_texture_size, sequence_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, sequence_texture);
-        
-        glGenFramebuffers(1, &snd_framebuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, snd_framebuffer);
-        glPixelStorei(GL_PACK_ALIGNMENT,  4);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-        
-        unsigned int snd_texture;
-        glGenTextures(1, &snd_texture);
-        glBindTexture(GL_TEXTURE_2D, snd_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, texs, texs, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    printf("sequence texture width is: %d\n", sequence_texture_size); // TODO: remove
+    glGenTextures(1, &sequence_texture_handle);
+    glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sequence_texture_size, sequence_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, sequence_texture);
+    
+    glGenFramebuffers(1, &snd_framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, snd_framebuffer);
+    glPixelStorei(GL_PACK_ALIGNMENT,  4);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    
+    unsigned int snd_texture;
+    glGenTextures(1, &snd_texture);
+    glBindTexture(GL_TEXTURE_2D, snd_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, texs, texs, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, snd_texture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, snd_texture, 0);
     
     // Music allocs
     nblocks1 = sample_rate*duration1/block_size+1;
     music1_size = nblocks1*block_size; 
     smusic1 = (float*)malloc(4*music1_size);
+    short *dest = (short*)smusic1;
+    for(int i=0; i<2*music1_size; ++i)
+        dest[i] = 0;
     
     draw();
     SwapBuffers(hdc);
