@@ -492,7 +492,7 @@ const char * sfx_frag =
 "vec2 mainSound(float t)\n"
 "{\n"
 "    //enhance the stereo feel\n"
-"    float stereo_delay = 2e-4;\n"
+"    float stereo_delay = 2.002e-4;\n"
 "    return vec2(mainSynth(t), mainSynth(t-stereo_delay));\n"
 "}\n"
 "\n"
