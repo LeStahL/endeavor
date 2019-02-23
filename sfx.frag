@@ -1,7 +1,7 @@
 #version 130
 #define PI radians(180.)
 float clip(float a) { return clamp(a,-1.,1.); }
-float theta(float x) { return smoothstep(0., 0.01, x); }
+float theta(float x) { return clamp(x*1e4,0.,1.); }
 float _sin(float a) { return sin(2. * PI * mod(a,1.)); }
 float _sq(float a) { return sign(2.*fract(a) - 1.); }
 float _sq_(float a,float pwm) { return sign(2.*fract(a) - 1. + pwm); }
@@ -9,8 +9,7 @@ float _psq(float a) { return clip(50.*_sin(a)); }
 float _psq_(float a, float pwm) { return clip(50.*(_sin(a) - pwm)); } 
 float _tri(float a) { return (4.*abs(fract(a)-.5) - 1.); }
 float _saw(float a) { return (2.*fract(a) - 1.); }
-////float quant(float a,float div) { return floor(div*a+.5)/div; }
-float freqC1(float note){ return 32.7 * pow(2.,note/12.); }
+float freqC1(float note){ return 32.7 * pow(2., note/12.); }
 float minus1hochN(int n) { return (1. - 2.*float(n % 2)); }
 float minus1hochNminus1halbe(int n) { return round(sin(.5*PI*float(n))); }
 float pseudorandom(float x) { return fract(sin(dot(vec2(x),vec2(12.9898,78.233))) * 43758.5453); }
@@ -328,36 +327,6 @@ float reverbsnrrev(float time, float f, float tL, float vel, float IIRgain, floa
 
 
 
-float AMAYSYN(float t, float B, float Bon, float Boff, float note, int Bsyn, float vel, float Brel)
-{
-    Boff += Brel;
-    float L = Boff-Bon;
-    float Bprog = B-Bon;
-    float Bproc = Bprog/L;
-    float tL = SPB*L;
-    float _t = SPB*(B-Bon);
-    float f = freqC1(note);
-
-    float env = theta(B-Bon) * (1. - smoothstep(Boff-Brel, Boff, B));
-	float s = _sin(t*f);
-
-	if(Bsyn == 0){}
-    else if(Bsyn == 4){
-      s = .8*env_AHDSR(_t,tL,.001,0.,.1,1.,.3)*(supershape(clip(1.6*QFM((_t-0.0*(1.+2.*_sin(.15*_t))),f,0.,.00787*127.*pow(vel,12.*7.87e-3),.00787*112.*pow(vel,63.*7.87e-3),.00787*127.*pow(vel,26.*7.87e-3),.00787*96.*pow(vel,120.*7.87e-3),.5,1.,1.5,1.,.00787*0.,.00787*0.,.00787*0.,.00787*50.,8.)),.3,.2,.8,.4,.8,.8)
-      +supershape(clip(1.6*QFM((_t-2.0e-03*(1.+2.*_sin(.15*_t))),f,0.,.00787*127.*pow(vel,12.*7.87e-3),.00787*112.*pow(vel,63.*7.87e-3),.00787*127.*pow(vel,26.*7.87e-3),.00787*96.*pow(vel,120.*7.87e-3),.5,1.,1.5,1.,.00787*0.,.00787*0.,.00787*0.,.00787*50.,8.)),.3,.2,.8,.4,.8,.8)
-      +supershape(clip(1.6*QFM((_t-4.0e-03*(1.+2.*_sin(.15*_t))),f,0.,.00787*127.*pow(vel,12.*7.87e-3),.00787*112.*pow(vel,63.*7.87e-3),.00787*127.*pow(vel,26.*7.87e-3),.00787*96.*pow(vel,120.*7.87e-3),.5,1.,1.5,1.,.00787*0.,.00787*0.,.00787*0.,.00787*50.,8.)),.3,.2,.8,.4,.8,.8));
-    }
-    else if(Bsyn == 10){
-      s = env_AHDSR(_t,tL,.002,0.,.15,.25,.13)*bandpassBPsaw1(_t,f,tL,vel,(2000.+(1500.*_sin(.25*B))),10.,100.);
-    }
-    
-    else if(Bsyn == -3){
-      s = 4.*avglpBDbody3ff(_t,f,tL,vel,2.);
-    }
-    
-	return clamp(env,0.,1.) * s_atan(s);
-}
-
 
 uniform float iBlockOffset;
 uniform float iSampleRate;
@@ -426,76 +395,106 @@ float mainSynth(float time)
     time = SPB * BT;
 
     float r_sidechain = 1.;
+    float amaysyn;
 
-    float B, Bon, Boff, pitch, Bproc;
-    int trk, tsep, tsep1, i, _modU, _modL, _mod, ptn, psep, psep1, _noteU, _noteL, _note, Bdrum;
+    float B, Bon, Boff, Bprog, Bproc, L, tL, _t, vel, Bsyn, trel, f;
+    int tsep0, tsep1, _modU, _modL, ptn, psep0, psep1, _noteU, _noteL, Bdrum;
 
-    for(trk = 0; trk < NTRK; trk++)
+    for(int trk = 0; trk < NTRK; trk++)
     {
-        tsep = trk_sep(trk);
-        tsep1 = trk_sep(trk+1);
+        tsep0 = trk_sep(trk);
+        tsep1 = trk_sep(trk + 1);
+        trel  = trk_rel(trk);
+ 
+        for(_modU = tsep0; (_modU < tsep1 - 1) && (BT > mod_on(_modU + 1)); _modU++);             
+        for(_modL = tsep0; (_modL < tsep1 - 1) && (BT >= mod_off(_modL) + trk_rel(trk)); _modL++);
 
-        _modU = tsep1 - 1;
-        for(i = tsep; i < tsep1 - 1; i++) if(BT < mod_on(i)) {_modU = i; break;}
-               
-        _modL = tsep - 1;
-        for(i = tsep; i < tsep1 - 1; i++) if(BT < mod_off(i) + trk_rel(trk)) {_modL = i; break;}
-       
-        for(_mod = _modL; _mod <= _modU; _mod++)
+        for(int _mod = _modL; _mod <= _modU; _mod++)
         {
             B = BT - mod_on(_mod);
 
-            ptn = mod_ptn(_mod);
-            psep = ptn_sep(ptn);
-            psep1 = ptn_sep(ptn+1);
+            ptn   = mod_ptn(_mod);
+            psep0 = ptn_sep(ptn);
+            psep1 = ptn_sep(ptn + 1);
                          
-            _noteU = psep1 - 1;
-            for(i = psep; i < psep1 - 1; i++) if(B < note_on(i + 1)) {_noteU = i; break;}
-
-            _noteL = psep1 - 1;
-            for(i = psep; i < psep1 - 1; i++) if(B <= note_off(i ) + trk_rel(trk)) {_noteL = i; break;}
+            for(_noteU = psep0; (_noteU < psep1 - 1) && (B > note_on(_noteU + 1)); _noteU++);
+            for(_noteL = psep0; (_noteL < psep1 - 1) && (B >= note_off(_noteL) + trel); _noteL++);
            
-            for(_note = _noteL; _note <= _noteU; _note++)
+            for(int _note = _noteL; _note <= _noteU; _note++)
             {
-                Bon  = note_on(_note);
-                Boff = note_off(_note);
+                amaysyn = 0.;
+                Bon     = note_on(_note);
+                Boff    = note_off(_note);
+                L       = Boff - Bon;
+                tL      = L * SPB;
+                Bprog   = B - Bon;
+                Bproc   = Bprog / L;
+                _t      = Bprog * SPB;
+                vel     = note_vel(_note);
+                Bsyn    = trk_syn(trk);
+//                time = tL; // does every place use the right time / tL ??
 
-                if(trk_syn(trk) == drum_index)
+                Boff   += trel;
+
+                if(Bsyn == drum_index)
                 {
-                    Bdrum = int(note_pitch(_note));
-
-                    if(Bdrum == 0) // "sidechaining"
-                    {
-                        Bproc = (B-Bon)/(Boff-Bon);
-                        r_sidechain = min(r_sidechain, 1. - smoothstep(Bon,Bon+1e-4,B) + pow(Bproc,8.));
+                    Bdrum = -int(note_pitch(_note));
+                    if(Bdrum == 0) { r_sidechain = min(r_sidechain, 1. - min(1e4 * Bprog,1.) + pow(Bproc,8.)); }
+                    else if(Bdrum == -3){
+                        amaysyn = 4.*avglpBDbody3ff(_t,f,tL,vel,2.);
                     }
-                    else
-                        d += trk_norm(trk) * AMAYSYN(time, B, Bon, Boff, mod_transp(_mod), -Bdrum, note_vel(_note), trk_rel(trk));
+                    
+                    d += trk_norm(trk) * amaysyn;
                 }
                 else
                 {
-                    pitch = note_pitch(_note) + mod_transp(_mod)
-                            + note_slide(_note) * 2. * (1. - smoothstep(Bon - trk_slide(trk), Bon + trk_slide(trk), B));
-                    r += trk_norm(trk) * AMAYSYN(time, B, Bon, Boff, pitch, trk_syn(trk), note_vel(_note), trk_rel(trk));
+                    f = freqC1(note_pitch(_note) + mod_transp(_mod));
+
+                    if(false && abs(note_slide(_note))>1e-2) // THIS IS SLIDEY BIZ - BUT SHITTY AS CRAPPY FUCK RIGHT NOW!
+                    {
+                        float Bslide = trk_slide(trk);
+                        float fac    = note_slide(_note) * log(2.)/36.;
+                        float help   = 1. - min(Bprog, Bslide)/(Bslide);
+                        float corr   = ((Bslide*SPB) * (1. + fac - help*(1.+fac*help*help)));
+
+                        //LIN PHASE SLIDEY
+                        fac = note_slide(_note) * log(2.)/12.;
+                        corr = exp(fac) * (Bslide*SPB)/fac * (1. - exp(-fac * (1.-help)));
+
+                        f = (B <= Bslide) ? f * corr / _t : f * (1. + corr / _t); 
+                    }
+
+                    float env = theta(B-Bon) * (1. - smoothstep(Boff-trel, Boff, B));
+                    if(Bsyn == 0){amaysyn = _sin(f*_t);}
+                    else if(Bsyn == 4){
+                        amaysyn = .8*env_AHDSR(_t,tL,.001,0.,.1,1.,.3)*(supershape(clip(1.6*QFM((_t-0.0*(1.+2.*_sin(.15*_t))),f,0.,.00787*127.*pow(vel,12.*7.87e-3),.00787*112.*pow(vel,63.*7.87e-3),.00787*127.*pow(vel,26.*7.87e-3),.00787*96.*pow(vel,120.*7.87e-3),.5,1.,1.5,1.,.00787*0.,.00787*0.,.00787*0.,.00787*50.,8.)),.3,.2,.8,.4,.8,.8)
+      +supershape(clip(1.6*QFM((_t-2.0e-03*(1.+2.*_sin(.15*_t))),f,0.,.00787*127.*pow(vel,12.*7.87e-3),.00787*112.*pow(vel,63.*7.87e-3),.00787*127.*pow(vel,26.*7.87e-3),.00787*96.*pow(vel,120.*7.87e-3),.5,1.,1.5,1.,.00787*0.,.00787*0.,.00787*0.,.00787*50.,8.)),.3,.2,.8,.4,.8,.8)
+      +supershape(clip(1.6*QFM((_t-4.0e-03*(1.+2.*_sin(.15*_t))),f,0.,.00787*127.*pow(vel,12.*7.87e-3),.00787*112.*pow(vel,63.*7.87e-3),.00787*127.*pow(vel,26.*7.87e-3),.00787*96.*pow(vel,120.*7.87e-3),.5,1.,1.5,1.,.00787*0.,.00787*0.,.00787*0.,.00787*50.,8.)),.3,.2,.8,.4,.8,.8));
+                    }
+                    else if(Bsyn == 10){
+                        amaysyn = env_AHDSR(_t,tL,.002,0.,.15,.25,.13)*bandpassBPsaw1(_t,f,tL,vel,(2000.+(1500.*_sin(.25*B))),10.,100.);
+                    }
+                    
+                    //amaysyn = _sin(f * _t);
+                    r += trk_norm(trk) * clamp(env,0.,1.) * amaysyn;
                 }
             }
         }
     }
-
     return s_atan(r_sidechain * r + d);
 }
 
 vec2 mainSound(float t)
 {
     //enhance the stereo feel
-    float stereo_delay = 2.003e-4;
-//     return vec2(sin(2.*PI*440.*t));
+    float stereo_delay = 2e-4;
+
     return vec2(mainSynth(t), mainSynth(t-stereo_delay));
 }
 
 void main()
 {
-   float t = (iBlockOffset + (gl_FragCoord.x) + (gl_FragCoord.y)*iTexSize)/iSampleRate;
+   float t = (iBlockOffset + (gl_FragCoord.x - .5) + (gl_FragCoord.y - .5)*iTexSize)/iSampleRate;
    vec2 y = mainSound( t );
    vec2 v  = floor((0.5+0.5*y)*65535.0);
    vec2 vl = mod(v,256.0)/255.0;
