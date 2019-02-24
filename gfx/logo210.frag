@@ -66,7 +66,7 @@ void mfnoise(in vec2 x, in float fmin, in float fmax, in float alpha, out float 
 void camerasetup(in vec2 uv, out vec3 ro, out vec3 dir)
 {
     vec3 right = c.xyy, up = c.yxy, target = c.yyy;
-    ro = c.yyx;
+    ro = c.yyx+.3*vec3(cos(iTime), sin(iTime), 0.)*(1.-smoothstep(12., 14., iTime));
     dir = normalize(target + uv.x * right + uv.y * up - ro);
 }
 

@@ -62,14 +62,23 @@ output = ""
 #content = content.split('\n')
 #if args.remove_comments != None:
     #if args.remove_comments:
-        ## Remove one-line comments
+        #removing = False
         #for j in range(len(content)):
             #line = content[j]
-            #comment = ""
-            #for i in range(len(line)-1):
-                #if line[i:i+2] == '//':
-                    #comment = line[i:]
-            #content[j] = content[j].replace(comment, "")
+            #slashcomment = False
+            #slashslashindex = 0
+            #try:
+                #slashslashindex = content.index('//')
+                #removing = True
+            #slashstarindex = 0
+            #try:
+                #slashstarindex = content.index('/*')
+                #removing = True
+            
+            ##for i in range(len(line)-1):
+                ##if line[i:i+2] == '//':
+                    ##comment = line[i:]
+            ##content[j] = content[j].replace(comment, "")
 #content = '\n'.join(content)
 
 # Perform no minification and save shader to header
