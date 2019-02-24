@@ -120,6 +120,36 @@ void zextrude(in float z, in float d2d, in float h, out float d)
     d = length(max(w,0.0));
 }
 
+void box(in vec3 x, in vec3 b, out float d)
+{
+    d = length(max(abs(x)-b,0.0));
+}
+
+// graph traversal for 210 logo effect
+void textpre(in vec3 x, out vec2 sdf)
+{
+    float blend = smoothstep(2.0, 6.0, iTime)*(1.0-smoothstep(6.0,12.0,iTime));
+    //blend *= step(-x.x-2.*smoothstep(2.,8.,iTime),-1.);
+    box(x, vec3(1., .5, .01+blend), sdf.x);
+}
+
+// Perform raymarching for bounding object
+void marchbounds(in vec3 ro, in vec3 dir, in int N, in float eps, out vec3 x, out vec2 s, out float d, out bool flag)
+{
+    flag = false;
+    for(int ia=0; ia<max(N,0); ++ia)
+	{
+        x = ro + d*dir;
+        textpre(x,s);
+        if(s.x < eps)
+        {
+            flag = true;
+            break;
+        }
+        d += s.x;
+	}
+}
+
 // Distance to hexagon pattern
 void dhexagonpattern(in vec2 p, out float d, out vec2 ind) 
 {
@@ -172,7 +202,7 @@ void texteffect(in vec3 x, out vec2 sdf)
     stroke(sdf.x,0.1,sdf.x);
     
     // Add guard objects for debugging
-    float dr = .2;
+    float dr = .03;
     vec3 y = mod(x,dr)-.5*dr;
     float guard = -length(max(abs(y)-vec3(.5*dr*c.xx, .6),0.));
     guard = abs(guard)+dr*.1;
@@ -274,7 +304,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
                 
 	camerasetup(uv, ro, dir);
     d = (.5-ro.z)/dir.z;
-    marchscene(ro, dir, 200, 2.0e-4, x, s, d, hit);
+    marchbounds(ro, dir, 150, 2.0e-4, x, s, d, hit);
+
+    if(hit) hit = false;
+    else d = -ro.z/dir.z;
+    marchscene(ro, dir, 500, 2.0e-4, x, s, d, hit);
     
     if(hit)
     {
