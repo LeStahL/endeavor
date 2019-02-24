@@ -385,7 +385,6 @@ float mainSynth(float time)
     float max_mod_off = 12.;
     int drum_index = 25;
     
-    
     float r = 0.;
     float d = 0.;
 
@@ -407,7 +406,7 @@ float mainSynth(float time)
         trel  = trk_rel(trk);
  
         for(_modU = tsep0; (_modU < tsep1 - 1) && (BT > mod_on(_modU + 1)); _modU++);             
-        for(_modL = tsep0; (_modL < tsep1 - 1) && (BT >= mod_off(_modL) + trk_rel(trk)); _modL++);
+        for(_modL = tsep0; (_modL < tsep1 - 1) && (BT >= mod_off(_modL) + trel); _modL++);
 
         for(int _mod = _modL; _mod <= _modU; _mod++)
         {
@@ -438,13 +437,14 @@ float mainSynth(float time)
 
                 if(Bsyn == drum_index)
                 {
-                    Bdrum = -int(note_pitch(_note));
+                    amaysyn = 0.;
+                    Bdrum = int(note_pitch(_note));
                     if(Bdrum == 0) { r_sidechain = min(r_sidechain, 1. - min(1e4 * Bprog,1.) + pow(Bproc,8.)); }
-                    else if(Bdrum == -3){
+                    else if(Bdrum == 3){
                         amaysyn = 4.*avglpBDbody3ff(_t,f,tL,vel,2.);
                     }
                     
-                    d += trk_norm(trk) * amaysyn;
+                    d += trk_norm(trk) * amaysyn * theta(Bprog);
                 }
                 else
                 {
@@ -464,7 +464,7 @@ float mainSynth(float time)
                         f = (B <= Bslide) ? f * corr / _t : f * (1. + corr / _t); 
                     }
 
-                    float env = theta(B-Bon) * (1. - smoothstep(Boff-trel, Boff, B));
+                    float env = theta(Bprog) * (1. - smoothstep(Boff-trel, Boff, B));
                     if(Bsyn == 0){amaysyn = _sin(f*_t);}
                     else if(Bsyn == 4){
                         amaysyn = .8*env_AHDSR(_t,tL,.001,0.,.1,1.,.3)*(supershape(clip(1.6*QFM((_t-0.0*(1.+2.*_sin(.15*_t))),f,0.,.00787*127.*pow(vel,12.*7.87e-3),.00787*112.*pow(vel,63.*7.87e-3),.00787*127.*pow(vel,26.*7.87e-3),.00787*96.*pow(vel,120.*7.87e-3),.5,1.,1.5,1.,.00787*0.,.00787*0.,.00787*0.,.00787*50.,8.)),.3,.2,.8,.4,.8,.8)
@@ -475,7 +475,6 @@ float mainSynth(float time)
                         amaysyn = env_AHDSR(_t,tL,.002,0.,.15,.25,.13)*bandpassBPsaw1(_t,f,tL,vel,(2000.+(1500.*_sin(.25*B))),10.,100.);
                     }
                     
-                    //amaysyn = _sin(f * _t);
                     r += trk_norm(trk) * clamp(env,0.,1.) * amaysyn;
                 }
             }
