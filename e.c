@@ -313,7 +313,7 @@ void draw()
     else
     {
         glUseProgram(logo210_program);
-        glUniform1f(time_location, t_now-t_load_end);
+        glUniform1f(time_location, t_now-t_load_end-5.);
         glUniform2f(resolution_location, w, h);
     }
     
