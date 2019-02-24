@@ -20,6 +20,8 @@
 uniform float iTime;
 uniform vec2 iResolution;
 
+out vec4 gl_FragColor;
+
 // Global constants
 const float pi = acos(-1.);
 const vec3 c = vec3(1.0, 0.0, -1.0);
