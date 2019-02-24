@@ -70,7 +70,7 @@ const char * logo210_frag =
 "void camerasetup(in vec2 uv, out vec3 ro, out vec3 dir)\n"
 "{\n"
 "    vec3 right = c.xyy, up = c.yxy, target = c.yyy;\n"
-"    ro = c.yyx+.3*vec3(cos(iTime), sin(iTime), 0.)*(1.-smoothstep(12., 14., iTime));\n"
+"    ro = c.yyx+.3*vec3(cos(iTime), sin(iTime), 0.)*(1.-smoothstep(11., 13., iTime));\n"
 "    dir = normalize(target + uv.x * right + uv.y * up - ro);\n"
 "}\n"
 "\n"
