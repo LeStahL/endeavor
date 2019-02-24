@@ -147,7 +147,9 @@ int w = 1920, h = 1080,
     post_program, post_resolution_location, post_fsaa_location,
     post_channel0_location,
     fsaa = 25, txaa = 1,
-    gfx_fsaa_location, gfx_txaa_location;
+    gfx_fsaa_location, gfx_txaa_location,
+    logo210_time_location, logo210_resolution_location,
+    logo210_program, logo210_handle;
     
 // Demo globals
 double t_start = 0., 
@@ -184,6 +186,8 @@ HDC hdc;
 HGLRC glrc;
 GLenum error;
 
+float t_load_end = 0.;
+
 DWORD WINAPI LoadMusicThread( LPVOID lpParam)
 {
 #undef VAR_IBLOCKOFFSET
@@ -216,10 +220,12 @@ DWORD WINAPI LoadMusicThread( LPVOID lpParam)
     sfx_program = glCreateProgram();
     glShaderSource(sfx_handle, 1, (GLchar **)&sfx_frag, &sfx_size);
     glCompileShader(sfx_handle);
+    printf("---> SFX shader:\n");
     debug(sfx_handle);
-    printf("sfx_debugged");
     glAttachShader(sfx_program, sfx_handle);
     glLinkProgram(sfx_program);
+    printf("---> SFX program:\n");
+    debugp(sfx_program);
     glUseProgram(sfx_program);
     sfx_samplerate_location = glGetUniformLocation(sfx_program, VAR_ISAMPLERATE);
     sfx_blockoffset_location = glGetUniformLocation(sfx_program, VAR_IBLOCKOFFSET);
@@ -227,7 +233,8 @@ DWORD WINAPI LoadMusicThread( LPVOID lpParam)
     sfx_texs_location = glGetUniformLocation(sfx_program, VAR_ITEXSIZE);
     sfx_sequence_texture_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCE);
     sfx_sequence_width_location = glGetUniformLocation(sfx_program, VAR_ISEQUENCEWIDTH);
-        
+    printf("++++ SFX shader created.\n");
+    
     music_loading = 1;
     progress += .1; //TODO: add better value here as soon as the real time is known
     
@@ -235,74 +242,32 @@ DWORD WINAPI LoadMusicThread( LPVOID lpParam)
 }
 
 //TODO: separate
-DWORD WINAPI LoadGFXThread( LPVOID lpParam)
+DWORD WINAPI LoadLogo210Thread( LPVOID lpParam)
 {
     // Load gfx shader
 #undef VAR_IRESOLUTION
 #undef VAR_ITIME
-#undef VAR_IFONT
-#undef VAR_IFONTWIDTH
-#undef VAR_ISEQUENCE
-#undef VAR_ISEQUENCEWIDTH
-#include "gfx.h"
+#include "gfx/logo210.h"
 #ifndef VAR_IRESOLUTION
     #define VAR_IRESOLUTION "iResolution"
 #endif
 #ifndef VAR_ITIME
     #define VAR_ITIME "iTime"
 #endif
-#ifndef VAR_IFONT
-    #define VAR_IFONT "iFont"
-#endif
-#ifndef VAR_IFONTWIDTH
-    #define VAR_IFONTWIDTH "iFontWidth"
-#endif
-#ifndef VAR_ISEQUENCE
-    #define VAR_ISEQUENCE "iSequence"
-#endif
-#ifndef VAR_ISEQUENCEWIDTH
-    #define VAR_ISEQUENCEWIDTH "iSequenceWidth"
-#endif
-#ifndef VAR_IEXECUTABLESIZE
-    #define VAR_IEXECUTABLESIZE "iExecutableSize"
-#endif
-#ifndef VAR_IFSAA
-    #define VAR_IFSAA "iFSAA"
-#endif
-#ifndef VAR_ITXAA
-    #define VAR_ITXAA "iTXAA"
-#endif
-    int gfx_size = strlen(gfx_frag),
-        gfx_handle = glCreateShader(GL_FRAGMENT_SHADER);
-    gfx_program = glCreateProgram();
-    glShaderSource(gfx_handle, 1, (GLchar **)&gfx_frag, &gfx_size);
-    glCompileShader(gfx_handle);
-    debug(gfx_handle);
-    glAttachShader(gfx_program, gfx_handle);
-    glLinkProgram(gfx_program);
-    debugp(gfx_program);
-    glUseProgram(gfx_program);
-    time_location =  glGetUniformLocation(gfx_program, VAR_ITIME);
-    resolution_location = glGetUniformLocation(gfx_program, VAR_IRESOLUTION);
-    font_texture_location = glGetUniformLocation(gfx_program, VAR_IFONT);
-    font_width_location = glGetUniformLocation(gfx_program, VAR_IFONTWIDTH);
-    gfx_sequence_texture_location = glGetUniformLocation(gfx_program, VAR_ISEQUENCE);
-    gfx_sequence_width_location = glGetUniformLocation(gfx_program, VAR_ISEQUENCEWIDTH);
-    gfx_executable_size_location = glGetUniformLocation(gfx_program, VAR_IEXECUTABLESIZE);
-    gfx_fsaa_location = glGetUniformLocation(gfx_program, VAR_IFSAA);
-    gfx_txaa_location = glGetUniformLocation(gfx_program, VAR_ITXAA);
-    
-    glUseProgram(gfx_program);
-    
-    // Initialize font texture
-    printf("font texture width is: %d\n", font_texture_size); // TODO: remove
-    glGenTextures(1, &font_texture_handle);
-    glBindTexture(GL_TEXTURE_2D, font_texture_handle);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, font_texture_size, font_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, font_texture);
+    int logo210_size = strlen(logo210_frag),
+        logo210_handle = glCreateShader(GL_FRAGMENT_SHADER);
+    logo210_program = glCreateProgram();
+    glShaderSource(logo210_handle, 1, (GLchar **)&logo210_frag, &logo210_size);
+    glCompileShader(logo210_handle);
+    printf("---> Logo 210 shader:\n");
+    debug(logo210_handle);
+    glAttachShader(logo210_program, logo210_handle);
+    glLinkProgram(logo210_program);
+    printf("---> Logo 210 program:\n");
+    debugp(logo210_program);
+    glUseProgram(logo210_program);
+    time_location =  glGetUniformLocation(logo210_program, VAR_ITIME);
+    resolution_location = glGetUniformLocation(logo210_program, VAR_IRESOLUTION);
     
     progress += .1;
     
@@ -327,8 +292,11 @@ void draw()
     if(t_now-t_start > t_end)
         ExitProcess(0);
         
-    if(progress == 1.);//FIXME
-        //loading = 0;
+    if(progress == 1.)
+        t_load_end = t_now;
+    
+    if(t_now-t_load_end > 5.)
+        loading = 0;
     
     // Render first pass
     glBindFramebuffer(GL_FRAMEBUFFER, first_pass_framebuffer);
@@ -342,27 +310,12 @@ void draw()
         glUniform2f(load_resolution_location, w, h);
         glUniform1f(load_time_location, t_now-t_start);
     }
-//     else
-//     {
-//         glUseProgram(gfx_program);
-//         glUniform1i(font_texture_location, 0);
-//         glUniform1f(font_width_location, font_texture_size);
-//         glUniform1i(gfx_sequence_texture_location, 1);
-//         glUniform1f(gfx_sequence_width_location, sequence_texture_size);
-//         glUniform1f(gfx_executable_size_location, executable_size);
-// 
-//         glUniform1i(gfx_fsaa_location, fsaa);
-//         glUniform1i(gfx_txaa_location, txaa);
-//         
-//         glActiveTexture(GL_TEXTURE0);
-//         glBindTexture(GL_TEXTURE_2D, font_texture_handle);
-//         
-//         glActiveTexture(GL_TEXTURE1);
-//         glBindTexture(GL_TEXTURE_2D, sequence_texture_handle);
-//         
-//         glUniform1f(time_location, t_now-t_start);
-//         glUniform2f(resolution_location, w, h);
-//     }
+    else
+    {
+        glUseProgram(logo210_program);
+        glUniform1f(time_location, t_now-t_load_end);
+        glUniform2f(resolution_location, w, h);
+    }
     
     quad();
     
@@ -864,13 +817,14 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     
     draw();
     SwapBuffers(hdc);
-   
-    draw();
-    SwapBuffers(hdc);
 
     // Load music shader
     LoadMusicThread(0);
+    draw();
+    SwapBuffers(hdc);
     
+    // Load Logo 210 shader
+    LoadLogo210Thread(0);
     draw();
     SwapBuffers(hdc);
     
