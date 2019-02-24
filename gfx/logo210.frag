@@ -15,7 +15,7 @@
 * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#version 330
+#version 130
 
 uniform float iTime;
 uniform vec2 iResolution;

@@ -18,18 +18,31 @@ cmake_minimum_required(VERSION 2.8)
 
 project(endeavor)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CTRL_ALT_TEST_MINIFIER OFF)
 
 if(WIN32)
     find_program(KKRUNCHY_K7 kkrunchy_k7.exe HINTS ${PROJECT_BINARY_DIR})
     
-    add_custom_target(minification
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/minification/
-        COMMAND python shader-compressor.py "${PROJECT_SOURCE_DIR}/gfx.frag" -o "${PROJECT_SOURCE_DIR}/gfx.h"  --no-minification
-        COMMAND python shader-compressor.py  -o "${PROJECT_SOURCE_DIR}/sfx.h" "${PROJECT_SOURCE_DIR}/sfx.frag" --no-minification
-        COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/load.h" "${PROJECT_SOURCE_DIR}/gfx/load.frag" --no-minification
-        COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/post.h" "${PROJECT_SOURCE_DIR}/gfx/post.frag" --no-minification
-        COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/logo210.h" "${PROJECT_SOURCE_DIR}/gfx/logo210.frag" --no-minification
-    )
+    if(${CTRL_ALT_TEST_MINIFIER})
+        find_program(MINIFIER shader_minifier.exe HINTS ${PROJECT_BINARY_DIR})
+        add_custom_target(minification
+            WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+            COMMAND ${MINIFIER} "${PROJECT_SOURCE_DIR}/gfx.frag" -o "${PROJECT_SOURCE_DIR}/gfx.h"  --preserve-all-globals --preserve-externals
+            COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/sfx.h" "${PROJECT_SOURCE_DIR}/sfx.frag" --preserve-externals
+            COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/gfx/load.h" "${PROJECT_SOURCE_DIR}/gfx/load.frag" --preserve-all-globals --preserve-externals
+            COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/gfx/post.h" "${PROJECT_SOURCE_DIR}/gfx/post.frag"
+            COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/gfx/logo210.h" "${PROJECT_SOURCE_DIR}/gfx/logo210.frag"
+        )
+    else()
+        add_custom_target(minification
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/minification/
+            COMMAND python shader-compressor.py "${PROJECT_SOURCE_DIR}/gfx.frag" -o "${PROJECT_SOURCE_DIR}/gfx.h"  --no-minification 
+            COMMAND python shader-compressor.py  -o "${PROJECT_SOURCE_DIR}/sfx.h" "${PROJECT_SOURCE_DIR}/sfx.frag" --no-minification
+            COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/load.h" "${PROJECT_SOURCE_DIR}/gfx/load.frag" --no-minification
+            COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/post.h" "${PROJECT_SOURCE_DIR}/gfx/post.frag" --no-minification
+            COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/logo210.h" "${PROJECT_SOURCE_DIR}/gfx/logo210.frag" --no-minification
+        )
+    endif()
     
     add_custom_target(texture_packing
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/font/

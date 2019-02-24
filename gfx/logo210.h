@@ -19,7 +19,7 @@ const char * logo210_frag =
 "* along with this program.  If not, see <https://www.gnu.org/licenses/>.\n"
 "*/\n"
 "\n"
-"#version 330\n"
+"#version 130\n"
 "\n"
 "uniform float iTime;\n"
 "uniform vec2 iResolution;\n"
