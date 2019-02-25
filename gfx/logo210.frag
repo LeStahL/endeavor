@@ -196,7 +196,7 @@ void texteffect(in vec3 x, out vec2 sdf)
         lfnoise(24.0*cind.xy-iTime, noise);
         zextrude(x.z,
                  1.5*x.z-inner_logo, 
-                 (0.5+0.5*noise)*blend*step(-cind.x-2.*smoothstep(2.,8.,iTime),-1.),
+                 .5*(0.5+0.5*noise)*blend*step(-cind.x-2.*smoothstep(2.,8.,iTime),-1.),
                  sdf.x);
         stroke(sdf.x, 0.05*blend, sdf.x);
         sdf.y = 7.0;

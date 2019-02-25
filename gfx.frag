@@ -298,8 +298,8 @@ float dpoly_min(vec2 x, float N, float R)
 // 2D box
 float box(vec2 x, vec2 b)
 {
-vec2 d = abs(x) - b;
-return length(max(d,c.yy)) + min(max(d.x,d.y),0.);
+    vec2 d = abs(x) - b;
+    return length(max(d,c.yy)) + min(max(d.x,d.y),0.);
 }
 
 // Get glyph data from texture

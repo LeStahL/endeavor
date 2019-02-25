@@ -200,7 +200,7 @@ const char * logo210_frag =
 "        lfnoise(24.0*cind.xy-iTime, noise);\n"
 "        zextrude(x.z,\n"
 "                 1.5*x.z-inner_logo, \n"
-"                 (0.5+0.5*noise)*blend*step(-cind.x-2.*smoothstep(2.,8.,iTime),-1.),\n"
+"                 .5*(0.5+0.5*noise)*blend*step(-cind.x-2.*smoothstep(2.,8.,iTime),-1.),\n"
 "                 sdf.x);\n"
 "        stroke(sdf.x, 0.05*blend, sdf.x);\n"
 "        sdf.y = 7.0;\n"
