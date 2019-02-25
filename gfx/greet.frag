@@ -131,7 +131,8 @@ void texteffect(in vec3 x, out vec2 sdf)
         lfnoise(50.0*cind, dm);
         dm = 0.5+0.5*dm;
         lfnoise(6.5*cind-dt-2.0*iTime*c.xx, dm2);
-        dm2 = clamp(0.5+0.5*dm2,0.,1.);
+        // change sign here for different effect
+        dm2 = clamp(0.5-0.5*dm2,0.,1.);
         
         d = mix(d,-d, dm);
         
@@ -143,7 +144,7 @@ void texteffect(in vec3 x, out vec2 sdf)
     
     // Add guard objects for debugging
     
-    float dr = .03;
+    float dr = .05;
     vec3 y = mod(x,dr)-.5*dr;
     float guard = -length(max(abs(y)-vec3(.5*dr*c.xx, .6),0.));
     guard = abs(guard)+dr*.1;
@@ -262,8 +263,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec3 col = c.yyy;
                 
 	camerasetup(uv, ro, dir);
-    d = (.3-ro.z)/dir.z;
-    marchscene(ro, dir, 440, 1.0e-4, x, s, d, hit);
+    d = (.5-ro.z)/dir.z;
+    marchscene(ro, dir, 500, 1.0e-4, x, s, d, hit);
     
     if(hit)
         background2(x.xy, col);
