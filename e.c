@@ -149,7 +149,9 @@ int w = 1920, h = 1080,
     fsaa = 25, txaa = 1,
     gfx_fsaa_location, gfx_txaa_location,
     logo210_time_location, logo210_resolution_location,
-    logo210_program, logo210_handle;
+    logo210_program, logo210_handle,
+    greet_time_location, greet_resolution_location,
+    greet_program, greet_handle;
     
 // Demo globals
 double t_start = 0., 
@@ -241,7 +243,6 @@ DWORD WINAPI LoadMusicThread( LPVOID lpParam)
     return 0;
 }
 
-//TODO: separate
 DWORD WINAPI LoadLogo210Thread( LPVOID lpParam)
 {
     // Load gfx shader
@@ -266,8 +267,42 @@ DWORD WINAPI LoadLogo210Thread( LPVOID lpParam)
     printf("---> Logo 210 program:\n");
     debugp(logo210_program);
     glUseProgram(logo210_program);
-    time_location =  glGetUniformLocation(logo210_program, VAR_ITIME);
-    resolution_location = glGetUniformLocation(logo210_program, VAR_IRESOLUTION);
+    logo210_time_location =  glGetUniformLocation(logo210_program, VAR_ITIME);
+    logo210_resolution_location = glGetUniformLocation(logo210_program, VAR_IRESOLUTION);
+    printf("++++ Logo 210 shader created.\n");
+    
+    progress += .1;
+    
+    return 0;
+}
+
+DWORD WINAPI LoadGreetThread( LPVOID lpParam)
+{
+    // Load gfx shader
+#undef VAR_IRESOLUTION
+#undef VAR_ITIME
+#include "gfx/greet.h"
+#ifndef VAR_IRESOLUTION
+    #define VAR_IRESOLUTION "iResolution"
+#endif
+#ifndef VAR_ITIME
+    #define VAR_ITIME "iTime"
+#endif
+    int greet_size = strlen(greet_frag),
+        greet_handle = glCreateShader(GL_FRAGMENT_SHADER);
+    greet_program = glCreateProgram();
+    glShaderSource(greet_handle, 1, (GLchar **)&greet_frag, &greet_size);
+    glCompileShader(greet_handle);
+    printf("---> Greetings shader:\n");
+    debug(greet_handle);
+    glAttachShader(greet_program, greet_handle);
+    glLinkProgram(greet_program);
+    printf("---> Greetings program:\n");
+    debugp(greet_program);
+    glUseProgram(greet_program);
+    greet_time_location =  glGetUniformLocation(greet_program, VAR_ITIME);
+    greet_resolution_location = glGetUniformLocation(greet_program, VAR_IRESOLUTION);
+    printf("++++ Greetings shader created.\n");
     
     progress += .1;
     
@@ -288,9 +323,6 @@ void quad()
 // Pure opengl drawing code, essentially cross-platform
 void draw()
 {
-    // End demo when it is over TODO
-    if(t_now-t_start > t_end)
-        ExitProcess(0);
         
     if(progress == 1.)
         t_load_end = t_now;
@@ -310,11 +342,22 @@ void draw()
         glUniform2f(load_resolution_location, w, h);
         glUniform1f(load_time_location, t_now-t_start);
     }
-    else
+    else //TODO: arrange scenes in the right order
     {
-        glUseProgram(logo210_program);
-        glUniform1f(time_location, t_now-t_load_end-5.);
-        glUniform2f(resolution_location, w, h);
+        float t = t_now-t_load_end-5.;
+        if(t < 14.)
+        {
+            glUseProgram(logo210_program);
+            glUniform1f(logo210_time_location, t);
+            glUniform2f(logo210_resolution_location, w, h);
+        }
+        else if(t < 50.)
+        {
+            glUseProgram(greet_program);
+            glUniform1f(greet_time_location, t);
+            glUniform2f(greet_resolution_location, w, h);
+        }
+        else ExitProcess(0);
     }
     
     quad();
@@ -825,6 +868,10 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     
     // Load Logo 210 shader
     LoadLogo210Thread(0);
+    draw();
+    SwapBuffers(hdc);
+    
+    LoadGreetThread(0);
     draw();
     SwapBuffers(hdc);
     

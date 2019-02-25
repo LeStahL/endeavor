@@ -262,8 +262,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec3 col = c.yyy;
                 
 	camerasetup(uv, ro, dir);
-    d = (.5-ro.z)/dir.z;
-    marchscene(ro, dir, 500, 1.0e-4, x, s, d, hit);
+    d = (.3-ro.z)/dir.z;
+    marchscene(ro, dir, 440, 1.0e-4, x, s, d, hit);
     
     if(hit)
         background2(x.xy, col);
