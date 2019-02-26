@@ -341,7 +341,7 @@ void dfloat(in vec2 x, in float num, in float size, out float dst)
 // Add scene contents
 void add(in vec4 src1, in vec4 src2, out vec4 dst)
 {
-    dst = mix(src1, src2, step(src2.x, src1.x));
+    dst = mix(src1, src2, step(0., src2.x));
 }
 
 void blend(in vec4 src, in float tlo, in float thi, out vec4 dst)
@@ -355,15 +355,20 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     a = iResolution.x/iResolution.y;
     vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
+    
+    //fragColor = mix(texture(iChannel0, fragCoord/iResolution.xy), c.xyyy, .5+.5*sin(uv.x));
+    
 
-    float d;
+    float d;// = length(uv)-.5;
     dstring(uv, 3., .1, d); // Team210 present
-    vec4 sdf;
-    sdf.gba = mix(texture(iChannel0, uv).xyz, c.xyy, step(0.,d));
-    sdf.x = d;
-    blend(sdf, 5., 20., sdf);
+    stroke(d, .2, d);
+    vec4 old = vec4(1.,texture(iChannel0, fragCoord/iResolution.xy).rgb),
+        new = vec4(d, c.xyy);
+    vec4 sum;
+    add(old, new, sum);
+    //blend(sdf, 5., 20., sdf);*/
 
-    fragColor = vec4(sdf.gba, 1.);
+    fragColor = vec4(sum.gba, 1.);
 }
 
 void main()

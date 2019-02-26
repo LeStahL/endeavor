@@ -155,6 +155,8 @@ int w = 1920, h = 1080,
     text_channel0_location, text_font_location,
     text_program, text_handle;
     
+float font_texture_width;
+    
 // Demo globals
 double t_start = 0., 
     t_now = 0., 
@@ -311,6 +313,7 @@ DWORD WINAPI LoadGreetThread( LPVOID lpParam)
     return 0;
 }
 
+#include "font/font.h"
 DWORD WINAPI LoadTextThread(LPVOID lpParam)
 {
 #undef VAR_IFONTWIDTH
@@ -320,7 +323,6 @@ DWORD WINAPI LoadTextThread(LPVOID lpParam)
 #undef VAR_IFONT
 #undef VAR_ITIME
 #include "gfx/text.h"
-#include "font/font.h"
 #ifndef VAR_IRESOLUTION
     #define VAR_IRESOLUTION "iResolution"
 #endif
@@ -360,7 +362,21 @@ DWORD WINAPI LoadTextThread(LPVOID lpParam)
     text_channel0_location = glGetUniformLocation(text_program, VAR_ICHANNEL0);
     printf("++++ Text shader created.\n");
     
-    //TODO: create texture
+    // Initialize font texture
+    printf("font texture width is: %d\n", font_texture_size); // TODO: remove
+    glGenTextures(1, &font_texture_handle);
+    glBindTexture(GL_TEXTURE_2D, font_texture_handle);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, font_texture_size, font_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, font_texture);
+    
+    font_texture_width = font_texture_size;
+    
+    progress += .1;
+    
+    return 0;
 }
 
 void quad()
@@ -412,8 +428,27 @@ void draw()
             glUniform2f(greet_resolution_location, w, h);
         }
         else ExitProcess(0);
+        
+        quad();
+        
+        // Render text to buffer
+        glUseProgram(text_program);
+        glUniform2f(text_resolution_location, w, h);
+        glUniform1f(text_font_width_location, font_texture_size);
+        glUniform1f(text_executable_size_location, executable_size);
+        glUniform1f(text_time_location, t);
+        glUniform1i(text_channel0_location, 0);
+        glUniform1i(text_font_location, 1);
+        
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, first_pass_texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, font_texture_handle);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, font_texture_size, font_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     }
-    
+   
     quad();
     
     // Render second pass (Post processing) to screen
