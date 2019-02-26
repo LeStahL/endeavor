@@ -147,7 +147,9 @@ void dglyph(in vec2 x, in float ordinal, in float size, out float dst)
     }
     
     // Circles
-    float ncircles = floor(rfloat(offset));
+    float ncircles;
+    rfloat(offset, ncircles)
+    ncircles = floor(ncircles);
     offset += 1.;
     for(float i=0.; i<max(ncircles,0); i+=1.)
     {

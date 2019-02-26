@@ -293,6 +293,83 @@ void dear(in vec2 x, out float d)
         -.5*min(-abs(x.x),.01);
 }
 
+// Distance to a triangle
+void dtriangle(in vec2 x, in vec2 p0, in vec2 p1, in vec2 p2, out float d)
+{
+    vec2 d1 = c.xz*(p1-p0).yx, d2 = c.xz*(p2-p1).yx, d3 = c.xz*(p0-p2).yx;
+    d = -min(
+        dot(p0-x,d1)/length(d1),
+        min(
+            dot(p1-x,d2)/length(d2),
+            dot(p2-x,d3)/length(d3)
+        )
+    );
+}
+
+// Distance to schnappsgirls logo in hexagon
+void dschnappsgirls(in vec2 x, out float d)
+{
+    dpolygon(.5*x,6.0,d);
+    float da, d0;
+    
+    // Dress
+    dtriangle(x, vec2(-.1,-.3), vec2(.5,-.3), vec2(.2, .6), d0);
+    dlinesegment(x, vec2(-.1,.325), vec2(.5,.325), da);
+    stroke(da,.06,da);
+    d0 = max(d0,-da);
+    
+    // Head
+    dcircle(7.*(x-vec2(.2,.5)), da);
+    d0 = max(d0, -da+.5);
+    d0 = min(d0, da/7.);
+    
+    // Legs
+    dlinesegment(x, vec2(.125,-.3), vec2(.125,-.6), da);
+    stroke(da, .06, da);
+    d0 = min(d0, da);
+    dlinesegment(x, vec2(.275,-.3), vec2(.275,-.6), da);
+    stroke(da, .06, da);
+    d0 = min(d0, da);
+    
+    // Shoulders
+    dlinesegment(x, vec2(0.05,.25), vec2(.35,.25), da);
+    stroke(da, .085, da);
+    d0 = min(d0, da);
+    
+    // Arms
+    dlinesegment(x, vec2(.385,.25), vec2(.5, -.1), da);
+    stroke(da, .055, da);
+    d0 = min(d0, da);
+    dlinesegment(x, vec2(.017,.25), vec2(-.1, -.1), da);
+    stroke(da, .055, da);
+    d0 = min(d0, da);
+    
+    // Glass
+    dtriangle(x, vec2(-.6,.3), vec2(-.4,.1), vec2(-.2,.3), da);
+    stroke(da, .0125, da);
+    d0 = min(d0, da);
+    dlinesegment(x, vec2(-.4,.15), vec2(-.4,-.1), da);
+    stroke(da, .0125, da);
+    d0 = min(d0, da);
+    dtriangle(x, vec2(-.5,-.15), vec2(-.3,-.15), vec2(-.4,-.1), da);
+    d0 = min(d0, da);
+    
+    // Liquid
+    dtriangle(x, vec2(-.55,.25), vec2(-.4,.1), vec2(-.25,.25), da);
+    d0 = min(d0, da);
+    
+    // Salad
+    dlinesegment(x, vec2(-.4,.1), vec2(-.2,.5), da);
+    stroke(da, .01, da);
+    d0 = min(d0, da);
+    dcircle(24.*(x-vec2(-.3,.3)), da);
+    d0 = min(d0, da/24.);
+    dcircle(24.*(x-vec2(-.25,.4)), da);
+    d0 = min(d0, da/24.);
+    
+    d = max(d, -d0);
+}
+
 // Distance to spacepigs logo in hexagon
 void dspacepigs(in vec2 x, out float d)
 {
@@ -510,7 +587,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     uv = mat2(cos(time_index),-sin(time_index), sin(time_index), cos(time_index))*uv;
     
     float index = (iTime-mod(iTime, 4.))/4.;
-    index = mod(index, 5.);
+    index = mod(index, 6.);
     if(index == 0.)
 	    dmercury(uv, d);
     else if(index == 1.)
@@ -521,7 +598,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         dkewlers(uv, d);
     else if(index == 4.)
         dspacepigs(uv, d);
-    
+    else if(index == 5.)
+        dschnappsgirls(uv,d);
+        
     col = mix(col, mix(col, c.xxx, .8), step(d,0.));
     
 //     stroke(d+.02,.01,d);
