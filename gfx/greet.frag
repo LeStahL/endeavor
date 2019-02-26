@@ -52,7 +52,7 @@ void lfnoise(in vec2 t, out float num)
 // Setup camera
 void camerasetup(in vec2 uv, out vec3 ro, out vec3 dir)
 {
-    vec3 right = c.xyy, up = c.yxy, target = c.yyy+.05*vec3(cos(iTime), sin(iTime), 0.);
+    vec3 right = c.xyy, up = c.yxy, target = c.yyy;
     ro = c.yyx;
     dir = normalize(target + uv.x * right + uv.y * up - ro);
 }
@@ -183,7 +183,7 @@ void calcnormal(in vec3 x, in float eps, out vec3 n)
 }
 
 // 3D rotational matrix
-void rot(in vec3 p, out mat3 m)
+void rot3(in vec3 p, out mat3 m)
 {
     m = mat3(c.xyyy, cos(p.x), sin(p.x), 0., -sin(p.x), cos(p.x))
         *mat3(cos(p.y), 0., -sin(p.y), c.yxy, sin(p.y), 0., cos(p.y))
@@ -202,7 +202,7 @@ void background2(in vec2 uv, out vec3 col)
     uv = mat2(cos(time_index),-sin(time_index), sin(time_index), cos(time_index))*uv;
     
     mat3 m;
-    rot(.1*iTime*vec3(1.1515,1.3321,1.5123) + rt, m);
+    rot3(.1*iTime*vec3(1.1515,1.3321,1.5123) + rt, m);
     
     vec3 dark_green = abs(vec3(0.0,0.78,.52)),
         light_green = abs(vec3(.9, 0.98, 0.28)), 
@@ -211,7 +211,7 @@ void background2(in vec2 uv, out vec3 col)
     col = c.yyy;
     for(float i=0.; i<7.; i+=1.)
     {
-        rot(.1*iTime*vec3(1.1515,1.3321,1.5123) + 3.*rt + i, m);
+        rot3(.1*iTime*vec3(1.1515,1.3321,1.5123) + 3.*rt + i, m);
         
         float d, d0, res = 4.*pow(3., i), bres = res/3.;
         vec2 ind;
@@ -250,6 +250,234 @@ void background2(in vec2 uv, out vec3 col)
     col += .2*dark_green;
 }
 
+// 2D box
+void dbox(in vec2 x, in vec2 b, out float d)
+{
+	vec2 da = abs(x)-b;
+	d = length(max(da,c.yy)) + min(max(da.x,da.y),0.0);
+}
+
+// Compute distance to regular polygon
+void dpolygon(in vec2 x, in float N, out float d)
+{
+    d = 2.0*pi/N;
+    float t = mod(acos(x.x/length(x)), d)-0.5*d;
+    d = -0.5+length(x)*cos(t)/cos(0.5*d);
+}
+
+// Distance to circle
+void dcircle(in vec2 x, out float d)
+{
+    d = length(x)-1.0;
+}
+
+// Distance to line segment
+void dlinesegment(in vec2 x, in vec2 p1, in vec2 p2, out float d)
+{
+    vec2 da = p2-p1;
+    d = length(x-mix(p1, p2, clamp(dot(x-p1, da)/dot(da,da),0.,1.)));
+}
+
+// 2D rotational matrix
+void rot(in float phi, out mat2 m)
+{
+    vec2 cs = vec2(cos(phi), sin(phi));
+    m = mat2(cs.x, -cs.y, cs.y, cs.x);
+}
+
+// Distance to pig ear
+void dear(in vec2 x, out float d)
+{
+    d = abs(2.*x.y)
+        -.95+smoothstep(0.,.5,clamp(abs(x.x),0.,1.))
+        -.5*min(-abs(x.x),.01);
+}
+
+// Distance to spacepigs logo in hexagon
+void dspacepigs(in vec2 x, out float d)
+{
+    dpolygon(.5*x,6.0,d);
+    float da, d0;
+    
+    // Head
+    dcircle(2.5*x,d0);
+    d0 /= 2.5;
+    
+    // Ears
+    dear(vec2(2.,5.)*x-vec2(.8,1.3), da);
+    d0 = min(d0,da/10.);
+    dear(vec2(2.,5.)*x+vec2(.8,-1.3), da);
+    d0 = min(d0,da/10.);
+    
+    // Nose
+    dcircle(6.*x-vec2(0.,-.5),da);
+    d0 = max(d0,-da/6.);
+    dcircle(24.*x-vec2(-1.5,-2.),da);
+    d0 = min(d0,da/24.);
+    dcircle(24.*x-vec2(1.5,-2.),da);
+    d0 = min(d0,da/24.);
+    
+    // Eyes
+    dcircle(16.*x-vec2(-3.5,2.5),da);
+    d0 = max(d0,-da/16.);
+    dcircle(16.*x-vec2(3.5,2.5),da);
+    d0 = max(d0,-da/16.);
+    dcircle(24.*x-vec2(-5.,3.5),da);
+    d0 = min(d0,da/24.);
+    dcircle(24.*x-vec2(5.,3.5),da);
+    d0 = min(d0,da/24.);
+    
+    d = max(d, -d0);
+}
+
+// Distance to kewlers logo in hexagon
+void dkewlers(in vec2 x, out float d)
+{
+    dpolygon(.5*x,6.0,d);
+    float da, d0;
+    
+    x *= 1.2;
+    
+    dbox(x-vec2(0.,-.3),vec2(.6,.1),d0);
+    dbox(x-vec2(-.5,-.0),vec2(.1,.25),da);
+    d0 = min(d0,da);
+    dbox(x-vec2(-.5+1./3.,.25),vec2(.1,.5),da);
+    d0 = min(d0,da);
+    dbox(x-vec2(-.5+2./3.,-.0),vec2(.1,.25),da);
+    d0 = min(d0,da);
+    dbox(x-vec2(.5,-.0),vec2(.1,.25),da);
+    d0 = min(d0,da);
+    
+    d = max(d, -d0);
+}
+
+// Distance to farbrausch logo in hexagon
+void dfarbrausch(in vec2 x, out float d)
+{
+    dpolygon(.5*x,6.0,d);
+    float da, d0;
+    
+    x += vec2(.1,0.);
+    x *= 1.2;
+    
+    dlinesegment(x,vec2(-.65,.05),vec2(-.5,.05),d0);
+    dlinesegment(x,vec2(-.5,.05),vec2(-.2,-.49),da);
+    d0 = min(d0, da);
+    dlinesegment(x,vec2(-.2,-.49),vec2(-.0,-.49),da);
+    d0 = min(d0, da);
+    dlinesegment(x,vec2(-.0,-.49),vec2(-.27,.0),da);
+    d0 = min(d0, da);
+    dlinesegment(x,vec2(-.07,0.),vec2(-.27,.0),da);
+    d0 = min(d0, da);
+    dlinesegment(x,vec2(.2,-.49),vec2(-.07,.0),da);
+    d0 = min(d0, da);
+    dlinesegment(x,vec2(.4,-.49),vec2(.13,.0),da);
+    d0 = min(d0, da);
+    dlinesegment(x,vec2(.4,-.49),vec2(.2,-.49),da);
+    d0 = min(d0, da);
+    dlinesegment(x,vec2(.33,0.),vec2(.13,.0),da);
+    d0 = min(d0, da);
+    dlinesegment(x,vec2(.33,0.),vec2(.51,-.33),da);
+    d0 = min(d0, da);
+    dlinesegment(x,vec2(.6,-.15),vec2(.51,-.33),da);
+    d0 = min(d0, da);
+    dlinesegment(x,vec2(.53,0.),vec2(.6,-.15),da);
+    d0 = min(d0, da);
+    dlinesegment(x,vec2(.7,0.),vec2(.53,.0),da);
+    d0 = min(d0, da);
+    dlinesegment(x,vec2(.7,0.),vec2(.68,-.04),da);
+    d0 = min(d0, da);
+    dpolygon(5.*(x+vec2(.3,.65)),6.,da);
+    d0 = min(d0, da/5.);
+    dpolygon(5.*(x+vec2(-.5,.65)),6.,da);
+    d0 = min(d0, da/5.);
+    
+    stroke(d0,.035, d0);
+    d = max(d, -d0);
+}
+
+// Distance to haujobb logo in hexagon
+void dhaujobb(in vec2 x, out float d)
+{
+    dpolygon(.5*x,6.0,d);
+    float da, d0;
+    mat2 m;
+	rot(.3,m);
+    x = 1.1*x*m;
+    x.x *= 1.1;
+        
+    x += vec2(-.05,.2);
+    
+    // Left leg
+    dbox(x+.35*c.xx,vec2(.1,.05),d0);
+    dbox(x+vec2(.3,.25),vec2(.05,.15),da);
+    d0 = min(d0,da);
+    dbox(x+vec2(.2,.15),vec2(.1,.05),da);
+    d0 = min(d0,da);
+    dbox(x+vec2(.15,.05),vec2(.05,.15),da);
+    d0 = min(d0,da);
+    
+    // Right leg
+    dbox(x-vec2(.65,.35),vec2(.05,.15),da);
+    d0 = min(d0,da);
+
+    // Torso
+    rot(.2, m);
+    dbox(m*(x-vec2(.25,.15)),vec2(.45,.05),da);
+    d0 = min(d0,da);
+    dbox(m*(x-vec2(-.15,.35)),vec2(.45,.05),da);
+    d0 = min(d0,da);
+    rot(pi/8.,m);
+    dbox(m*(x-vec2(.0,.25)),vec2(.1,.15),da);
+    d0 = min(d0,da);
+    
+    // Penis
+    dbox(m*(x-vec2(.1,-.0)),vec2(.025,.1),da);
+    d0 = min(d0,da);
+    
+    // Left hand
+    rot(.3,m);
+    dbox(m*(x-vec2(.235,.535)),vec2(.035,.15),da);
+    d0 = min(d0,da);
+    dbox(m*(x-vec2(.225,.7)),vec2(.075,.025),da);
+    d0 = min(d0,da);
+    
+    // Right hand
+    rot(-.2,m);
+    dbox(m*(x+vec2(.585,-.2)),vec2(.0375,.1),da);
+    d0 = min(d0,da);
+    
+    // Head
+    dcircle(6.*(x-vec2(-.15,.58)),da);
+    d0 = min(d0,da/6.);
+    
+    d0 -= .05*(abs(x.x)+abs(x.y)-.2);
+    d = max(d,-d0);
+}
+
+// Distance to mercury logo in hexagon
+void dmercury(in vec2 x, out float d)
+{
+    dpolygon(.5*x,6.0,d);
+    float da;
+
+    x += .1*c.yx;
+
+    // Upper part
+    dbox(x-.35*c.yx,vec2(.4,.35), da);
+    d = max(d, -da);
+    dbox(x-.7*c.yx, vec2(.2,.2), da);
+    d = min(d,da);
+    dbox(x-.25*c.yx,vec2(.2,.05),da);
+    d = min(d,da);
+    
+    // Lower part
+    dbox(x+.2*c.yx,vec2(.1,.4),da);
+    d = max(d, -da);
+    dbox(x+.2*c.yx, vec2(.4,.1),da);
+    d = max(d, -da);
+}
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     a = iResolution.x/iResolution.y;
@@ -270,7 +498,32 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         background2(x.xy, col);
     else
         background2((ro-ro.z/dir.z*dir).xy, col);
+
+    uv*=24.;
+    uv /= 2.+mod(iTime, 4.);
+    float time_index = (iTime-mod(iTime, 4.))/4., rt;
+    rt = time_index;
     
+    lfnoise(.5*iTime*c.xx, time_index);
+    time_index *= pi/3.;
+    time_index -= pi/2.-pi/6.*2.;
+    uv = mat2(cos(time_index),-sin(time_index), sin(time_index), cos(time_index))*uv;
+    
+    float index = (iTime-mod(iTime, 4.))/4.;
+    index = mod(index, 5.);
+    if(index == 0.)
+	    dmercury(uv, d);
+    else if(index == 1.)
+        dhaujobb(uv, d);
+    else if(index == 2.)
+        dfarbrausch(uv, d);
+    else if(index == 3.)
+        dkewlers(uv, d);
+    else if(index == 4.)
+        dspacepigs(uv, d);
+//     stroke(d+.02,.01,d);
+    col = mix(col, mix(col, c.xxx, .8), step(d,0.));
+        
     fragColor = vec4(col,1.0);
 }
 
