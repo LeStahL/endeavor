@@ -521,9 +521,12 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         dkewlers(uv, d);
     else if(index == 4.)
         dspacepigs(uv, d);
-//     stroke(d+.02,.01,d);
+    
     col = mix(col, mix(col, c.xxx, .8), step(d,0.));
-        
+    
+//     stroke(d+.02,.01,d);
+//     col = mix(col, c.yyy, step(d,0.));
+    
     fragColor = vec4(col,1.0);
 }
 

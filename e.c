@@ -351,7 +351,7 @@ void draw()
             glUniform1f(logo210_time_location, t);
             glUniform2f(logo210_resolution_location, w, h);
         }
-        else if(t < 50.)
+        else if(t < 5000.)
         {
             glUseProgram(greet_program);
             glUniform1f(greet_time_location, t);
