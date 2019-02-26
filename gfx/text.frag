@@ -17,7 +17,7 @@
  
 #version 130
 
-uniform float iFontWidth, iExecutableSize;
+uniform float iFontWidth, iExecutableSize, iTime;
 uniform vec2 iResolution;
 uniform sampler2D iChannel0, iFont;
 
@@ -84,11 +84,40 @@ void box(in vec2 x, in vec2 b, out float dst)
     dst = length(max(d,c.yy)) + min(max(d.x,d.y),0.);
 }
 
+// Distance to circle
+void circle(in vec2 x, out float d)
+{
+    d = abs(length(x)-1.0);
+}
+
+// Distance to line segment
+void lineseg(in vec2 x, in vec2 p1, in vec2 p2, out float d)
+{
+    vec2 da = p2-p1;
+    d = length(x-mix(p1, p2, clamp(dot(x-p1, da)/dot(da,da),0.,1.)));
+}
+
+// Distance to circle segment
+void circlesegment(in vec2 x, in float r, in float p0, in float p1, out float d)
+{
+    float p = atan(x.y, x.x);
+    vec2 philo = vec2(max(p0, p1), min(p0, p1));
+    if((p < philo.x && p > philo.y) || (p+2.*pi < philo.x && p+2.*pi > philo.y) || (p-2.*pi < philo.x && p-2.*pi > philo.y))
+    {
+        d = abs(length(x)-r);
+        return;
+    }
+    d = min(
+        length(x-r*vec2(cos(p0), sin(p0))),
+        length(x-r*vec2(cos(p1), sin(p1)))
+        );
+}
+
 // Get glyph data from texture
 void dglyph(in vec2 x, in float ordinal, in float size, out float dst)
 {
     float dis;
-    box(x, 2.*size*c.xx), dis;
+    box(x, 2.*size*c.xx, dis);
     if(dis > 0.)
     {
         dst = dis+.5*size;
@@ -124,7 +153,7 @@ void dglyph(in vec2 x, in float ordinal, in float size, out float dst)
     
     // Lines
     float nlines;
-    rfloat(offset, nlines)
+    rfloat(offset, nlines);
     nlines = floor(nlines);
     offset += 1.;
     for(float i=0.; i<nlines; i+=1.)
@@ -142,90 +171,111 @@ void dglyph(in vec2 x, in float ordinal, in float size, out float dst)
         rfloat(offset, y2);
         offset += 1.;
         float da;
-        //TODO: continue here
-        d = min(d, lineseg(x, size*vec2(x1,y1), size*vec2(x2, y2)));
+        lineseg(x, size*vec2(x1,y1), size*vec2(x2, y2), da);
+        d = min(d,da);
     }
     
     // Circles
     float ncircles;
-    rfloat(offset, ncircles)
+    rfloat(offset, ncircles);
     ncircles = floor(ncircles);
     offset += 1.;
     for(float i=0.; i<max(ncircles,0); i+=1.)
     {
-        float xc = rfloat(offset);
+        float xc;
+        rfloat(offset, xc);
         offset += 1.;
-        float yc = rfloat(offset);
+        float yc;
+        rfloat(offset, yc);
         offset += 1.;
-        float r = rfloat(offset);
+        float r;
+        rfloat(offset, r);
         offset += 1.;
-        d = min(d, circle(x-size*vec2(xc, yc), size*r));
+        float da;
+        circle( size*r*(x-size*vec2(xc, yc)),da);
+        d = min(d, da/size/r);
     }
     
     // Circle segments
-    float nsegments = floor(rfloat(offset));
+    float nsegments;
+    rfloat(offset, nsegments);
+    nsegments = floor(nsegments);
     offset += 1.;
     for(float i=0.; i<max(nsegments,0); i+=1.)
     {
-        float xc = rfloat(offset);
+        float xc;
+        rfloat(offset, xc);
         offset += 1.;
-        float yc = rfloat(offset);
+        float yc;
+        rfloat(offset, yc);
         offset += 1.;
-        float r = rfloat(offset);
+        float r;
+        rfloat(offset, r);
         offset += 1.;
-        float phi0 = rfloat(offset);
+        float phi0;
+        rfloat(offset, phi0);
         offset += 1.;
-        float phi1 = rfloat(offset);
+        float phi1;
+        rfloat(offset, phi1);
         offset += 1.;
-        d = min(d, circlesegment(x-size*vec2(xc,yc), size*r, phi0, phi1));
+        float da;
+        circlesegment(x-size*vec2(xc,yc), size*r, phi0, phi1, da);
+        d = min(d, da);
     }
     
     if(nlines+ncircles+nsegments == 0.)
-        return dis;
-    
-    return d;
+        dst = dis;
+    else dst = d;
 }
 
 // Get distance to string from database
-float dstring(vec2 x, float ordinal, float size)
+void dstring(in vec2 x, in float ordinal, in float size, out float dst)
 {
     // Get string database offset
-    float stroff0 = floor(rfloat(0.));
+    float stroff0;
+    rfloat(0., stroff0);
+    stroff0 = floor(stroff0);
     
     // Return 1 if wrong ordinal is supplied
-    float nstrings = floor(rfloat(stroff0));
+    float nstrings;
+    rfloat(stroff0, nstrings);
+    nstrings = floor(nstrings);
     if(ordinal >= nstrings)
     {
-        return 1.;
+        dst = 1.;
+        return;
     }
     
     // Get offset and length of string from string database index
-    float stroff = floor(rfloat(stroff0+1.+2.*ordinal));
-    float len = floor(rfloat(stroff0+2.+2.*ordinal));
-    
-    /* Slower code
-    float d = 1.;
-    for(float i=0.; i<len; i+=1.)
-        d = min(d, dglyph(x-2.1*i*size*c.xy,floor(rfloat(0.+stroff+i)), .8*size));
-    return d;
-    */
+    float stroff;
+    rfloat(stroff0+1.+2.*ordinal, stroff);
+    stroff = floor(stroff);
+    float len;
+    rfloat(stroff0+2.+2.*ordinal, len);
+    len = floor(len);
     
     // Draw glyphs
     vec2 dx = mod(x-size, 2.*size)-size, 
         ind = ceil((x-dx+size)/2./size);
     
     // Bounding box
-    float bound = box(x-size*(len-3.)*c.xy, vec2(size*len, 1.*size));
+    float bound;
+    box(x-size*(len-3.)*c.xy, vec2(size*len, 1.*size), bound);
     if(bound > 0.)
     {
-        return bound+.5*size;
+        dst = bound+.5*size;
+        return;
     }
-    return dglyph(dx, floor(rfloat(stroff+ind.x)), .7*size);
+    
+    float da;
+    rfloat(stroff+ind.x, da);
+    da = floor(da);
+    dglyph(dx, da, .7*size, dst);
 }
 
 // distance to a floating point number string
 // for debugging stuff while shader is loaded
-float dfloat(vec2 x, float num, float size)
+void dfloat(in vec2 x, in float num, in float size, out float dst)
 {
     float d = 1., index = 0.;
     
@@ -233,7 +283,9 @@ float dfloat(vec2 x, float num, float size)
     float sign = sign(num), exp = 0.;
     if(sign<0.)
     {
-        d = min(d, dglyph(x, 45., .7*size));
+        float da;
+        dglyph(x, 45., .7*size, da);
+        d = min(d, da);
         index += 1.;
         num *= -1.;
     }
@@ -250,43 +302,68 @@ float dfloat(vec2 x, float num, float size)
         float ca = floor(num/po);
         num -= ca*po;
         
-        d = min(d, dglyph(x+.7*size*c.xy-2.*index*size*c.xy, 48.+ca, .7*size));
+        float da;
+        dglyph(x+.7*size*c.xy-2.*index*size*c.xy, 48.+ca, .7*size, da);
+        d = min(d, da);
         index += 1.;
         if(i == exp) // decimal point
         {
-            d = min(d, dglyph(x-2.*index*size*c.xy, 46., .7*size));
+            dglyph(x-2.*index*size*c.xy, 46., .7*size, da);
+            d = min(d, da);
             index += 1.;
         }
     }
     
     // Output the exponent
-    d = min(d, dglyph(x+.7*size*c.xy-2.*index*size*c.xy, 101., .7*size));
+    float db;
+    dglyph(x+.7*size*c.xy-2.*index*size*c.xy, 101., .7*size, db);
+    d = min(d, db);
     index += 1.;
     if(exp < 0.) // Sign
     {
-        d = min(d, dglyph(x+.7*size*c.xy-2.*index*size*c.xy, 45., .7*size));
+        dglyph(x+.7*size*c.xy-2.*index*size*c.xy, 45., .7*size,db);
+        d = min(d, db);
         index += 1.;
         exp *= -1.;
     }
     float ca = floor(exp/10.);
-    d = min(d, dglyph(x+.7*size*c.xy-2.*index*size*c.xy, 48.+ca, .7*size));
+    dglyph(x+.7*size*c.xy-2.*index*size*c.xy, 48.+ca, .7*size, db);
+    d = min(d, db);
     index += 1.;
     ca = floor(exp-10.*ca);
-    d = min(d, dglyph(x+.7*size*c.xy-2.*index*size*c.xy, 48.+ca, .7*size));
+    dglyph(x+.7*size*c.xy-2.*index*size*c.xy, 48.+ca, .7*size, db);
+    d = min(d, db);
     index += 1.;
     
-    return d;
+    dst = d;
+}
+
+// Add scene contents
+void add(in vec4 src1, in vec4 src2, out vec4 dst)
+{
+    dst = mix(src1, src2, step(src2.x, src1.x));
+}
+
+void blend(in vec4 src, in float tlo, in float thi, out vec4 dst)
+{
+    vec4 added;
+    add(dst, src, added);
+    dst = mix(src, added, smoothstep(tlo-.5,tlo+.5,iTime)*(1.-smoothstep(thi-.5,thi+.5,iTime)));
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    vec4 col = vec4(0.);
-    float bound = sqrt(iFSAA)-1.;
-   	for(float i = -.5*bound; i<=.5*bound; i+=1.)
-        for(float j=-.5*bound; j<=.5*bound; j+=1.)
-     		col += texture(iChannel0, fragCoord/iResolution.xy+vec2(i,j)*3.0/max(bound,1.)/iResolution.xy);
-    col /= iFSAA;
-    fragColor = col;
+    a = iResolution.x/iResolution.y;
+    vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
+
+    float d;
+    dstring(uv, 3., .1, d); // Team210 present
+    vec4 sdf;
+    sdf.gba = mix(texture(iChannel0, uv).xyz, c.xyy, step(0.,d));
+    sdf.x = d;
+    blend(sdf, 5., 20., sdf);
+
+    fragColor = vec4(sdf.gba, 1.);
 }
 
 void main()

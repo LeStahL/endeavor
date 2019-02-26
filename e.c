@@ -62,8 +62,6 @@ void *malloc( unsigned int size )
 
 #include <math.h>
 
-// fonts
-#include "font/font.h"
 #include "sequence.h"
 
 // OpenGL extensions
@@ -151,7 +149,11 @@ int w = 1920, h = 1080,
     logo210_time_location, logo210_resolution_location,
     logo210_program, logo210_handle,
     greet_time_location, greet_resolution_location,
-    greet_program, greet_handle;
+    greet_program, greet_handle,
+    text_time_location, text_resolution_location,
+    text_font_width_location, text_executable_size_location,
+    text_channel0_location, text_font_location,
+    text_program, text_handle;
     
 // Demo globals
 double t_start = 0., 
@@ -307,6 +309,58 @@ DWORD WINAPI LoadGreetThread( LPVOID lpParam)
     progress += .1;
     
     return 0;
+}
+
+DWORD WINAPI LoadTextThread(LPVOID lpParam)
+{
+#undef VAR_IFONTWIDTH
+#undef VAR_IEXECUTABLESIZE
+#undef VAR_IRESOLUTION
+#undef VAR_ICHANNEL0
+#undef VAR_IFONT
+#undef VAR_ITIME
+#include "gfx/text.h"
+#include "font/font.h"
+#ifndef VAR_IRESOLUTION
+    #define VAR_IRESOLUTION "iResolution"
+#endif
+#ifndef VAR_ITIME
+    #define VAR_ITIME "iTime"
+#endif
+#ifndef VAR_IFONT
+    #define VAR_IFONT "iFont"
+#endif
+#ifndef VAR_IFONTWIDTH
+    #define VAR_IFONTWIDTH "iFontWidth"
+#endif
+#ifndef VAR_IEXECUTABLESIZE
+    #define VAR_IEXECUTABLESIZE "iExecutableSize"
+#endif
+#ifndef VAR_ICHANNEL0
+    #define VAR_ICHANNEL0 "iChannel0"
+#endif
+    
+    int text_size = strlen(text_frag);
+    text_handle = glCreateShader(GL_FRAGMENT_SHADER);
+    text_program = glCreateProgram();
+    glShaderSource(text_handle, 1, (GLchar **)&text_frag, &text_size);
+    glCompileShader(text_handle);
+    printf("---> Text shader:\n");
+    debug(text_handle);
+    glAttachShader(text_program, text_handle);
+    glLinkProgram(text_program);
+    printf("---> Text program:\n");
+    debugp(text_program);
+    glUseProgram(text_program);
+    text_time_location =  glGetUniformLocation(text_program, VAR_ITIME);
+    text_resolution_location = glGetUniformLocation(text_program, VAR_IRESOLUTION);
+    text_font_location= glGetUniformLocation(text_program, VAR_IFONT);
+    text_font_width_location = glGetUniformLocation(text_program, VAR_IFONTWIDTH);
+    text_executable_size_location = glGetUniformLocation(text_program, VAR_IEXECUTABLESIZE);
+    text_channel0_location = glGetUniformLocation(text_program, VAR_ICHANNEL0);
+    printf("++++ Text shader created.\n");
+    
+    //TODO: create texture
 }
 
 void quad()
@@ -872,6 +926,10 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     SwapBuffers(hdc);
     
     LoadGreetThread(0);
+    draw();
+    SwapBuffers(hdc);
+    
+    LoadTextThread(0);
     draw();
     SwapBuffers(hdc);
     
