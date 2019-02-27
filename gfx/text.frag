@@ -72,8 +72,13 @@ void rfloat(in float off, out float val)
 
     // Return full float16
     if(exponent == 0.)
+    {
         val = mix(1., -1., sign) * 5.960464477539063e-08 * significand;
-    else val = mix(1., -1., sign) * (1. + significand * 9.765625e-4) * pow(2.,exponent-15.);
+    }
+    else
+    {
+        val = mix(1., -1., sign) * (1. + significand * 9.765625e-4) * pow(2.,exponent-15.);
+    }
 }
 
 
@@ -111,6 +116,12 @@ void circlesegment(in vec2 x, in float r, in float p0, in float p1, out float d)
         length(x-r*vec2(cos(p0), sin(p0))),
         length(x-r*vec2(cos(p1), sin(p1)))
         );
+}
+
+// Compute distance to stroke
+void stroke(in float d0, in float s, out float d)
+{
+    d = abs(d0) - s;
 }
 
 // Get glyph data from texture
@@ -180,7 +191,7 @@ void dglyph(in vec2 x, in float ordinal, in float size, out float dst)
     rfloat(offset, ncircles);
     ncircles = floor(ncircles);
     offset += 1.;
-    for(float i=0.; i<max(ncircles,0); i+=1.)
+    for(float i=0.; i<ncircles; i+=1.)
     {
         float xc;
         rfloat(offset, xc);
@@ -192,8 +203,8 @@ void dglyph(in vec2 x, in float ordinal, in float size, out float dst)
         rfloat(offset, r);
         offset += 1.;
         float da;
-        circle( size*r*(x-size*vec2(xc, yc)),da);
-        d = min(d, da/size/r);
+        circle( (x-size*vec2(xc, yc))/size/r,da);
+        d = min(d, da*size*r);
     }
     
     // Circle segments
@@ -201,7 +212,7 @@ void dglyph(in vec2 x, in float ordinal, in float size, out float dst)
     rfloat(offset, nsegments);
     nsegments = floor(nsegments);
     offset += 1.;
-    for(float i=0.; i<max(nsegments,0); i+=1.)
+    for(float i=0.; i<nsegments; i+=1.)
     {
         float xc;
         rfloat(offset, xc);
@@ -341,7 +352,7 @@ void dfloat(in vec2 x, in float num, in float size, out float dst)
 // Add scene contents
 void add(in vec4 src1, in vec4 src2, out vec4 dst)
 {
-    dst = mix(src1, src2, step(0., src2.x));
+    dst = mix(src1, src2, step(src2.x, 0.));
 }
 
 void blend(in vec4 src, in float tlo, in float thi, out vec4 dst)
@@ -358,17 +369,18 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     
     //fragColor = mix(texture(iChannel0, fragCoord/iResolution.xy), c.xyyy, .5+.5*sin(uv.x));
     
-
-    float d;// = length(uv)-.5;
-    dstring(uv, 3., .1, d); // Team210 present
-    stroke(d, .2, d);
-    vec4 old = vec4(1.,texture(iChannel0, fragCoord/iResolution.xy).rgb),
+    float d;
+    //float d = length(uv)-.1;
+    //dglyph(uv, 97, .1, d);
+    dstring(uv, 3., .05, d); // Team210 present
+    stroke(d, .01, d);
+    vec4 old = vec4(-1.,texture(iChannel0, fragCoord/iResolution.xy).rgb),
         new = vec4(d, c.xyy);
     vec4 sum;
     add(old, new, sum);
     //blend(sdf, 5., 20., sdf);*/
 
-    fragColor = vec4(sum.gba, 1.);
+    fragColor = vec4(sum.gba*step(sum.r, 0.), 1.);
 }
 
 void main()
