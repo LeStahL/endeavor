@@ -373,12 +373,12 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     
     dstring(uv+.6*c.xy, 3., .05, d); // Team210 present
     stroke(d, .01, d);
-    vec4 new = vec4(d, c.xxx);
+    vec4 new = vec4(d, mix(old.gba, c.xxx, .6));
     blendadd(old,new,5.,13.,new);
     
     dstring(uv+.6*c.xy+.1*c.yx, 4., .03, d); // A production made of joy
     stroke(d, .005, d);
-    old = vec4(d, c.xxx);
+    old = vec4(d, mix(old.gba, c.xxx, .6));
     blendadd(new,old,7.,13.,new);
     
 
