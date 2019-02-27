@@ -368,11 +368,19 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
     
     float d;
-    dstring(uv, 3., .05, d); // Team210 present
+    
+    vec4 old = vec4(-1.,texture(iChannel0, fragCoord/iResolution.xy).rgb); // Scene
+    
+    dstring(uv+.6*c.xy, 3., .05, d); // Team210 present
     stroke(d, .01, d);
-    vec4 old = vec4(-1.,texture(iChannel0, fragCoord/iResolution.xy).rgb),
-        new = vec4(d, c.xyy);
-    blendadd(old,new,5.,20.,new);
+    vec4 new = vec4(d, c.xxx);
+    blendadd(old,new,5.,13.,new);
+    
+    dstring(uv+.6*c.xy+.1*c.yx, 4., .03, d); // A production made of joy
+    stroke(d, .005, d);
+    old = vec4(d, c.xxx);
+    blendadd(new,old,7.,13.,new);
+    
 
     fragColor = vec4(new.gba*step(new.r, 0.), 1.);
 }
