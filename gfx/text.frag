@@ -355,11 +355,11 @@ void add(in vec4 src1, in vec4 src2, out vec4 dst)
     dst = mix(src1, src2, step(src2.x, 0.));
 }
 
-void blend(in vec4 src, in float tlo, in float thi, out vec4 dst)
+void blendadd(in vec4 src1, in vec4 src2, in float tlo, in float thi, out vec4 dst)
 {
     vec4 added;
-    add(dst, src, added);
-    dst = mix(src, added, smoothstep(tlo-.5,tlo+.5,iTime)*(1.-smoothstep(thi-.5,thi+.5,iTime)));
+    add(src1, src2, added);
+    dst = mix(src1, added, smoothstep(tlo-.5,tlo+.5,iTime)*(1.-smoothstep(thi-.5,thi+.5,iTime)));
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
@@ -367,20 +367,14 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     a = iResolution.x/iResolution.y;
     vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
     
-    //fragColor = mix(texture(iChannel0, fragCoord/iResolution.xy), c.xyyy, .5+.5*sin(uv.x));
-    
     float d;
-    //float d = length(uv)-.1;
-    //dglyph(uv, 97, .1, d);
     dstring(uv, 3., .05, d); // Team210 present
     stroke(d, .01, d);
     vec4 old = vec4(-1.,texture(iChannel0, fragCoord/iResolution.xy).rgb),
         new = vec4(d, c.xyy);
-    vec4 sum;
-    add(old, new, sum);
-    //blend(sdf, 5., 20., sdf);*/
+    blendadd(old,new,5.,20.,new);
 
-    fragColor = vec4(sum.gba*step(sum.r, 0.), 1.);
+    fragColor = vec4(new.gba*step(new.r, 0.), 1.);
 }
 
 void main()
