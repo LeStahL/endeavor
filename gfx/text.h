@@ -391,7 +391,7 @@ const char * text_frag =
 "    {\n"
 "        dstring(uv+vec2(.55,.4), 0., .09, d); // Endeavour\n"
 "        stroke(d, .018, d);\n"
-"        new = vec4(d, mix(old.gba, c.xxx, .6));\n"
+"        new = vec4(d, c.xxx);\n"
 "        blendadd(old,new,16.,24.,new);\n"
 "    }\n"
 "    \n"

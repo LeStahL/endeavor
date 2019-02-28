@@ -387,7 +387,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     {
         dstring(uv+vec2(.55,.4), 0., .09, d); // Endeavour
         stroke(d, .018, d);
-        new = vec4(d, mix(old.gba, c.xxx, .6));
+        new = vec4(d, c.xxx);
         blendadd(old,new,16.,24.,new);
     }
     
