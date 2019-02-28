@@ -153,7 +153,9 @@ int w = 1920, h = 1080,
     text_time_location, text_resolution_location,
     text_font_width_location, text_executable_size_location,
     text_channel0_location, text_font_location,
-    text_program, text_handle;
+    text_program, text_handle,
+    logo_small_handle, logo_small_program,
+    logo_small_time_location, logo_small_resolution_location;
     
 float font_texture_width;
     
@@ -282,7 +284,6 @@ DWORD WINAPI LoadLogo210Thread( LPVOID lpParam)
 
 DWORD WINAPI LoadGreetThread( LPVOID lpParam)
 {
-    // Load gfx shader
 #undef VAR_IRESOLUTION
 #undef VAR_ITIME
 #include "gfx/greet.h"
@@ -379,6 +380,38 @@ DWORD WINAPI LoadTextThread(LPVOID lpParam)
     return 0;
 }
 
+DWORD WINAPI LoadLogoSmallThread( LPVOID lpParam)
+{
+#undef VAR_IRESOLUTION
+#undef VAR_ITIME
+#include "gfx/logosmall.h"
+#ifndef VAR_IRESOLUTION
+    #define VAR_IRESOLUTION "iResolution"
+#endif
+#ifndef VAR_ITIME
+    #define VAR_ITIME "iTime"
+#endif
+    int logo_small_size = strlen(logosmall_frag),
+        logo_small_handle = glCreateShader(GL_FRAGMENT_SHADER);
+    logo_small_program = glCreateProgram();
+    glShaderSource(logo_small_handle, 1, (GLchar **)&logosmall_frag, &logo_small_size);
+    glCompileShader(logo_small_handle);
+    printf("---> Endeavour logo shader:\n");
+    debug(logo_small_handle);
+    glAttachShader(logo_small_program, logo_small_handle);
+    glLinkProgram(logo_small_program);
+    printf("---> Endeavour logo program:\n");
+    debugp(logo_small_program);
+    glUseProgram(logo_small_program);
+    logo_small_time_location =  glGetUniformLocation(logo_small_program, VAR_ITIME);
+    logo_small_resolution_location = glGetUniformLocation(logo_small_program, VAR_IRESOLUTION);
+    printf("++++ Endeavour logo shader created.\n");
+    
+    progress += .1;
+    
+    return 0;
+}
+
 void quad()
 {
     glBegin(GL_QUADS);
@@ -415,11 +448,17 @@ void draw()
     else //TODO: arrange scenes in the right order
     {
         float t = t_now-t_load_end-5.;
-        if(t < 14.)
+        if(t < 15.)
         {
             glUseProgram(logo210_program);
             glUniform1f(logo210_time_location, t);
             glUniform2f(logo210_resolution_location, w, h);
+        }
+        else if(t<25.)
+        {
+            glUseProgram(logo_small_program);
+            glUniform1f(logo_small_time_location, t);
+            glUniform2f(logo_small_resolution_location, w, h);
         }
         else if(t < 5000.)
         {
@@ -965,6 +1004,10 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     SwapBuffers(hdc);
     
     LoadTextThread(0);
+    draw();
+    SwapBuffers(hdc);
+    
+    LoadLogoSmallThread(0);
     draw();
     SwapBuffers(hdc);
     

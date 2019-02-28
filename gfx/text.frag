@@ -369,19 +369,28 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     
     float d;
     
-    vec4 old = vec4(-1.,texture(iChannel0, fragCoord/iResolution.xy).rgb); // Scene
+    vec4 old = vec4(-1.,texture(iChannel0, fragCoord/iResolution.xy).rgb), new = old; // Scene
     
-    dstring(uv+.6*c.xy, 3., .05, d); // Team210 present
-    stroke(d, .01, d);
-    vec4 new = vec4(d, mix(old.gba, c.xxx, .6));
-    blendadd(old,new,5.,13.,new);
+    if(iTime < 15.)
+    {
+        dstring(uv+.6*c.xy, 3., .05, d); // Team210 present
+        stroke(d, .01, d);
+        new = vec4(d, mix(old.gba, c.xxx, .6));
+        blendadd(old,new,5.,13.,new);
+        
+        dstring(uv+.6*c.xy+.1*c.yx, 4., .03, d); // A production made of joy
+        stroke(d, .005, d);
+        old = vec4(d, mix(old.gba, c.xxx, .6));
+        blendadd(new,old,7.,13.,new);
+    }
+    else if(iTime < 25.)
+    {
+        dstring(uv+vec2(.55,.4), 0., .09, d); // Endeavour
+        stroke(d, .018, d);
+        new = vec4(d, mix(old.gba, c.xxx, .6));
+        blendadd(old,new,16.,24.,new);
+    }
     
-    dstring(uv+.6*c.xy+.1*c.yx, 4., .03, d); // A production made of joy
-    stroke(d, .005, d);
-    old = vec4(d, mix(old.gba, c.xxx, .6));
-    blendadd(new,old,7.,13.,new);
-    
-
     fragColor = vec4(new.gba*step(new.r, 0.), 1.);
 }
 

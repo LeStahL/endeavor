@@ -34,6 +34,7 @@ if(WIN32)
             COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/gfx/logo210.h" "${PROJECT_SOURCE_DIR}/gfx/logo210.frag"
             COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/gfx/greet.h" "${PROJECT_SOURCE_DIR}/gfx/greet.frag"
             COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/gfx/text.h" "${PROJECT_SOURCE_DIR}/gfx/text.frag"
+            COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/gfx/logosmall.h" "${PROJECT_SOURCE_DIR}/gfx/logosmall.frag"
         )
     else()
         add_custom_target(minification
@@ -45,6 +46,7 @@ if(WIN32)
             COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/logo210.h" "${PROJECT_SOURCE_DIR}/gfx/logo210.frag" --no-minification
             COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/greet.h" "${PROJECT_SOURCE_DIR}/gfx/greet.frag" --no-minification
             COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/text.h" "${PROJECT_SOURCE_DIR}/gfx/text.frag" --no-minification
+            COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/logosmall.h" "${PROJECT_SOURCE_DIR}/gfx/logosmall.frag" --no-minification
         )
     endif()
     
