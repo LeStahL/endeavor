@@ -391,7 +391,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
             {
                 mat2 m;
                 rot(ri.y-iTime,m);
-                dstar(m*y-.05*da, 5.+floor(4.*ri.y), .2*ri.x*vec2(.01, .04), dg);
+                dstar(m*(y-.05*da+.1*ri), 5.+floor(4.*ri.y), .2*ri.x*vec2(.01, .04), dg);
                 col = mix(col, mix(col,c.xxx,.5), step(-dg,0.));
                 stroke(dg, .0025, dg);
                 col = mix(col, c.xxx, step(dg,0.));

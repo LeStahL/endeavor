@@ -395,7 +395,7 @@ const char * nr4_frag =
 "            {\n"
 "                mat2 m;\n"
 "                rot(ri.y-iTime,m);\n"
-"                dstar(m*y-.05*da, 5.+floor(4.*ri.y), .2*ri.x*vec2(.01, .04), dg);\n"
+"                dstar(m*(y-.05*da+.1*ri), 5.+floor(4.*ri.y), .2*ri.x*vec2(.01, .04), dg);\n"
 "                col = mix(col, mix(col,c.xxx,.5), step(-dg,0.));\n"
 "                stroke(dg, .0025, dg);\n"
 "                col = mix(col, c.xxx, step(dg,0.));\n"
