@@ -364,7 +364,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         {
             normal(x,n);
             col = .6*mix(c.yyy,c.xyy, clamp((x.z+1.15)/.15,0.,1.))*vec3(1.,0.27,0.) 
-                + .1*c.xxy*abs(dot(l,n));
+                + .1*c.xxy*abs(dot(l,n))
+                + vec3(1.,0.27,0.)*pow(abs(dot(reflect(-l,n),dir)), 3.);
             col = clamp(col, 0., 1.);
         }
     }
