@@ -155,7 +155,9 @@ int w = 1920, h = 1080,
     text_channel0_location, text_font_location,
     text_program, text_handle,
     logo_small_handle, logo_small_program,
-    logo_small_time_location, logo_small_resolution_location;
+    logo_small_time_location, logo_small_resolution_location,
+    nr4_handle,nr4_program,
+    nr4_time_location, nr4_resolution_location;
     
 float font_texture_width;
     
@@ -412,6 +414,38 @@ DWORD WINAPI LoadLogoSmallThread( LPVOID lpParam)
     return 0;
 }
 
+DWORD WINAPI LoadNr4Thread( LPVOID lpParam)
+{
+#undef VAR_IRESOLUTION
+#undef VAR_ITIME
+#include "gfx/nr4.h"
+#ifndef VAR_IRESOLUTION
+    #define VAR_IRESOLUTION "iResolution"
+#endif
+#ifndef VAR_ITIME
+    #define VAR_ITIME "iTime"
+#endif
+    int nr4_size = strlen(nr4_frag),
+        nr4_handle = glCreateShader(GL_FRAGMENT_SHADER);
+    nr4_program = glCreateProgram();
+    glShaderSource(nr4_handle, 1, (GLchar **)&nr4_frag, &nr4_size);
+    glCompileShader(nr4_handle);
+    printf("---> Endeavour NR4 shader:\n");
+    debug(nr4_handle);
+    glAttachShader(nr4_program, nr4_handle);
+    glLinkProgram(nr4_program);
+    printf("---> Endeavour NR4 program:\n");
+    debugp(nr4_program);
+    glUseProgram(nr4_program);
+    nr4_time_location =  glGetUniformLocation(nr4_program, VAR_ITIME);
+    nr4_resolution_location = glGetUniformLocation(nr4_program, VAR_IRESOLUTION);
+    printf("++++ Endeavour NR4 shader created.\n");
+    
+    progress += .1;
+    
+    return 0;
+}
+
 void quad()
 {
     glBegin(GL_QUADS);
@@ -459,6 +493,12 @@ void draw()
             glUseProgram(logo_small_program);
             glUniform1f(logo_small_time_location, t);
             glUniform2f(logo_small_resolution_location, w, h);
+        }
+        else if(t<50.) //TODO: move to end
+        {
+            glUseProgram(nr4_program);
+            glUniform1f(nr4_time_location, t-25.);
+            glUniform2f(nr4_resolution_location, w, h);
         }
         else if(t < 5000.)
         {
@@ -1008,6 +1048,10 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     SwapBuffers(hdc);
     
     LoadLogoSmallThread(0);
+    draw();
+    SwapBuffers(hdc);
+    
+    LoadNr4Thread(0);
     draw();
     SwapBuffers(hdc);
     
