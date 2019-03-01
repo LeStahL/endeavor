@@ -177,8 +177,8 @@ int sample_rate = 44100, channels = 2;
 double duration1 = 312.*.43; //3 min running time
 float *smusic1;
 int music1_size;
-float texs = 256;
-int block_size = 256*256, 
+float texs = 1024;
+int block_size = 1024*1024, 
     nblocks1;
 unsigned int paused = 0;
 float progress = 0.;
@@ -836,7 +836,7 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf256));
     SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf512)); 
     SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf1024));
-    SendMessage(hTXAAComboBox, CB_SETCURSEL, 1, 0);
+    SendMessage(hTXAAComboBox, CB_SETCURSEL, 3, 0);
 
     // Add "Antialiasing: " text
     HWND hSceneText = CreateWindow(WC_STATIC, "Scene: ", WS_VISIBLE | WS_CHILD | SS_LEFT, 10,125,100,100, lwnd, NULL, hInstance, NULL);
