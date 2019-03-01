@@ -170,6 +170,7 @@ float executable_size = 0.;
 unsigned int loading = 1, music_loading = 0;
 int music_block = 0;
 unsigned int snd_framebuffer;
+unsigned int scene_override = 0, override_index = 0;
 
 // Music shader globals
 int sample_rate = 44100, channels = 2;
@@ -482,32 +483,61 @@ void draw()
     else //TODO: arrange scenes in the right order
     {
         float t = t_now-t_load_end-5.;
-        if(t < 15.)
+        if(scene_override)
         {
-            glUseProgram(logo210_program);
-            glUniform1f(logo210_time_location, t);
-            glUniform2f(logo210_resolution_location, w, h);
+            if(override_index == 1)
+            {
+                glUseProgram(logo210_program);
+                glUniform1f(logo210_time_location, t);
+                glUniform2f(logo210_resolution_location, w, h);
+            }
+            else if(override_index == 2)
+            {
+                glUseProgram(logo_small_program);
+                glUniform1f(logo_small_time_location, t);
+                glUniform2f(logo_small_resolution_location, w, h);
+            }
+            else if(override_index == 3)
+            {
+                glUseProgram(nr4_program);
+                glUniform1f(nr4_time_location, t);
+                glUniform2f(nr4_resolution_location, w, h);
+            }
+            else if(override_index == 4)
+            {
+                glUseProgram(greet_program);
+                glUniform1f(greet_time_location, t);
+                glUniform2f(greet_resolution_location, w, h);
+            }
         }
-        else if(t<25.)
+        else
         {
-            glUseProgram(logo_small_program);
-            glUniform1f(logo_small_time_location, t);
-            glUniform2f(logo_small_resolution_location, w, h);
+            if(t < 15.)
+            {
+                glUseProgram(logo210_program);
+                glUniform1f(logo210_time_location, t);
+                glUniform2f(logo210_resolution_location, w, h);
+            }
+            else if(t<25.)
+            {
+                glUseProgram(logo_small_program);
+                glUniform1f(logo_small_time_location, t);
+                glUniform2f(logo_small_resolution_location, w, h);
+            }
+            else if(t<50.) //TODO: move to end
+            {
+                glUseProgram(nr4_program);
+                glUniform1f(nr4_time_location, t-25.);
+                glUniform2f(nr4_resolution_location, w, h);
+            }
+            else if(t < 5000.)
+            {
+                glUseProgram(greet_program);
+                glUniform1f(greet_time_location, t);
+                glUniform2f(greet_resolution_location, w, h);
+            }
+            else ExitProcess(0);
         }
-        else if(t<50.) //TODO: move to end
-        {
-            glUseProgram(nr4_program);
-            glUniform1f(nr4_time_location, t-25.);
-            glUniform2f(nr4_resolution_location, w, h);
-        }
-        else if(t < 5000.)
-        {
-            glUseProgram(greet_program);
-            glUniform1f(greet_time_location, t);
-            glUniform2f(greet_resolution_location, w, h);
-        }
-        else ExitProcess(0);
-        
         quad();
         
         // Render text to buffer
@@ -684,6 +714,12 @@ LRESULT CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     block_size = texs*texs;
                 }
                     break;
+                case 10:
+                {
+                    override_index = SendMessage(hSender, CB_GETCURSEL, 0, 0);
+                    scene_override = override_index > 0;
+                } 
+                break;
             }
             break;
             
@@ -760,13 +796,10 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     // Add "Antialiasing: " text
     HWND hAntialiasingText = CreateWindow(WC_STATIC, "FSAA: ", WS_VISIBLE | WS_CHILD | SS_LEFT, 10,65,100,100, lwnd, NULL, hInstance, NULL);
     
-    // Add "Antialiasing: " text
-    HWND hTXAAText = CreateWindow(WC_STATIC, "SFX Buffer: ", WS_VISIBLE | WS_CHILD | SS_LEFT, 10,95,100,100, lwnd, NULL, hInstance, NULL);
-    
     // Add Fullscreen Antialiasing combo box
     HWND hFSAAComboBox= CreateWindow(WC_COMBOBOX, TEXT(""), 
      CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
-     100, 60, 175, 80, lwnd, (HMENU)8, hInstance,
+     100, 60, 175, 280, lwnd, (HMENU)8, hInstance,
      NULL);
     
     // Populate with entries
@@ -782,9 +815,13 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     SendMessage(hFSAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (fsaa25));
     SendMessage(hFSAAComboBox, CB_SETCURSEL, 4, 0);
     
+    // Add "SFX Buffer: " text
+    HWND hTXAAText = CreateWindow(WC_STATIC, "SFX Buffer: ", WS_VISIBLE | WS_CHILD | SS_LEFT, 10,95,100,100, lwnd, NULL, hInstance, NULL);
+    
+    // Add SFX buffer size combo box
     HWND hTXAAComboBox= CreateWindow(WC_COMBOBOX, TEXT(""), 
      CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
-     100, 90, 175, 80, lwnd, (HMENU)9, hInstance,
+     100, 90, 175, 280, lwnd, (HMENU)9, hInstance,
      NULL);
     
     // Populate with entries
@@ -798,6 +835,28 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf1024));
     SendMessage(hTXAAComboBox, CB_SETCURSEL, 1, 0);
 
+    // Add "Antialiasing: " text
+    HWND hSceneText = CreateWindow(WC_STATIC, "Scene: ", WS_VISIBLE | WS_CHILD | SS_LEFT, 10,125,100,100, lwnd, NULL, hInstance, NULL);
+    
+    // Add scene selector
+    HWND hSceneComboBox = CreateWindow(WC_COMBOBOX, TEXT(""), 
+     CBS_DROPDOWN | CBS_HASSTRINGS | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
+     100, 120, 175, 280, lwnd, (HMENU)10, hInstance,
+     NULL);
+    
+    // Populate with entries
+    const char *all_scenes = "All scenes",
+        *logo210_scene= "Team210 Logo",
+        *logoendeavor_scene = "Endeavour Logo",
+        *nr4_scene = "NR4 Graffiti build-up",
+        *greet_scene = "Greetings";
+    SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (all_scenes)); 
+    SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (logo210_scene)); 
+    SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (logoendeavor_scene));
+    SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (nr4_scene)); 
+    SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (greet_scene));
+    SendMessage(hSceneComboBox, CB_SETCURSEL, 0, 0);
+    
     // Add start button
     HWND hwndButton = CreateWindow(WC_BUTTON,"Abfahrt!",WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,185,165,90,90,lwnd,(HMENU)7,hInstance,NULL);
     
