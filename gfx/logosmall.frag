@@ -28,7 +28,7 @@ float a = 1.0;
 // Hash function
 void rand(in vec2 x, out float num)
 {
-    num = fract(sin(dot(x-11. ,vec2(12.9898,78.233)))*43758.5453);
+    num = fract(sin(dot(x-15. ,vec2(12.9898,78.233)))*43758.5453);
 }
 
 // 2D box

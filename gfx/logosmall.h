@@ -32,7 +32,7 @@ const char * logosmall_frag =
 "// Hash function\n"
 "void rand(in vec2 x, out float num)\n"
 "{\n"
-"    num = fract(sin(dot(x-11. ,vec2(12.9898,78.233)))*43758.5453);\n"
+"    num = fract(sin(dot(x-15. ,vec2(12.9898,78.233)))*43758.5453);\n"
 "}\n"
 "\n"
 "// 2D box\n"
