@@ -253,6 +253,21 @@ void normal(in vec3 x, out vec3 n)
     n = normalize(n-s);
 }
 
+// Distance to regular star
+void dstar(in vec2 x, in float N, in vec2 R, out float dst)
+{
+    float d = pi/N,
+        p0 = atan(x.y,x.x),
+        p = mod(p0, d),
+        i = mod(round((p-p0)/d),2.);
+    x = length(x)*vec2(cos(p),sin(p));
+    vec2 aa = mix(R,R.yx,i),
+    	p1 = aa.x*c.xy,
+        ff = aa.y*vec2(cos(d),sin(d))-p1;
+   	ff = ff.yx*c.zx;
+    dst = dot(x-p1,ff)/length(ff);
+}
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     a = iResolution.x/iResolution.y;
@@ -354,10 +369,44 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         }
     }
     
-    // Add stars TODO (Do we even need them? Use dstar if rly needed
+    if(iTime > 14.) 
+    {
+        float d;
+        vec2 y = mod(uv, .2)-.1, yi = floor((uv-y)/.2);
+        dnr4((yi-.1)*.2,d);
+        stroke(d,.15,d);
+        if(d<0.)
+        {
+            vec2 da;
+            lfnoise(16.*yi*.2-2.e0*iTime*c.xy, da.x);
+            lfnoise(16.*yi*.2-2.3e0*iTime*c.yx, da.y);
+            da = .5+.5*da;
+            
+            float dg;
+            vec2 ri;
+            rand(yi+.1, ri.x);
+            rand(yi+.2, ri.y);
+            if(da.x < .5 && da.y <.4)
+            {
+                mat2 m;
+                rot(ri.y-iTime,m);
+                dstar(m*y-.05*da, 5.+floor(4.*ri.y), .2*ri.x*vec2(.01, .04), dg);
+                col = mix(col, mix(col,c.xxx,.5), step(-dg,0.));
+                stroke(dg, .0025, dg);
+                col = mix(col, c.xxx, step(dg,0.));
+            }
+        }
+    }
+    
+    vec3 rd;
+    rand(uv-iTime,rd.x);
+    rand(uv*2.-iTime,rd.y);
+    rand(uv*3.-iTime,rd.z);
+    col += .2*(-c.xxx+rd);
     
     fragColor = vec4(col,1.0);
 }
+
 
 
 void main()
