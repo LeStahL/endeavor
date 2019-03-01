@@ -392,9 +392,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
                 mat2 m;
                 rot(ri.y-iTime,m);
                 dstar(m*(y-.05*da+.1*ri), 5.+floor(4.*ri.y), .05*ri.x*vec2(.01, .04), dg);
-                col = mix(col, mix(col,c.xxx,.5), step(-dg,0.));
+                col = mix(col, mix(col,c.xxy,.5), step(-dg,0.));
                 stroke(dg, .0025, dg);
-                col = mix(col, c.xxx, step(dg,0.));
+                col = mix(col, c.xxy, step(dg,0.));
             }
             lfnoise(11.*yi*.2-5.e0*iTime*c.xy, da.x);
             lfnoise(5.*yi*.2-6.3e0*iTime*c.yx, da.y);
@@ -406,9 +406,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
                 mat2 m;
                 rot(ri.y-iTime,m);
                 dstar(m*(y-.05*da+.1*ri), 5.+floor(4.*ri.y), .05*ri.x*vec2(.01, .04), dg);
-                col = mix(col, mix(col,c.xxx,.5), step(-dg,0.));
+                col = mix(col, mix(col,c.xxy,.5), step(-dg,0.));
                 stroke(dg, .0025, dg);
-                col = mix(col, c.xxx, step(dg,0.));
+                col = mix(col, c.xxy, step(dg,0.));
             }
         }
     }

@@ -466,7 +466,10 @@ void draw()
         t_load_end = t_now;
     
     if(t_now-t_load_end > 5.)
+    {
         loading = 0;
+        glUseProgram(0.);
+    }
     
     // Render first pass
     glBindFramebuffer(GL_FRAMEBUFFER, first_pass_framebuffer);
