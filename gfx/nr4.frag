@@ -30,7 +30,7 @@ float a = 1.0;
 // Hash function
 void rand(in vec2 x, out float num)
 {
-    num = fract(sin(dot(x-16. ,vec2(12.9898,78.233)))*43758.5453);
+    num = fract(sin(dot(abs(x) ,vec2(12.9898,78.233)))*43758.5453);
 }
 
 // Arbitrary-frequency 2D noise
@@ -235,7 +235,7 @@ void scene(in vec3 x, out float d)
 	zextrude(x.z+1.1*clamp((iTime-10.)/2.,0.,1.),d,.3*clamp((iTime-10.)/2.,0.,1.),d);
     
     // Add guard objects for debugging
-    float dr = .1;
+    float dr = .2;
     vec3 y = mod(x,dr)-.5*dr;
     float guard = -length(max(abs(y)-vec3(.5*dr*c.xx, .6),0.));
     guard = abs(guard)+dr*.1;
@@ -244,7 +244,7 @@ void scene(in vec3 x, out float d)
 
 void normal(in vec3 x, out vec3 n)
 {
-    const float dx = 1.e-3;
+    const float dx = 1.e-4;
     float s;
     scene(x,s);
     scene(x+dx*c.xyy, n.x);
@@ -260,7 +260,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec3 col = c.yyy;
     vec3 ca = length(vec3(1.,0.27,0.))/sqrt(3.)*c.xxx;
     
-    float d4, dborder, dborder2;
+    float d4, dborder, dborder2, dc;
     if(iTime > 0.) // Add grid after 2 seconds
     {
         vec2 y = mod(uv, .02)-.01,
@@ -286,9 +286,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
             ca = mix(ca,mix(ca, length(vec3(.3,.01, .01))/sqrt(3.)*.1*c.xxx, clamp(abs(ind.y/8.),0.,1.)), clamp((iTime-12.)/2.,0.,1.));
         col = mix(col, mix(col, ca, step(-d4,0.)),clamp((iTime-12.)/2.,0.,1.));
     }
+    vec2 dis = c.yy;
     if(iTime > 2.) // Add nr4 after another 2
     {
-        vec2 dis = c.yy;
+        
         
         if(iTime > 6.) // Distort
         {
@@ -306,7 +307,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         
         if(iTime > 8.) // Mix color to voronoi profile
         {
-            float db, dc;
+            float db;
             vec2 ind;
             dvoronoi(16.*uv+dis,db, ind);
 			db = mix(1.,db,clamp((iTime-8.)/2.,0.,1.));
@@ -331,33 +332,33 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     if(iTime > 10.) // Yes, add that 3d already!
     {
         float s = 0., depth;
-        vec3 o = c.yyx-1.*c.yxy, 
-            dir = normalize(c.yyz+uv.x*c.xyy+uv.y*c.yxy-o), x,
-	        l = c.yxx, n;
+        vec3 o = c.yyx-1.*c.yxy + .5*mix(0.,.1, clamp((iTime-10.)/2.,0.,1.))*vec3(cos(iTime), sin(iTime),0.);
+		vec3 dir = normalize(c.yyz+uv.x*c.xyy+uv.y*c.yxy-o), x,
+	        l = normalize(c.yxx), n;
        	int i;
-        depth = (-.8-o.z)/dir.z;
+        depth = (-1.-o.z)/dir.z;
         for(i=0; i<350; ++i)
         {
             x = o+depth * dir;
             scene(x, s);
             if(s<1.e-4) break;
             depth += s;
-            if(x.z<-1.39)break;
+            if(x.z<-1.3)break;
         }
-        if(x.z > -1.39 && x.z < -1.01)
+        if(x.z > -1.29 && x.z < -1.01)
         {
             normal(x,n);
-            col = .1*c.xyy 
-                + .2*c.xyy*abs(dot(l,n))
-                + .1*c.xxy*pow(abs(dot(reflect(-l,n),dir)),6.);
+            col = .6*mix(c.yyy,c.xyy, clamp((x.z+1.15)/.15,0.,1.))*vec3(1.,0.27,0.) 
+                + .1*c.xxy*abs(dot(l,n));
             col = clamp(col, 0., 1.);
         }
     }
     
-    // Add stars
+    // Add stars TODO (Do we even need them? Use dstar if rly needed
     
     fragColor = vec4(col,1.0);
 }
+
 
 void main()
 {
