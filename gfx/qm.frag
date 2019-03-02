@@ -361,7 +361,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
             rand(ind, dc);
             dc = mix(0., dc, clamp((iTime-8.)/2.,0.,1.));
             ca = mix(mix(ca,clamp(1.4*vec3(.1,dc*0.47,dc*1.),0.,1.),clamp((iTime-8.)/2.,0.,1.)), clamp(0.*vec3(0.27,.05,.48),0.,1.), step(db,0.));
-            ca = mix(ca,mix(ca,vec3(0.77,.15,.38), 1.-clamp(((ind.y+24.*.87)/24.),0.,1.)), clamp((iTime-8.)/2.,0.,1.));
+            ca = mix(ca,mix(ca,vec3(0.77,.15,.38), 1.-clamp(((ind.y+24.*1.07)/24.),0.,1.)), clamp((iTime-8.)/2.,0.,1.));
         }
         col = mix(col, ca, step(d4,0.));
     }
@@ -394,6 +394,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         if(x.z > -1.29 && x.z < -1.01)
         {
             normal(x,n);
+            maincol = vec3(1.,0.,0.27);
             col = .4*mix(c.yyy,clamp(1.3*maincol, 0., 1.), clamp((x.z+1.15)/.15,0.,1.)) 
                 + 1.5*maincol*abs(dot(l,n))
                 + maincol*pow(abs(dot(reflect(-l,n),dir)), 3.);
