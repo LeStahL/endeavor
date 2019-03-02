@@ -157,7 +157,9 @@ int w = 1920, h = 1080,
     logo_small_handle, logo_small_program,
     logo_small_time_location, logo_small_resolution_location,
     nr4_handle,nr4_program,
-    nr4_time_location, nr4_resolution_location;
+    nr4_time_location, nr4_resolution_location,
+    qm_handle,qm_program,
+    qm_time_location, qm_resolution_location;
     
 float font_texture_width;
     
@@ -503,6 +505,38 @@ DWORD WINAPI LoadNr4Thread( LPVOID lpParam)
     return 0;
 }
 
+DWORD WINAPI LoadQMThread( LPVOID lpParam)
+{
+#undef VAR_IRESOLUTION
+#undef VAR_ITIME
+#include "gfx/qm.h"
+#ifndef VAR_IRESOLUTION
+    #define VAR_IRESOLUTION "iResolution"
+#endif
+#ifndef VAR_ITIME
+    #define VAR_ITIME "iTime"
+#endif
+    int qm_size = strlen(qm_frag),
+        qm_handle = glCreateShader(GL_FRAGMENT_SHADER);
+    qm_program = glCreateProgram();
+    glShaderSource(qm_handle, 1, (GLchar **)&qm_frag, &qm_size);
+    glCompileShader(qm_handle);
+    printf("---> Endeavour QM shader:\n");
+    debug(qm_handle);
+    glAttachShader(qm_program, qm_handle);
+    glLinkProgram(qm_program);
+    printf("---> Endeavour QM program:\n");
+    debugp(qm_program);
+    glUseProgram(qm_program);
+    qm_time_location =  glGetUniformLocation(qm_program, VAR_ITIME);
+    qm_resolution_location = glGetUniformLocation(qm_program, VAR_IRESOLUTION);
+    printf("++++ Endeavour QM shader created.\n");
+    
+    progress += .1;
+    
+    return 0;
+}
+
 void quad()
 {
     glBegin(GL_QUADS);
@@ -563,6 +597,12 @@ void draw()
                 glUniform2f(nr4_resolution_location, w, h);
             }
             else if(override_index == 4)
+            {
+                glUseProgram(qm_program);
+                glUniform1f(qm_time_location, t);
+                glUniform2f(qm_resolution_location, w, h);
+            }
+            else if(override_index == 5)
             {
                 glUseProgram(greet_program);
                 glUniform1f(greet_time_location, t);
@@ -908,11 +948,13 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
         *logo210_scene= "Team210 Logo",
         *logoendeavor_scene = "Endeavour Logo",
         *nr4_scene = "NR4 Graffiti build-up",
+        *qm_scene = "QM Graffiti build-up",
         *greet_scene = "Greetings";
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (all_scenes)); 
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (logo210_scene)); 
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (logoendeavor_scene));
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (nr4_scene)); 
+    SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (qm_scene)); 
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (greet_scene));
     SendMessage(hSceneComboBox, CB_SETCURSEL, 0, 0);
     
@@ -1170,6 +1212,10 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     SwapBuffers(hdc);
     
     LoadNr4Thread(0);
+    draw();
+    SwapBuffers(hdc);
+    
+    LoadQMThread(0);
     draw();
     SwapBuffers(hdc);
     
