@@ -365,7 +365,7 @@ const char * qm_frag =
 "            rand(ind, dc);\n"
 "            dc = mix(0., dc, clamp((iTime-8.)/2.,0.,1.));\n"
 "            ca = mix(mix(ca,clamp(1.4*vec3(.1,dc*0.47,dc*1.),0.,1.),clamp((iTime-8.)/2.,0.,1.)), clamp(0.*vec3(0.27,.05,.48),0.,1.), step(db,0.));\n"
-"            ca = mix(ca,mix(ca, vec3(.01,.01, .3), clamp(abs((ind.y-.07)/10.),0.,1.)), clamp((iTime-8.)/2.,0.,1.));\n"
+"            ca = mix(ca,mix(ca,vec3(0.77,.15,.38), 1.-clamp(((ind.y+24.*.87)/24.),0.,1.)), clamp((iTime-8.)/2.,0.,1.));\n"
 "        }\n"
 "        col = mix(col, ca, step(d4,0.));\n"
 "    }\n"

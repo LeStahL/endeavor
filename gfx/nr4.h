@@ -426,8 +426,6 @@ const char * nr4_frag =
 "    fragColor = vec4(col,1.0);\n"
 "}\n"
 "\n"
-"\n"
-"\n"
 "void main()\n"
 "{\n"
 "    mainImage(gl_FragColor, gl_FragCoord.xy);\n"
