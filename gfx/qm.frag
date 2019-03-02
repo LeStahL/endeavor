@@ -304,17 +304,17 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         newcol = mix(newcol,maincol, step(a.y,0.));
         col = mix(col, newcol, clamp(iTime/2.,0.,1.)-clamp((iTime-14.)/2.,0.,1.));
     }
-    if(iTime > 12.) // Add background voronoi
+    if(iTime > 12.) // Add background scales
     {
         float db, dc;
-        dhexagonpattern(16.*uv,db,ind);
+        dhexagonpattern(32.*uv,db,ind);
         //dvoronoi(16.*uv,db, ind);
         db = mix(1.,db,clamp((iTime-12.)/2.,0.,1.));
         stroke(db,.1,db);
         rand(ind, dc);
         dc = mix(0., dc, clamp((iTime-12.)/2.,0.,1.));
             ca = mix(mix(ca,clamp(1.4*length(vec3(1.,dc*0.47,dc*.1))/sqrt(3.)*c.xxx*.5,0.,1.),clamp((iTime-12.)/2.,0.,1.)), c.yyy, step(db,0.));
-            ca = mix(ca,mix(ca, length(vec3(.3,.01, .01))/sqrt(3.)*.1*c.xxx, clamp(abs(ind.y/8.),0.,1.)), clamp((iTime-12.)/2.,0.,1.));
+            ca = mix(ca,mix(ca, length(vec3(.3,.01, .01))/sqrt(3.)*.1*c.xxx, clamp(abs((ind.y)/16.+.07),0.,1.)), clamp((iTime-12.)/2.,0.,1.));
         col = mix(col, mix(col, ca, step(-d4,0.)),clamp((iTime-12.)/2.,0.,1.));
     }
     vec2 dis = c.yy;
