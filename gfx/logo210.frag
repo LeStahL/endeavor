@@ -179,10 +179,10 @@ void texteffect(in vec3 x, out vec2 sdf)
     sdf = vec2(x.z, 7.0);
     vec2 ind;
     float hex;
-    dhexagonpattern(64.0*x.xy, hex, ind);
+    dhexagonpattern(48.0*x.xy, hex, ind);
     
     // compute hexagon indices in cartesian coordinates
-    vec2 cind = ind/64.0;
+    vec2 cind = ind/48.0;
     
     // build up team210 logo (t < 12.)
     float inner_logo, logo_border; 
@@ -249,10 +249,10 @@ void background2(in vec2 uv, out vec3 col)
     // hexagonal grid
     float d, d0;
     vec2 ind;
-    dhexagonpattern(64.0*uv, d0, ind);
+    dhexagonpattern(48.0*uv, d0, ind);
     d = -d0;
     stroke(d, 0.1, d);
-    vec2 cind = ind/64.0;
+    vec2 cind = ind/48.0;
     
     // build up team210 logo (t < 12.)
     float inner_logo, logo_border; 
