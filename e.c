@@ -199,6 +199,62 @@ GLenum error;
 
 float t_load_end = 0.;
 
+// FFT related stuff
+float PI = 3.14159265359;
+
+typedef struct
+{
+    float re,im;
+} complex;
+
+const complex I = { 0.,1. };
+float WINDOW = 256;
+
+complex mul(complex f1, complex f2)
+{
+    complex ret = { f1.re*f2.re - f1.im*f2.im, f1.re*f2.im+f1.im*f2.re };
+    return ret;
+}
+
+complex add(complex f1, complex f2)
+{
+    complex ret = { f1.re + f2.re, f1.im + f2.im };
+    return ret;
+}
+
+complex sub(complex f1, complex f2)
+{
+    complex ret = { f1.re-f2.re, f1.im - f2.im };
+    return ret;
+}
+
+complex cexp(complex arg)
+{
+    float f = exp(arg.re);
+    complex ret = { f*cos(arg.im), f*sin(arg.im) };
+    return ret;
+}
+
+// Radix-2 from Wikipedia
+void genFFT(complex *src, complex * dst, int N, int stride)
+{
+    if(N==1)
+        dst[0] = src[0];
+    else
+    {
+        genFFT(dst, dst, N/2, 2*stride);
+        genFFT(dst+N/2, dst, N/2, 2*stride);
+        for(int k=0; k<N/2; k += stride)
+        {
+            complex t = dst[k],
+                arg = { 0., -2.*PI*k/N };
+            arg = cexp(arg);
+            dst[k] = add(t, mul(arg, dst[k+N/2]));
+            dst[k+N/2] = sub(t, mul(arg, dst[k+N/2]));
+        }
+    }
+}
+
 DWORD WINAPI LoadMusicThread( LPVOID lpParam)
 {
 #undef VAR_IBLOCKOFFSET
