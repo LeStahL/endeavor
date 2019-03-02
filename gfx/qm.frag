@@ -158,7 +158,7 @@ void zextrude(in float z, in float d2d, in float h, out float d)
 void dqm(in vec2 x, out float d)
 {
     // Q
-    x.x += .1;
+    x.x += .05;
     float s = .25, d0;
     dcircle(x+.35*c.xy, s, d);
     dlinesegment(x+.35*c.xy, s*vec2(1./3., -1./3.), s*vec2(1.,-1.), d0);

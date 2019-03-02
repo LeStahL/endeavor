@@ -162,7 +162,7 @@ const char * qm_frag =
 "void dqm(in vec2 x, out float d)\n"
 "{\n"
 "    // Q\n"
-"    x.x += .1;\n"
+"    x.x += .05;\n"
 "    float s = .25, d0;\n"
 "    dcircle(x+.35*c.xy, s, d);\n"
 "    dlinesegment(x+.35*c.xy, s*vec2(1./3., -1./3.), s*vec2(1.,-1.), d0);\n"
