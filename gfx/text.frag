@@ -371,6 +371,19 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     
     vec4 old = vec4(-1.,texture(iChannel0, fragCoord/iResolution.xy).rgb), new = old; // Scene
     
+    // Display time
+    vec4 b = vec4(1., vec3(0.99,0.64,0.02)), bd = vec4(1., .5*vec3(0.99,0.64,0.02));
+    box(uv-vec2(-.48,.45)-.03*sin(iTime)*c.xy, vec2(.2,.02), b.x);
+    stroke(b.x, .001, bd.x);
+    add(b, bd, b);
+    bd.gba = vec3(0.60,0.06,0.00);
+    dfloat(uv-vec2(-.63,.45)-.03*sin(iTime)*c.xy, iTime, .018, bd.x);
+    stroke(bd.x, .004, bd.x);
+    add(b, bd, b);
+    b.gba = mix(old.gba, b.gba, .8);
+    
+    blendadd(old, b, 5., 999., old);
+    
     if(iTime < 15.)
     {
         dstring(uv+.6*c.xy, 3., .05, d); // Team210 present
@@ -390,8 +403,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         new = vec4(d, mix(old.gba, c.xxx, .6));
         blendadd(old,new,16.,24.,new);
     }
+    else new = old;
     
-    fragColor = vec4(new.gba*step(new.r, 0.), 1.);
+    fragColor = vec4(new.gba, 1.);
 }
 
 void main()
