@@ -30,7 +30,7 @@ float a = 1.0;
 // Hash function
 void rand(in vec2 x, out float num)
 {
-    num = fract(sin(dot(abs(x) ,vec2(12.9898,78.233)))*43758.5453);
+    num = fract(sin(dot(sign(x)*abs(x) ,vec2(12.9898,78.233)))*43758.5453);
 }
 
 // Arbitrary-frequency 2D noise

@@ -352,7 +352,7 @@ void dfloat(in vec2 x, in float num, in float size, out float dst)
 // Add scene contents
 void add(in vec4 src1, in vec4 src2, out vec4 dst)
 {
-    dst = mix(src1, src2, step(src2.x, 0.));
+    dst = mix(src1, src2, smoothstep(0., 1.5/iResolution.y, -src2.x));
 }
 
 void blendadd(in vec4 src1, in vec4 src2, in float tlo, in float thi, out vec4 dst)
@@ -387,7 +387,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     {
         dstring(uv+vec2(.55,.4), 0., .09, d); // Endeavour
         stroke(d, .018, d);
-        new = vec4(d, c.xxx);
+        new = vec4(d, mix(old.gba, c.xxx, .6));
         blendadd(old,new,16.,24.,new);
     }
     

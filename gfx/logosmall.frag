@@ -25,31 +25,43 @@ const float pi = acos(-1.);
 const vec3 c = vec3(1.0, 0.0, -1.0);
 float a = 1.0;
 
+const float r = .5;
+
 // Hash function
 void rand(in vec2 x, out float num)
 {
-    num = fract(sin(dot(x-15. ,vec2(12.9898,78.233)))*43758.5453);
+    num = fract(sin(dot(sign(x)*abs(x) ,vec2(12.9898,78.233)))*43758.5453);
 }
 
-// 2D box
-void dbox(in vec2 x, in vec2 b, out float d)
+// Arbitrary-frequency 2D noise
+void lfnoise(in vec2 t, out float num)
 {
-	vec2 da = abs(x)-b;
-	d = length(max(da,c.yy)) + min(max(da.x,da.y),0.0);
+    vec2 i = floor(t);
+    t = fract(t);
+    //t = ((6.*t-15.)*t+10.)*t*t*t;  // TODO: add this for slower perlin noise
+    t = smoothstep(c.yy, c.xx, t); // TODO: add this for faster value noise
+    vec2 v1, v2;
+    rand(i, v1.x);
+    rand(i+c.xy, v1.y);
+    rand(i+c.yx, v2.x);
+    rand(i+c.xx, v2.y);
+    v1 = c.zz+2.*mix(v1, v2, t.y);
+    num = mix(v1.x, v1.y, t.x);
 }
 
-// Compute distance to regular polygon
-void dpolygon(in vec2 x, in float N, out float d)
+// Multi-frequency 2D noise
+void mfnoise(in vec2 x, in float fmin, in float fmax, in float alpha, out float num)
 {
-    d = 2.0*pi/N;
-    float t = mod(acos(x.x/length(x)), d)-0.5*d;
-    d = -0.5+length(x)*cos(t)/cos(0.5*d);
-}
-
-// Distance to circle
-void dcircle(in vec2 x, out float d)
-{
-    d = length(x)-1.0;
+    num = 0.;
+    float a = 1., nf = 0., buf;
+    for(float f = fmin; f<fmax; f = f*2.)
+    {
+        lfnoise(f*x, buf);
+        num += a*buf;
+        a *= alpha;
+        nf += 1.;
+    }
+    num *= (1.-alpha)/(1.-pow(alpha, nf));
 }
 
 // Stroke
@@ -58,162 +70,190 @@ void stroke(in float d0, in float s, out float d)
     d = abs(d0)-s;
 }
 
-// Distance to line segment
-void dlinesegment(in vec2 x, in vec2 p1, in vec2 p2, out float d)
+// Add distance functions with materials
+void add(in vec2 sda, in vec2 sdb, out vec2 dst)
 {
-    vec2 da = p2-p1;
-    d = length(x-mix(p1, p2, clamp(dot(x-p1, da)/dot(da,da),0.,1.)));
+    dst = mix(sda, sdb, step(sdb.x, sda.x));
 }
 
-// 2D rotational matrix
-void rot(in float phi, out mat2 m)
+void scene_bounds(in vec3 x, out vec2 s)
 {
-    vec2 cs = vec2(cos(phi), sin(phi));
-    m = mat2(cs.x, -cs.y, cs.y, cs.x);
-}
-
-// Distance to pig ear
-void dear(in vec2 x, out float d)
-{
-    d = abs(2.*x.y)
-        -.95+smoothstep(0.,.5,clamp(abs(x.x),0.,1.))
-        -.5*min(-abs(x.x),.01);
-}
-
-// Distance to a triangle
-void dtriangle(in vec2 x, in vec2 p0, in vec2 p1, in vec2 p2, out float d)
-{
-    vec2 d1 = c.xz*(p1-p0).yx, d2 = c.xz*(p2-p1).yx, d3 = c.xz*(p0-p2).yx;
-    d = -min(
-        dot(p0-x,d1)/length(d1),
-        min(
-            dot(p1-x,d2)/length(d2),
-            dot(p2-x,d3)/length(d3)
-        )
-    );
-}
-
-// Distance to hexagon pattern
-void dhexagonpattern(in vec2 p, out float d, out vec2 ind) 
-{
-    vec2 q = vec2( p.x*1.2, p.y + p.x*0.6 );
+    vec2 sdmars = c.yx; // Mars has material 1
+    sdmars.x = length(x)-r;
     
-    vec2 pi = floor(q);
-    vec2 pf = fract(q);
-
-    float v = mod(pi.x + pi.y, 3.0);
-
-    float ca = step(1.,v);
-    float cb = step(2.,v);
-    vec2  ma = step(pf.xy,pf.yx);
+    vec2 sdphobos = 2.*c.yx; // Phobos has material 2
+    float phi = .04*iTime, 
+        theta = .4*iTime, 
+        rtraj = r*1.2, rmoon = .07*r;
+    sdphobos.x = length(x-rtraj*vec3(cos(theta)*cos(phi),
+                                     cos(theta)*sin(phi),
+                                     sin(theta)))-rmoon;
+    add(sdmars, sdphobos, s);
     
-    d = dot( ma, 1.0-pf.yx + ca*(pf.x+pf.y-1.0) + cb*(pf.yx-2.0*pf.xy) );
-    ind = pi + ca - cb*ma;
-    ind = vec2(ind.x/1.2, ind.y);
-    ind = vec2(ind.x, ind.y-ind.x*.6);
+    vec2 sddeimos = 3.*c.yx; // Deimos has material 3
+    theta = (theta + 13.1)*1.5;
+    phi = (phi - 6.22)*1.5;
+    sddeimos.x = length(x-rtraj*vec3(cos(theta)*cos(phi),
+                                     cos(theta)*sin(phi),
+                                     sin(theta)))-.5*rmoon;
+    add(s, sddeimos, s);
+}
+
+void planet(in vec3 x, out float d)
+{
+    vec2 texcoord = vec2(sqrt(2./(1./r-x.z)),sqrt(2./(1./r-x.z)))*x.xy;
+    mfnoise(12.*texcoord-.2*iTime*c.xy, .9,250.,.45,d);
+    stroke(d,.1, d);
+    
+    d = length(x)-r-mix(0.,.0003,smoothstep(-.05,.05,d))-.002*d;
+}
+
+void planet_normal(in vec3 x, out vec3 n)
+{
+    float s, dx=1.e-4;
+    planet(x,s);
+    planet(x+dx*c.xyy,n.x);
+    planet(x+dx*c.yxy,n.y);
+    planet(x+dx*c.yyx,n.z);
+    n = normalize(n-s);
+}
+
+void phobos(in vec3 x, out float d)
+{
+    float phi = .04*iTime, 
+        theta = .4*iTime, 
+        rtraj = r*1.2, rmoon = .07*r;
+    x -= rtraj*vec3(cos(theta)*cos(phi),
+                                     cos(theta)*sin(phi),
+                                     sin(theta));
+    vec2 texcoord = vec2(sqrt(2./(1./rmoon-x.z)),sqrt(2./(1./rmoon-x.z)))*x.xy;
+    mfnoise(12.*texcoord-.01*iTime*c.xy, 17.4,550.,.45,d);
+    stroke(d,.01, d);
+    
+    d = length(x)-rmoon-.01*d;
+}
+
+void phobos_normal(in vec3 x, out vec3 n)
+{
+    float s, dx=1.e-4;
+    phobos(x,s);
+    phobos(x+dx*c.xyy,n.x);
+    phobos(x+dx*c.yxy,n.y);
+    phobos(x+dx*c.yyx,n.z);
+    n = normalize(n-s);
+}
+
+void deimos(in vec3 x, out float d)
+{
+    float phi = .04*iTime, 
+        theta = .4*iTime, 
+        rtraj = r*1.2, rmoon = .07*r*.5;
+    theta = (theta + 13.1)*1.5;
+    phi = (phi - 6.22)*1.5;
+    x -= rtraj*vec3(cos(theta)*cos(phi),
+                                     cos(theta)*sin(phi),
+                                     sin(theta));
+    vec2 texcoord = vec2(sqrt(2./(1./rmoon-x.z)),sqrt(2./(1./rmoon-x.z)))*x.xy;
+    mfnoise(12.*texcoord-.01*iTime*c.xy, 17.9,550.,.45,d);
+    stroke(d,.01, d);
+    
+    d = length(x)-rmoon-.01*d;
+}
+
+void deimos_normal(in vec3 x, out vec3 n)
+{
+    float s, dx=1.e-4;
+    deimos(x,s);
+    deimos(x+dx*c.xyy,n.x);
+    deimos(x+dx*c.yxy,n.y);
+    deimos(x+dx*c.yyx,n.z);
+    n = normalize(n-s);
+}
+
+void planet_texture(in vec2 x, out vec3 col)
+{
+    vec3 light_orange = vec3(1.00,0.69,0.05),
+        orange = vec3(0.95,0.45,0.01),
+        dark_orange = vec3(0.98,0.73,0.01);
+    
+    //rock like appearance
+    float d;
+    mfnoise(-50.+x-.2*iTime*c.xy, 1.,250.,.65,d);
+	col = mix(vec3(0.19,0.02,0.00), vec3(0.91,0.45,0.02), .5+.5*d);
+    
+    // big structures
+    mfnoise(x-.2*iTime*c.xy, .9,250.,.45,d);
+    stroke(d,.04, d);
+    col = mix(mix(.8*vec3(0.99,0.49,0.02),c.yyy,clamp(.2-.5*x.y/12.,0.,1.)), col, smoothstep(-.05,.05,d));
+    
+    col = mix(col, vec3(0.15,0.05,0.00), clamp(.2-.5*x.y/12.,0.,1.));
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     a = iResolution.x/iResolution.y;
-    vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0), ind;
+    vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
     vec3 col = c.yyy;
     
-    // Background grid
-    float d = 1., da;
-    dhexagonpattern(25.*uv, d, ind);
-    d/=5.;
-    stroke(d,.005,d);
-    d = mix(d, 1., step(0., min(length(ind/25.)-.34, abs(ind.y/25.)-.1)));
-    col = mix(col, .5*c.xxx, step(d,0.));
-    d = mix(d, -1., step(0., min(length(ind/25.)-.34, abs(ind.y/25.)-.1)));
-    col = mix(col, .1*c.xxx, step(-d+.05, 0.));
-    
-    // Rotating stuff
-    mat2 m, mt;
-    rot(iTime, mt);
-    rot(pi/6.,m);
-    
-    // stripes with hexagons
-    float w = .1, l, d0, d1;
-    vec2 y = mod(uv-1.5*c.xy*iTime, vec2(w,.6*w))-.5*vec2(w,.6*w), yi = (uv-1.5*c.xy*iTime-y)/vec2(w,.6*w);
-    rand(yi, l);
-    rand(yi+1., d0);
-    dlinesegment(y, -.4*l*w*c.xy, .4*w*l*c.xy, d);
-    stroke(d, .01, d);
-    dpolygon(mt*y/w*2.,6.,d1); 
-    if(d0 < .5 && abs(yi.y) < 2.+1.3*sin(23.*yi.x-3.*iTime))
-    {
-	    col = mix(col, mix(vec3(0.78,.5*d0,.52),c.yyy,.2), step(mix(d,d1,step(d0,.25)),0.));
-        stroke(d, .004, d);
-        stroke(d1*w/2., .004, d1);
-		col = mix(col, vec3(0.78,.5*d0,.52), step(mix(d,d1,step(d0,.25)),0.));
+    fragColor = vec4(col,1.0);
+    //if(length(uv)-r*1.154<0.)
+    {	
+        vec3 o = c.yyx, t = vec3(uv,0.), dir = normalize(t-o), x, n;
+        float d;
+        vec2 s;
+        
+        // trace planet bounding sphere. Nobody will notice 
+        // the wrong surface at the border of the projection
+        for(int i=0; i<250; ++i)
+        {
+            x = o + d * dir;
+            scene_bounds(x, s);
+            if(s.x<1.e-4)break;
+            if(d>1.5)
+            {
+                col += .15*vec3(0.97,0.58,0.00)*(1.-smoothstep(r*1.1,r*1.24, length(uv)));
+                fragColor = vec4(col, 1.);
+                return;
+            }
+            d += s.x;
+        }
+
+        vec3 light = x+normalize(vec3(0.,1.,1.));
+        if(s.y == 1.)
+	        planet_normal(x,n);
+        else if(s.y == 2.)
+            phobos_normal(x,n);
+        else if(s.y == 3.)
+            deimos_normal(x,n);
+        float dln = max(1., dot(light,n)),
+            drv = max(0., dot(reflect(light,n),dir));
+        if(s.y == 1.)
+        {
+            vec2 texcoord = vec2(sqrt(2./(1./r-x.z)),sqrt(2./(1./r-x.z)))*x.xy;
+            planet_texture(12.*texcoord, col);
+            col = -vec3(0.0,0.13,0.10)
+            + .4*col*dln
+            + 1.3*col*pow(drv,1.);
+            
+            // atmosphere glow
+            //d = abs(d-.49)+.5;
+            
+            
+        }
+        else if(s.y == 2.)
+            col = .05*vec3(0.66,0.54,0.46)*dln+.2*vec3(0.97,0.80,0.67)*pow(drv,1.);
+        else if(s.y == 3.)
+            col = .05*vec3(0.66,0.54,0.46)*dln+.2*vec3(0.36,0.36,0.36)*pow(drv,1.);
     }
-    y = mod(.3*w+uv-1.5*c.xy*iTime, vec2(w,.6*w))-.5*vec2(w,.6*w);
-        yi = (.5*w+uv-1.5*c.xy*iTime-y)/vec2(w,.6*w);
-    rand(yi+5.*c.yx, l);
-    rand(yi+15.*c.yx, d0);
-    dlinesegment(y, -.4*l*w*c.xy, .4*w*l*c.xy, d);
-    stroke(d, .01, d);
-    dpolygon(mt*y/w*2.,6.,d1); 
-    if(d0 < .3 && abs(yi.y) < 2.+1.5*sin(18.*yi.x-3.*iTime))
+    
+    //else
     {
-	    col = mix(col, mix(vec3(0.78,.5*d0,.78),c.yyy,.2), step(mix(d,d1,step(d0,.25)),0.));
-        stroke(d, .004, d);
-        stroke(d1*w/2., .004, d1);
-		col = mix(col, vec3(0.78,.5*d0,.78), step(mix(d,d1,step(d0,.25)),0.));
+        // Stars
+        
+        // Glow effect
     }
-    
-    uv = 2.* mt * uv;
-    dpolygon(.8*uv,6.,d);
-    col = mix(col, mix(vec3(0.78,0.,.78),col,.7),step(d,0.));
-    stroke(d,.01,d);
-    col = mix(col, vec3(0.78,0.,.78),step(d,0.));
-    
-    // White grid
-    dhexagonpattern(5.*uv, d, ind);
-    d/=5.;
-    stroke(d,.01,d);
-    d = mix(d, 1., step(0., length(uv)-.37));
-    dpolygon(1.02*m*(uv-.215*vec2(a,1.)*c.xz), 6., da);
-    d = mix(d, 1., step(da,0.));
-    col = mix(col, c.xxx, step(d,0.));
-    
-    // Planets
-    float t = mod(iTime, 1.);
-    d = length(uv-mix(c.yy,vec2(.35,0.),t))-mix(.1, .15, t);
-    col = mix(col, mix(c.yyy,vec3(0.52,0.52,.52),.5), step(d,0.));
-    stroke(d,.00475,d);
-    col = mix(col, vec3(0.52,0.52,.52), step(d,0.));
-    d = length(uv-mix(vec2(.35,0.), vec2(.2,-.3),t))-mix(.15, .07,t);
-    col = mix(col, mix(c.yyy,vec3(0.52,0.52,.52),.5), step(d,0.));
-    stroke(d,.00475,d);
-    col = mix(col, vec3(0.52,0.52,.52), step(d,0.));
-    d = length(uv-mix(vec2(.2,-.3), c.yy, t))-mix(.07, .1, t);
-    col = mix(col, mix(c.yyy,vec3(0.52,0.52,.52),.5), step(d,0.));
-    stroke(d,.00475,d);
-    col = mix(col, vec3(0.52,0.52,.52), step(d,0.));
-    
-	// Hexagons
-    dpolygon(3.5*m*(uv+.35*c.xy), 6., d);
-    col = mix(col, mix(vec3(0.78,0.,.52),c.yyy,.2), step(d,0.));
-    stroke(d/3.5,.00675, d);
-    col = mix(col, vec3(0.98,0.,.72), step(d,0.));
-    dpolygon(3.5*m*(uv)+vec2(1.075,.65), 6., d);
-    col = mix(col, mix(vec3(0.78,0.,.52),c.yyy,.2), step(d,0.));
-    stroke(d/3.5,.00675, d);
-    col = mix(col, vec3(0.98,0.,.72), step(d,0.));
-    dpolygon(3.5*m*(uv)-vec2(1.075,.65), 6., d);
-    col = mix(col, mix(vec3(0.78,0.,.52),c.yyy,.2), step(d,0.));
-    stroke(d/3.5,.00675, d);
-    col = mix(col, vec3(0.98,0.,.72), step(d,0.));
-    dpolygon(3.5*m*(uv)+vec2(.0,-1.25), 6., d);
-    col = mix(col, mix(vec3(0.78,0.,.52),c.yyy,.2), step(d,0.));
-    stroke(d/3.5,.00675, d);
-    col = mix(col, vec3(0.98,0.,.72), step(d,0.));
     
     col = clamp(col, 0., 1.);
-    
     fragColor = vec4(col,1.0);
 }
 
