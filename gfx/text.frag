@@ -373,12 +373,20 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     
     // Display time
     vec4 b = vec4(1., vec3(0.99,0.64,0.02)), bd = vec4(1., .5*vec3(0.99,0.64,0.02));
-    box(uv-vec2(-.48,.45)-.03*sin(iTime)*c.xy, vec2(.2,.02), b.x);
+    box(uv-vec2(-.48,.45)-.03*sin(iTime)*c.xy, vec2(.2,.02), b.x);    
     stroke(b.x, .001, bd.x);
     add(b, bd, b);
+    box(uv-vec2(-.08,.45)-.03*sin(iTime)*c.xy, vec2(.2,.02), bd.x);
     bd.gba = vec3(0.60,0.06,0.00);
+    add(b, bd, b);
+    stroke(bd.x, .001, bd.x);
+    add(b, bd, b);
     dfloat(uv-vec2(-.63,.45)-.03*sin(iTime)*c.xy, iTime, .018, bd.x);
     stroke(bd.x, .004, bd.x);
+    add(b, bd, b);
+    dfloat(uv-vec2(-.23,.45)-.03*sin(iTime)*c.xy, iExecutableSize, .018, bd.x);
+    stroke(bd.x, .004, bd.x);
+    bd.gba = vec3(0.99,0.64,0.02);
     add(b, bd, b);
     b.gba = mix(old.gba, b.gba, .8);
     
