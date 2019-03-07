@@ -302,7 +302,7 @@ void dfloat(in vec2 x, in float num, in float size, out float dst)
     }
     
     // The first power of ten that floors num to anything not zero is the exponent
-    for(exp = -15.; exp < max(15., -32.+sign); exp += 1.)
+    for(exp = -15.; exp < 15.; exp += 1.)
         if(floor(num*pow(10.,exp)) != 0.)
             break;
     exp *= -1.;

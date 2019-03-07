@@ -306,7 +306,7 @@ const char * text_frag =
 "    }\n"
 "    \n"
 "    // The first power of ten that floors num to anything not zero is the exponent\n"
-"    for(exp = -15.; exp < max(15., -32.+sign); exp += 1.)\n"
+"    for(exp = -15.; exp < 15.; exp += 1.)\n"
 "        if(floor(num*pow(10.,exp)) != 0.)\n"
 "            break;\n"
 "    exp *= -1.;\n"
