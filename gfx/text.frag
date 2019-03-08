@@ -28,6 +28,28 @@ const vec3 c = vec3(1.,0.,-1.);
 const float pi = acos(-1.);
 float a; // Aspect ratio
 
+// Hash function
+void rand(in vec2 x, out float num)
+{
+    num = fract(sin(dot(x-1. ,vec2(12.9898,78.233)))*43758.5453);
+}
+
+// Arbitrary-frequency 2D noise
+void lfnoise(in vec2 t, out float num)
+{
+    vec2 i = floor(t);
+    t = fract(t);
+    //t = ((6.*t-15.)*t+10.)*t*t*t;  // TODO: add this for slower perlin noise
+    t = smoothstep(c.yy, c.xx, t); // TODO: add this for faster value noise
+    vec2 v1, v2;
+    rand(i, v1.x);
+    rand(i+c.xy, v1.y);
+    rand(i+c.yx, v2.x);
+    rand(i+c.xx, v2.y);
+    v1 = c.zz+2.*mix(v1, v2, t.y);
+    num = mix(v1.x, v1.y, t.x);
+}
+
 // Read short value from texture at index off
 void rshort(in float off, out float val)
 {
@@ -100,6 +122,33 @@ void lineseg(in vec2 x, in vec2 p1, in vec2 p2, out float d)
 {
     vec2 da = p2-p1;
     d = length(x-mix(p1, p2, clamp(dot(x-p1, da)/dot(da,da),0.,1.)));
+}
+
+// 2D rhomboid
+void rhomboid(in vec2 x, in vec2 b, in float tilt, out float dst)
+{
+    x.x -= tilt/2./b.y*x.y;
+    box(x,b,dst);
+}
+
+// Distance to hexagon pattern
+void dhexagonpattern(in vec2 p, out float d, out vec2 ind) 
+{
+    vec2 q = vec2( p.x*1.2, p.y + p.x*0.6 );
+    
+    vec2 pi = floor(q);
+    vec2 pf = fract(q);
+
+    float v = mod(pi.x + pi.y, 3.0);
+
+    float ca = step(1.,v);
+    float cb = step(2.,v);
+    vec2  ma = step(pf.xy,pf.yx);
+    
+    d = dot( ma, 1.0-pf.yx + ca*(pf.x+pf.y-1.0) + cb*(pf.yx-2.0*pf.xy) );
+    ind = pi + ca - cb*ma;
+    ind = vec2(ind.x/1.2, ind.y);
+    ind = vec2(ind.x, ind.y-ind.x*.6);
 }
 
 // Distance to circle segment
@@ -362,6 +411,91 @@ void blendadd(in vec4 src1, in vec4 src2, in float tlo, in float thi, out vec4 d
     dst = mix(src1, added, smoothstep(tlo-.5,tlo+.5,iTime)*(1.-smoothstep(thi-.5,thi+.5,iTime)));
 }
 
+// UI Window Control
+void window(in vec2 x, in vec2 size, in vec3 bg, in float title_index, out vec4 col)
+{
+    size.x *= .5;
+    col = vec4(1., bg);
+    
+    const float cellsize = .015, bordersize = .005;
+    vec3 titlecolor = mix(vec3(0.82,0.00,0.09),vec3(0.45,0.00,0.06),.5-.5*x.y/cellsize),
+        bordercolor = vec3(1.00,0.71,0.02);
+    vec4 c2 = vec4(1., titlecolor);
+    
+    float dhx, dhy;
+    vec2 ind;
+    dhexagonpattern(72.*x,  dhx, ind);
+    stroke(dhx, .1, dhx);
+    lfnoise(ind-iTime, dhy);
+    
+    // Window background
+    box(x+.5*size*c.yx,size*vec2(1.,.5),c2.x);
+    c2.gba = mix(bg, mix(vec3(0.82,0.00,0.09),vec3(0.45,0.00,0.06),-x.y/size.y), .5+.5*dhy*step(0.,dhx));
+    add(col, c2, col);
+    
+    // Title bar
+    c2.gba = titlecolor;
+    rhomboid(x+.8*size.x*c.xy, vec2(.1*size.x,cellsize), cellsize, c2.x);
+   	add(col, c2, col);
+    rhomboid(x, vec2(.65*size.x,cellsize), cellsize, c2.x);
+   	add(col, c2, col);
+    rhomboid(x-.8*size.x*c.xy, vec2(.1*size.x,cellsize), cellsize, c2.x);
+   	add(col, c2, col);
+    
+    // Border of title bar
+    c2 = vec4(1., bordercolor);
+    stroke(col.x,bordersize,c2.x);
+    add(col,c2,col);
+    
+    // Window Border
+    lineseg(x, -.9*size.x*c.xy, -size.x*c.xy, c2.x);
+    float d;
+    lineseg(x, -size.x*c.xy, -size, d);
+    c2.x = min(c2.x, d);
+    lineseg(x, -size, size*c.xz, d);
+    c2.x = min(c2.x, d);
+    lineseg(x, size*c.xz, size*c.xy, d);
+    c2.x = min(c2.x, d);
+    lineseg(x, .9*size.x*c.xy, size.x*c.xy, d);
+    c2.x = min(c2.x, d);
+    stroke(c2.x,.25*bordersize,c2.x);
+    add(col, c2, col);
+}
+
+void progressbar(in vec2 x, in float width, in float progress, out vec4 col)
+{
+    const float cellsize = .015, bordersize = .005;
+    vec3 titlecolor = mix(vec3(0.82,0.00,0.09),vec3(0.45,0.00,0.06),.5-.5*x.y/cellsize),
+        bordercolor = vec3(1.00,0.71,0.02), bg = c.yyy;
+    vec4 c2 = vec4(1., titlecolor);
+    
+    // Window background
+    box(x+.5*width*c.yx,width*c.xy,c2.x);
+    c2.gba = mix(bg, mix(vec3(0.82,0.00,0.09),vec3(0.45,0.00,0.06),-x.y/cellsize), .5);
+    add(col, c2, col);
+    
+    // Bar background
+    c2.gba = titlecolor;
+    rhomboid(x, vec2(.5*width,cellsize), cellsize, c2.x);
+   	add(col, c2, col);
+    
+    // Border
+    c2.gba = bordercolor;
+    stroke(c2.x,.5*bordersize,c2.x);
+    add(col, c2, col);
+    
+    // Progress
+    float wc = width/cellsize;
+    x.x -= .5*x.y;
+    vec2 y = vec2(mod(x.x, 1.2*cellsize)-.6*cellsize, x.y),
+        index = (x-y)/.6/cellsize;
+    if(abs(index.x) < .8*wc && -index.x > .8*wc*(1.-2.*progress))
+    {
+        box(y, vec2(.5*cellsize, .8*cellsize), c2.x);
+        add(col, c2, col);
+    }
+}
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     a = iResolution.x/iResolution.y;
@@ -410,6 +544,18 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         stroke(d, .018, d);
         new = vec4(d, mix(old.gba, c.xxx, .6));
         blendadd(old,new,16.,24.,new);
+        
+        vec4 c0, c2;
+        window(uv, vec2(.4,.2), new.gba, 0., c2);
+        add(c0, c2, c0);
+        progressbar(uv+.05*c.yx, .3, .2+.2*sin(iTime), c2);
+        add(c0, c2, c0);
+        progressbar(uv+.1*c.yx, .3, .5+.5*sin(iTime), c2);
+        add(c0, c2, c0);
+        progressbar(uv+.15*c.yx, .3, .9+.1*sin(iTime), c2);
+        add(c0, c2, c0);
+        
+        blendadd(new,c0,20.,24.,new);
     }
     else new = old;
     
