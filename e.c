@@ -617,17 +617,23 @@ void draw()
                 glUniform1f(logo210_time_location, t);
                 glUniform2f(logo210_resolution_location, w, h);
             }
-            else if(t<35.)
+            else if(t<37.)
             {
                 glUseProgram(logo_small_program);
                 glUniform1f(logo_small_time_location, t);
                 glUniform2f(logo_small_resolution_location, w, h);
             }
-            else if(t<50.) //TODO: move to end
+            else if(t<55.) //TODO: move to end
             {
                 glUseProgram(nr4_program);
-                glUniform1f(nr4_time_location, t-35.);
+                glUniform1f(nr4_time_location, t-37.);
                 glUniform2f(nr4_resolution_location, w, h);
+            }
+            else if(t<73.) //TODO: move to end
+            {
+                glUseProgram(qm_program);
+                glUniform1f(qm_time_location, t-55.);
+                glUniform2f(qm_resolution_location, w, h);
             }
             else if(t < 5000.)
             {

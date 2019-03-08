@@ -41,6 +41,15 @@ if(WIN32)
     else()
         add_custom_target(minification
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/minification/
+#             COMMAND del "\"${PROJECT_SOURCE_DIR}/sfx.h\""
+#             COMMAND del "\"${PROJECT_SOURCE_DIR}/gfx/load.h\""
+#             COMMAND del "\"${PROJECT_SOURCE_DIR}/gfx/post.h\""
+#             COMMAND del "\"${PROJECT_SOURCE_DIR}/gfx/logo210.h\""
+#             COMMAND del "\"${PROJECT_SOURCE_DIR}/gfx/greet.h\""
+#             COMMAND del "\"${PROJECT_SOURCE_DIR}/gfx/text.h\""
+#             COMMAND del "\"${PROJECT_SOURCE_DIR}/gfx/logosmall.h\""
+#             COMMAND del "\"${PROJECT_SOURCE_DIR}/gfx/nr4.h\""
+#             COMMAND del "\"${PROJECT_SOURCE_DIR}/gfx/qm.h\""
             COMMAND python shader-compressor.py "${PROJECT_SOURCE_DIR}/gfx.frag" -o "${PROJECT_SOURCE_DIR}/gfx.h"  --no-minification 
             COMMAND python shader-compressor.py  -o "${PROJECT_SOURCE_DIR}/sfx.h" "${PROJECT_SOURCE_DIR}/sfx.frag" --no-minification
             COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/load.h" "${PROJECT_SOURCE_DIR}/gfx/load.frag" --no-minification
@@ -56,6 +65,7 @@ if(WIN32)
     
     add_custom_target(texture_packing
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/font/
+#         COMMAND del "\"${PROJECT_SOURCE_DIR}/font/font.h\""
         COMMAND python pack.py
     )
     

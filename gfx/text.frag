@@ -576,7 +576,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         old = vec4(d, mix(old.gba, c.xxx, .6));
         blendadd(new,old,7.,13.,new);
     }
-    else if(iTime < 35.)
+    else if(iTime < 37.)
     {
         vec4 c0, c2;
         
@@ -587,31 +587,36 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         
         // Add revision loading logo
         float d;
-        drevision(uv, 1., d);
-        vec3 revcol = mix(new.gba, mix(vec3(0.82,0.00,0.09),vec3(0.45,0.00,0.06),.5-.5*uv.y), .5);
-        blendadd(new, vec4(d, revcol), 24.,28., new);
+        window(uv-.5*c.xy, vec2(.5,.5), new.gba, 0., c2);
+        add(c0, c2, c0);
+        drevision(3.*uv-3.*vec2(.5,-.25), 1., d);
+        vec3 revcol = vec3(1.00,0.71,0.02);
+        //mix(new.gba, mix(vec3(0.82,0.00,0.09),vec3(0.45,0.00,0.06),.5-.5*uv.y), .5);
+        add(c0, vec4(d, revcol), c0);
+        blendadd(new, c0, 24.,28., new);
         
         window(uv+.4*c.xy, vec2(.6,.4), new.gba, 0., c2);
         add(c0, c2, c0);
-        progressbar(uv+vec2(.4,.3), .3, .2+.2*sin(iTime), c2);
+        progressbar(uv+vec2(.4,.3), .35, .2+.2*sin(iTime), c2);
         add(c0, c2, c0);
-        dstring(uv+vec2(.5,.05), 72., .018, d); // Booze barrel
-        stroke(d, .004, d);
-        c2 = vec4(d, c.xxy);
+        dstring(uv+vec2(.6,.05), 72., .014, d); // Booze barrel
+        stroke(d, .003, d);
+        c2 = vec4(d, vec3(1.00,0.71,0.02));
         add(c0,c2,c0);
-        progressbar(uv+vec2(.4,.2), .3, .5+.5*sin(iTime), c2);
+        progressbar(uv+vec2(.4,.2), .35, .5+.5*sin(iTime), c2);
         add(c0, c2, c0);
-        dstring(uv+vec2(.5,.15), 73., .018, d); // Electric Energy
-        stroke(d, .004, d);
-        c2 = vec4(d, c.xxy);
+        dstring(uv+vec2(.6,.15), 73., .014, d); // Electric Energy
+        stroke(d, .003, d);
+        c2 = vec4(d, vec3(1.00,0.71,0.02));
         add(c0,c2,c0);
-        progressbar(uv+vec2(.4,.1), .3, .9+.1*sin(iTime), c2);
+        progressbar(uv+vec2(.4,.1), .35, .9+.1*sin(iTime), c2);
         add(c0, c2, c0);
-        dstring(uv+vec2(.5,.25), 74., .018, d); // Atomic Diesel reserves
-        stroke(d, .004, d);
-        c2 = vec4(d, c.xxy);
+        dstring(uv+vec2(.6,.25), 74., .014, d); // Atomic Diesel reserves
+        stroke(d, .003, d);
+        c2 = vec4(d, vec3(1.00,0.71,0.02));
         add(c0,c2,c0);
         blendadd(new,c0,28.,35.,new);
+        mix(new,c.xyyy, clamp(iTime-36., 0., 1.));
     }
     else new = old;
     
