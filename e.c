@@ -617,7 +617,7 @@ void draw()
                 glUniform1f(logo210_time_location, t);
                 glUniform2f(logo210_resolution_location, w, h);
             }
-            else if(t<25.)
+            else if(t<35.)
             {
                 glUseProgram(logo_small_program);
                 glUniform1f(logo_small_time_location, t);
@@ -626,7 +626,7 @@ void draw()
             else if(t<50.) //TODO: move to end
             {
                 glUseProgram(nr4_program);
-                glUniform1f(nr4_time_location, t-25.);
+                glUniform1f(nr4_time_location, t-35.);
                 glUniform2f(nr4_resolution_location, w, h);
             }
             else if(t < 5000.)
