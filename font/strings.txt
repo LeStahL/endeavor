@@ -34,7 +34,7 @@ but we gave some distances back
 on the shadertoy
 MERCURY
 we could not resist adding text
-but it's never at the bottom
+even sometimes at the bottom
 ATTENTION WHORE
 shaders work now
 OUTRACKS
