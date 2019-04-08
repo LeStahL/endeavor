@@ -159,7 +159,9 @@ int w = 1920, h = 1080,
     nr4_handle,nr4_program,
     nr4_time_location, nr4_resolution_location,
     qm_handle,qm_program,
-    qm_time_location, qm_resolution_location;
+    qm_time_location, qm_resolution_location,
+    trip_handle, trip_program,
+    trip_time_location, trip_resolution_location;
     
 float font_texture_width;
     
@@ -537,6 +539,38 @@ DWORD WINAPI LoadQMThread( LPVOID lpParam)
     return 0;
 }
 
+DWORD WINAPI LoadTripThread( LPVOID lpParam)
+{
+#undef VAR_IRESOLUTION
+#undef VAR_ITIME
+#include "gfx/trip.h"
+#ifndef VAR_IRESOLUTION
+    #define VAR_IRESOLUTION "iResolution"
+#endif
+#ifndef VAR_ITIME
+    #define VAR_ITIME "iTime"
+#endif
+    int trip_size = strlen(trip_frag),
+        trip_handle = glCreateShader(GL_FRAGMENT_SHADER);
+    trip_program = glCreateProgram();
+    glShaderSource(trip_handle, 1, (GLchar **)&trip_frag, &trip_size);
+    glCompileShader(trip_handle);
+    printf("---> Endeavour Trip shader:\n");
+    debug(trip_handle);
+    glAttachShader(trip_program, trip_handle);
+    glLinkProgram(trip_program);
+    printf("---> Endeavour Trip program:\n");
+    debugp(trip_program);
+    glUseProgram(trip_program);
+    trip_time_location =  glGetUniformLocation(trip_program, VAR_ITIME);
+    trip_resolution_location = glGetUniformLocation(trip_program, VAR_IRESOLUTION);
+    printf("++++ Endeavour Trip shader created.\n");
+    
+    progress += .1;
+    
+    return 0;
+}
+
 void quad()
 {
     glBegin(GL_QUADS);
@@ -608,6 +642,12 @@ void draw()
                 glUniform1f(greet_time_location, t);
                 glUniform2f(greet_resolution_location, w, h);
             }
+            else if(override_index == 6)
+            {
+                glUseProgram(trip_program);
+                glUniform1f(trip_time_location, t);
+                glUniform2f(trip_resolution_location, w, h);
+            }
         }
         else
         {
@@ -634,6 +674,12 @@ void draw()
                 glUseProgram(qm_program);
                 glUniform1f(qm_time_location, t-55.);
                 glUniform2f(qm_resolution_location, w, h);
+            }
+            else if(t<103.)
+            {
+                glUseProgram(trip_program);
+                glUniform1f(trip_time_location, t-73.);
+                glUniform2f(trip_resolution_location, w, h);
             }
             else if(t < 5000.)
             {
@@ -1222,6 +1268,10 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     SwapBuffers(hdc);
     
     LoadQMThread(0);
+    draw();
+    SwapBuffers(hdc);
+    
+    LoadTripThread(0);
     draw();
     SwapBuffers(hdc);
     
