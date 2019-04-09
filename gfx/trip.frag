@@ -20,6 +20,7 @@
 
 uniform float iTime, iProgress;
 uniform vec2 iResolution;
+
 // Global constants
 const float pi = acos(-1.);
 const vec3 c = vec3(1.0, 0.0, -1.0);
@@ -178,13 +179,17 @@ void scene(in vec3 x, out vec2 sdf)
     
     // Vertical stripes
     float phi = atan(x.y, x.x),
-        p0 = mod(phi, pi/4.)-pi/8.;
-    vec2 pa = 1.1*R*vec2(cos(phi-p0), sin(phi-p0)),
+        p0 = mod(phi, pi/4.)-pi/8.,
+        pp0 = mod(phi-pi/8., pi/4.)-pi/8.;
+    vec2 pa = 1.*R*vec2(cos(phi-pp0), sin(phi-pp0)),
         sda;
-    sda.x = length(x.xy-pa)-.05*R;
+    sda.x = length(x-vec3(pa,x.z))-.04*R;
     sda.y = 1.;
     add(sdf, sda, sdf);
-    
+    pa = 1.1*R*vec2(cos(phi-p0), sin(phi-p0));
+    sda.x = length(x.xy-pa)-.03*R;
+    sda.y = 1.;
+    add(sdf, sda, sdf);
     // Random stripes
     float p1 = p0 - pi/4.;// (sin(ind.z))*pi/4.;
     vec2 pb = 1.1*R*vec2(cos(phi-p1), sin(phi-p1));
@@ -226,7 +231,7 @@ void scene(in vec3 x, out vec2 sdf)
     sda.y = 1.;
     add(sdf, sda, sdf);
     dbox(y.xz, vec2(.5*R, .1*R), sda.x);
-    zextrude(x.y+.7*R, -sda.x, .001*R, sda.x);
+    zextrude(x.y+.73*R, -sda.x, .03*R, sda.x);
     sda.y = 3.;
     add(sdf, sda, sdf);
                 
@@ -383,6 +388,12 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
                 col = .1*c.yxy
                     + .2*c.yxy*abs(dot(l, n))
                     + .8*c.yxy*pow(abs(dot(reflect(-l,n), dir)), 2.);
+                float da, db;
+                lfnoise(4.*x.x*c.xx, db);
+                mfnoise(x.z*c.xx-.03*db*c.xy, 1.e2, 1.e4, .45, da);
+                col = mix(col, .4*col, .5+.5*da);
+                mfnoise(x.y*c.xx-.03*db*c.xy, 1.e2, 1.e4, .45, da);
+                col = mix(col, .4*col, .5+.5*da);
             }
         }
     }
