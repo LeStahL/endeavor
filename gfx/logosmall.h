@@ -268,7 +268,7 @@ const char * logosmall_frag =
 "    rand(vind+.2, starseed.z);\n"
 "    mat3 RR;\n"
 "    rot(.4*(-.5+starseed), RR);\n"
-"    starcol = RR * starcol;\n"
+"    starcol = abs(RR * starcol);\n"
 "    col = mix(col, starcol, smoothstep(6.*starseed.x*1.5/iResolution.y, -6.*starseed.x*1.5/iResolution.y, length(x)-starsize));\n"
 "    col = mix(col, starcol, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, length(x)-starsize));\n"
 "    \n"

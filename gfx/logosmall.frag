@@ -264,7 +264,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     rand(vind+.2, starseed.z);
     mat3 RR;
     rot(.4*(-.5+starseed), RR);
-    starcol = RR * starcol;
+    starcol = abs(RR * starcol);
     col = mix(col, starcol, smoothstep(6.*starseed.x*1.5/iResolution.y, -6.*starseed.x*1.5/iResolution.y, length(x)-starsize));
     col = mix(col, starcol, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, length(x)-starsize));
     
