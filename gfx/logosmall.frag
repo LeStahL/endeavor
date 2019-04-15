@@ -189,11 +189,91 @@ void planet_texture(in vec2 x, out vec3 col)
     col = mix(col, vec3(0.15,0.05,0.00), clamp(.2-.5*x.y/12.,0.,1.));
 }
 
+// Distance to regular voronoi
+void dvoronoi(in vec2 x, out float d, out vec2 ind)
+{
+    vec2 y = floor(x);
+   	float ret = 1.;
+    
+    //find closest control point. ("In which cell am I?")
+    vec2 pf=c.xx, p;
+    float df=100., oo;
+    
+    for(int i=-1; i<=1; i+=1)
+        for(int j=-1; j<=1; j+=1)
+        {
+            p = y + vec2(float(i), float(j));
+            vec2 pa;
+            rand(p, pa.x);
+            rand(p+.1,pa.y);
+            p += pa;
+            
+            d = length(x-p);
+            
+            df = min(d,df);
+            pf = mix(pf,p,step(d,df));
+        }
+    
+    //compute voronoi distance: minimum distance to any edge
+    for(int i=-1; i<=1; i+=1)
+        for(int j=-1; j<=1; j+=1)
+        {
+            p = y + vec2(float(i), float(j));
+            vec2 pa;
+            rand(p, pa.x);
+            rand(p+.1,pa.y);
+            p += pa;
+
+            vec2 o = p - pf;
+            oo = length(o);
+            if(oo < 1.e-4) continue;
+            d = abs(.5*oo-dot(x-pf, o)/oo);
+            ret = min(ret, d);
+        }
+    
+    d = ret;
+    ind = pf;
+}
+
+void rot(in vec3 p, out mat3 rot)
+{
+    rot = mat3(c.xyyy, cos(p.x), sin(p.x), 0., -sin(p.x), cos(p.x))
+        *mat3(cos(p.y), 0., -sin(p.y), c.yxy, sin(p.y), 0., cos(p.y))
+        *mat3(cos(p.z), -sin(p.z), 0., sin(p.z), cos(p.z), c.yyyx);
+}
+
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    a = iResolution.x/iResolution.y;
-    vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
+     a = iResolution.x/iResolution.y;
+    float dv, dvmin, vsize = 20.;
+    vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0),
+        vind, vindmin;
     vec3 col = c.yyy;
+    
+    // Stars
+    dvoronoi(vsize*uv, dv, vind);
+    vec2 x = uv-vind/vsize;
+    float starsize;
+    rand(vind, starsize);
+    starsize /= vsize*80.;
+    vec3 starcol = vec3(1.00,1.00,0.99), nebulacol = mix(c.xxy,c.yxy,length(uv));
+    vec3 starseed;
+    rand(vind, starseed.x);
+    rand(vind+.1, starseed.y);
+    rand(vind+.2, starseed.z);
+    mat3 RR;
+    rot(.4*(-.5+starseed), RR);
+    starcol = RR * starcol;
+    col = mix(col, starcol, smoothstep(6.*starseed.x*1.5/iResolution.y, -6.*starseed.x*1.5/iResolution.y, length(x)-starsize));
+    col = mix(col, starcol, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, length(x)-starsize));
+    
+    // Nebula
+    float lfdensity, hfdensity;
+    lfnoise(uv, lfdensity);
+    mfnoise(uv, 6.e0,1.e4, .6, hfdensity);
+    float density = .5*(lfdensity+hfdensity);
+    col = mix(col, mix(nebulacol,c.xyy, 1.-density), density);
     
     fragColor = vec4(col,1.0);
     //if(length(uv)-r*1.154<0.)
