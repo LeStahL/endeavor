@@ -700,7 +700,7 @@ void draw()
             else if(t<57.)
             {
                 glUseProgram(surface_program);
-                glUniform1f(surface_time_location, t);
+                glUniform1f(surface_time_location, t+351.);
                 glUniform2f(surface_resolution_location, w, h);
             }
             else if(t<75.) //TODO: move to end
