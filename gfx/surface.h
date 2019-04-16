@@ -281,7 +281,7 @@ const char * surface_frag =
 "            col = .3*c1\n"
 "                + (.3*c1)*abs(dot(l,n))\n"
 "                + (1.3*c1+.1*c.xyy)*pow(abs(dot(reflect(-l,n),dir)),3.);\n"
-"            col = mix(col,.4*length(col)*c.xxx,.7);\n"
+"            col = mix(col,.4*length(col)*c.xyy,.7);\n"
 "        }\n"
 "    }\n"
 "    /*\n"

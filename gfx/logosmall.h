@@ -261,7 +261,7 @@ const char * logosmall_frag =
 "    float starsize;\n"
 "    rand(vind, starsize);\n"
 "    starsize /= vsize*80.;\n"
-"    vec3 starcol = vec3(1.00,1.00,0.99), nebulacol = mix(c.xxy,c.yxy,length(uv));\n"
+"    vec3 starcol = vec3(1.00,1.00,0.99), nebulacol = mix(c.xxy,c.xyy+.1*c.yxy,length(uv));\n"
 "    vec3 starseed;\n"
 "    rand(vind, starseed.x);\n"
 "    rand(vind+.1, starseed.y);\n"

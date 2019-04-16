@@ -277,7 +277,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
             col = .3*c1
                 + (.3*c1)*abs(dot(l,n))
                 + (1.3*c1+.1*c.xyy)*pow(abs(dot(reflect(-l,n),dir)),3.);
-            col = mix(col,.4*length(col)*c.xxx,.7);
+            col = mix(col,.4*length(col)*c.xyy,.7);
         }
     }
     /*

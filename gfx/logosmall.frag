@@ -257,7 +257,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     float starsize;
     rand(vind, starsize);
     starsize /= vsize*80.;
-    vec3 starcol = vec3(1.00,1.00,0.99), nebulacol = mix(c.xxy,c.yxy,length(uv));
+    vec3 starcol = vec3(1.00,1.00,0.99), nebulacol = mix(c.xxy,c.xyy+.1*c.yxy,length(uv));
     vec3 starseed;
     rand(vind, starseed.x);
     rand(vind+.1, starseed.y);
