@@ -168,9 +168,10 @@ int w = 1920, h = 1080,
 float font_texture_width;
     
 // Demo globals
+#define duration 6.*60.
 double t_start = 0., 
     t_now = 0., 
-    t_end = 180.; // TODO: set to sensible end
+    t_end = duration; // TODO: set to sensible end
 unsigned int font_texture_handle, sequence_texture_handle;
 float executable_size = 0.;
 unsigned int loading = 1, music_loading = 0;
@@ -180,7 +181,7 @@ unsigned int scene_override = 0, override_index = 0;
 
 // Music shader globals
 int sample_rate = 44100, channels = 2;
-double duration1 = 312.*.43; //3 min running time
+double duration1 = duration; //3 min running time
 float *smusic1;
 int music1_size;
 float texs = 1024;
