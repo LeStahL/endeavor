@@ -319,10 +319,75 @@ void colorize(in vec3 old, in vec2 uv, out vec3 col)
         d = min(d, da);
     }
     
-    col = mix(old, mix(old,.1*c.xxx,.9), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d));
+    // Stripes
+    vec3 col1 = mix(c.xxx, vec3(0.70,0.13,0.20), mod(round(14.*(uv.x+.25)),2.));
+    
+    // Blue box
+    float d_, da_;
+    dbox(uv-vec2(-.25*a,.5), .25*c.xx*vec2(4.*a,1.), d_);
+    col1 = mix(col1, vec3(0.24,0.23,0.43), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d_));
+    
+    // Stars
+    vec2 x = mod(uv,a/12.)-a/24.;
+    dstar(x, 5., vec2(.02,.045), da_);
+    if(d_ < 0.)
+	    col1 = mix(col1, c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, -da_));
+    x = mod(uv-a/24.,a/12.)-a/24.;
+    dstar(x, 5., vec2(.02,.045), da_);
+    if(d_ < 0.)
+	    col1 = mix(col1, c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, -da_));
+    
+    dbox(uv-.27*c.yx, vec2(2.,.03), da_);
+    col1 = mix(col1, c.xxx, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, da_));
+    
+    col1 = .5*length(col1)*c.xxx;
+    
+    col = mix(old, mix(old,col1,.9), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d));
     stroke(d-.01,.011,d);
     col = mix(col, c.yyy, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d));
 }
+
+// void colorize(in vec3 old, in vec2 uv, out vec3 col)
+// {
+//     uv.y += .3;
+//     
+//     // Main skull
+//     float d, da, db;
+//     dcircle(uv-.25*c.yx, .25, d);
+//     dcircle(uv-.03*c.yx, .1, da);
+//     dbox(uv-.03*c.yx,.1*c.xx, db);
+//     da = mix(da,db,.2);
+//     stroke(da, .03, da);
+//     d = min(d,da);
+//     
+//     // Remove eyes
+//     dcircle(vec2(abs(uv.x)-.1,1.6*uv.y-.3*abs(uv.x)-.3),.1, da);
+//     d = max(d,-da);
+//    	dcircle(vec2(abs(uv.x)-.1,uv.y-.3/1.6-.02),.025, da);
+//     d = min(d,da);
+//     dcircle(vec2(abs(uv.x)-.1,uv.y-.3/1.6-.02),.015, da);
+//     d = max(d,-da);
+//    	
+//     // Add hair
+// 	float R = .25, phi;
+//     for(int i=0; i<10; ++i)
+//     {
+//         float ra;
+//         rand(float(i)*c.xx, ra);
+//         phi = .2 + 1.*ra;
+//         
+//         vec2 p = .25*c.yx+R*vec2(cos(phi), sin(phi));
+//         dlinesegment(vec2(abs(uv.x),uv.y), p, p+.2*c.yx, da);
+//         lfnoise(40.*uv.y*c.xx-4.*iTime-12.*ra,db);
+//         lfnoise(20.*uv.y*c.xx-7.*iTime-12.*ra-.5*db,db);
+//         stroke(da,.005+.01*db, da);
+//         d = min(d, da);
+//     }
+//     
+//     col = mix(old, mix(old,.1*c.xxx,.9), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d));
+//     stroke(d-.01,.011,d);
+//     col = mix(col, c.yyy, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d));
+// }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {

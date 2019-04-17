@@ -747,7 +747,7 @@ void draw()
             else if(t<90.) //TODO: move to end
             {
                 glUseProgram(nr4_program);
-                glUniform1f(nr4_time_location, t-57.);
+                glUniform1f(nr4_time_location, t-70.);
                 glUniform2f(nr4_resolution_location, w, h);
             }
             else if(t<110.) //TODO: move to end
