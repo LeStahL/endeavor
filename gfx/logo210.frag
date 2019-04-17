@@ -281,7 +281,7 @@ void background2(in vec2 uv, out vec3 col)
     orange = mix(c.yyy, orange, dm2);
     vec3 gray = .5*length(orange)*c.xxx/sqrt(3.);
   
-    col = mix(orange, gray, step(-1.,-cind.x-2.*smoothstep(2.,8.,iTime)));
+    col = mix(mix(orange,c.xxx,step(-1.,-cind.x-2.*smoothstep(2.,8.,iTime)+.024)), gray, step(-1.,-cind.x-2.*smoothstep(2.,8.,iTime)));
     col = mix(col, gray, step(0.,inner_logo));
     col = mix(col, c.yyy, step(logo_border,0.));
     
@@ -325,7 +325,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     }
     else
         background2((ro-ro.z/dir.z*dir).xy, col);
-    
+
+    col = clamp(col, 0., 1.);
+        
     fragColor = vec4(col,1.0);
 }
 

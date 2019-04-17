@@ -259,6 +259,10 @@ void normal(in vec3 x, out vec3 n)
     n = normalize(n-s.x);
 }
 
+void scene2(in vec3 x, out vec2 sdf)
+{
+}
+
 void floor_pattern(in vec2 x, out vec3 col)
 {
     float w = .02;
@@ -270,6 +274,54 @@ void floor_pattern(in vec2 x, out vec3 col)
     mfnoise(x, 10.,1000., .45, dx);
     col = mix(.4*c.xyy, .5*c.xyy, step(0.,d));
     col = mix(col, .4*c.xyy, .5+.5*dx);
+}
+
+// Distance to circle
+void dcircle(in vec2 x, in float R, out float d)
+{
+    d = length(x)-R;
+}
+
+void colorize(in vec3 old, in vec2 uv, out vec3 col)
+{
+    uv.y += .3;
+    
+    // Main skull
+    float d, da, db;
+    dcircle(uv-.25*c.yx, .25, d);
+    dcircle(uv-.03*c.yx, .1, da);
+    dbox(uv-.03*c.yx,.1*c.xx, db);
+    da = mix(da,db,.2);
+    stroke(da, .03, da);
+    d = min(d,da);
+    
+    // Remove eyes
+    dcircle(vec2(abs(uv.x)-.1,1.6*uv.y-.3*abs(uv.x)-.3),.1, da);
+    d = max(d,-da);
+   	dcircle(vec2(abs(uv.x)-.1,uv.y-.3/1.6-.02),.025, da);
+    d = min(d,da);
+    dcircle(vec2(abs(uv.x)-.1,uv.y-.3/1.6-.02),.015, da);
+    d = max(d,-da);
+   	
+    // Add hair
+	float R = .25, phi;
+    for(int i=0; i<10; ++i)
+    {
+        float ra;
+        rand(float(i)*c.xx, ra);
+        phi = .2 + 1.*ra;
+        
+        vec2 p = .25*c.yx+R*vec2(cos(phi), sin(phi));
+        dlinesegment(vec2(abs(uv.x),uv.y), p, p+.2*c.yx, da);
+        lfnoise(40.*uv.y*c.xx-4.*iTime-12.*ra,db);
+        lfnoise(20.*uv.y*c.xx-7.*iTime-12.*ra-.5*db,db);
+        stroke(da,.005+.01*db, da);
+        d = min(d, da);
+    }
+    
+    col = mix(old, mix(old,.1*c.xxx,.9), smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d));
+    stroke(d-.01,.011,d);
+    col = mix(col, c.yyy, smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d));
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
@@ -360,12 +412,18 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
                     {
     					col = mix(col, .2*c.xxx, tanh(.1*d));
                         
+                        vec3 cc;
+                        colorize(col, uv, cc);
+
+                        col = mix(col, cc, smoothstep(1.,2.,iTime)*(1.-smoothstep(8.,9.,iTime)));
+                        
                         vec3 bw = length(col)*c.xxx;
                         col = mix(bw, col, tm);
                         fragColor = vec4(col,1.0);
                         mat3 RR;
                         rot(vec3(1.1,1.4,1.6)*iTime ,RR);
                         col = abs(RR*col);
+                        
                         return;
                     }
                     if(s.x < 1.e-4) break;
@@ -406,6 +464,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     col = mix(bw, col, tm);
     
     col = mix(col, c.yyy, tanh(2.e-1*(x.z-o.z)));
+    
+    vec3 cc;
+    colorize(col, uv, cc);
+    
+    col = mix(col, cc, smoothstep(1.,2.,iTime)*(1.-smoothstep(8.,9.,iTime)));
     
     // Output to screen
     fragColor = vec4(col,1.0);

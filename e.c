@@ -753,13 +753,13 @@ void draw()
             else if(t<110.) //TODO: move to end
             {
                 glUseProgram(qm_program);
-                glUniform1f(qm_time_location, t-75.);
+                glUniform1f(qm_time_location, t-90.);
                 glUniform2f(qm_resolution_location, w, h);
             }
             else if(t<130.)
             {
                 glUseProgram(trip_program);
-                glUniform1f(trip_time_location, t-93.);
+                glUniform1f(trip_time_location, t-110.);
                 glUniform2f(trip_resolution_location, w, h);
             }
             else if(t < 5000.)
