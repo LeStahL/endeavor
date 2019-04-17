@@ -165,7 +165,9 @@ int w = 1920, h = 1080,
     surface_handle, surface_program,
     surface_time_location, surface_resolution_location,
     hangout_handle, hangout_program,
-    hangout_time_location, hangout_resolution_location;
+    hangout_time_location, hangout_resolution_location,
+    fourtwenty_handle, fourtwenty_program,
+    fourtwenty_time_location, fourtwenty_resolution_location;
     
 float font_texture_width;
     
@@ -640,6 +642,38 @@ DWORD WINAPI LoadHangoutThread( LPVOID lpParam)
     return 0;
 }
 
+DWORD WINAPI LoadFourtwentyThread( LPVOID lpParam)
+{
+#undef VAR_IRESOLUTION
+#undef VAR_ITIME
+#include "gfx/fourtwenty.h"
+#ifndef VAR_IRESOLUTION
+    #define VAR_IRESOLUTION "iResolution"
+#endif
+#ifndef VAR_ITIME
+    #define VAR_ITIME "iTime"
+#endif
+    int fourtwenty_size = strlen(fourtwenty_frag),
+        fourtwenty_handle = glCreateShader(GL_FRAGMENT_SHADER);
+    fourtwenty_program = glCreateProgram();
+    glShaderSource(fourtwenty_handle, 1, (GLchar **)&fourtwenty_frag, &fourtwenty_size);
+    glCompileShader(fourtwenty_handle);
+    printf("---> Endeavour fourtwenty shader:\n");
+    debug(fourtwenty_handle);
+    glAttachShader(fourtwenty_program, fourtwenty_handle);
+    glLinkProgram(fourtwenty_program);
+    printf("---> Endeavour fourtwenty program:\n");
+    debugp(fourtwenty_program);
+    glUseProgram(fourtwenty_program);
+    fourtwenty_time_location =  glGetUniformLocation(fourtwenty_program, VAR_ITIME);
+    fourtwenty_resolution_location = glGetUniformLocation(fourtwenty_program, VAR_IRESOLUTION);
+    printf("++++ Endeavour fourtwenty shader created.\n");
+    
+    progress += .1;
+    
+    return 0;
+}
+
 void quad()
 {
     glBegin(GL_QUADS);
@@ -761,6 +795,12 @@ void draw()
                 glUseProgram(trip_program);
                 glUniform1f(trip_time_location, t-110.);
                 glUniform2f(trip_resolution_location, w, h);
+            }
+            else if(t<150.)
+            {
+                glUseProgram(fourtwenty_program);
+                glUniform1f(fourtwenty_time_location, t-130.);
+                glUniform2f(fourtwenty_resolution_location, w, h);
             }
             else if(t < 5000.)
             {
@@ -1361,6 +1401,10 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     SwapBuffers(hdc);
     
     LoadHangoutThread(0);
+    draw();
+    SwapBuffers(hdc);
+    
+    LoadFourtwentyThread(0);
     draw();
     SwapBuffers(hdc);
     
