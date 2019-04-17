@@ -39,6 +39,7 @@ if(WIN32)
             COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/gfx/qm.h" "${PROJECT_SOURCE_DIR}/gfx/qm.frag"
             COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/gfx/trip.h" "${PROJECT_SOURCE_DIR}/gfx/trip.frag"
             COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/gfx/surface.h" "${PROJECT_SOURCE_DIR}/gfx/surface.frag"
+            COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/gfx/hangout.h" "${PROJECT_SOURCE_DIR}/gfx/hangout.frag"
         )
     else()
         add_custom_target(minification
@@ -64,6 +65,7 @@ if(WIN32)
             COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/qm.h" "${PROJECT_SOURCE_DIR}/gfx/qm.frag" --no-minification
             COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/trip.h" "${PROJECT_SOURCE_DIR}/gfx/trip.frag" --no-minification
             COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/surface.h" "${PROJECT_SOURCE_DIR}/gfx/surface.frag" --no-minification
+            COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/hangout.h" "${PROJECT_SOURCE_DIR}/gfx/hangout.frag" --no-minification
         )
     endif()
     

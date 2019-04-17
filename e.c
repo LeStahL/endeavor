@@ -163,7 +163,9 @@ int w = 1920, h = 1080,
     trip_handle, trip_program,
     trip_time_location, trip_resolution_location,
     surface_handle, surface_program,
-    surface_time_location, surface_resolution_location;
+    surface_time_location, surface_resolution_location,
+    hangout_handle, hangout_program,
+    hangout_time_location, hangout_resolution_location;
     
 float font_texture_width;
     
@@ -606,6 +608,38 @@ DWORD WINAPI LoadSurfaceThread( LPVOID lpParam)
     return 0;
 }
 
+DWORD WINAPI LoadHangoutThread( LPVOID lpParam)
+{
+#undef VAR_IRESOLUTION
+#undef VAR_ITIME
+#include "gfx/hangout.h"
+#ifndef VAR_IRESOLUTION
+    #define VAR_IRESOLUTION "iResolution"
+#endif
+#ifndef VAR_ITIME
+    #define VAR_ITIME "iTime"
+#endif
+    int hangout_size = strlen(hangout_frag),
+        hangout_handle = glCreateShader(GL_FRAGMENT_SHADER);
+    hangout_program = glCreateProgram();
+    glShaderSource(hangout_handle, 1, (GLchar **)&hangout_frag, &hangout_size);
+    glCompileShader(hangout_handle);
+    printf("---> Endeavour hangout shader:\n");
+    debug(hangout_handle);
+    glAttachShader(hangout_program, hangout_handle);
+    glLinkProgram(hangout_program);
+    printf("---> Endeavour hangout program:\n");
+    debugp(hangout_program);
+    glUseProgram(hangout_program);
+    hangout_time_location =  glGetUniformLocation(hangout_program, VAR_ITIME);
+    hangout_resolution_location = glGetUniformLocation(hangout_program, VAR_IRESOLUTION);
+    printf("++++ Endeavour hangout shader created.\n");
+    
+    progress += .1;
+    
+    return 0;
+}
+
 void quad()
 {
     glBegin(GL_QUADS);
@@ -704,19 +738,25 @@ void draw()
                 glUniform1f(surface_time_location, t+351.);
                 glUniform2f(surface_resolution_location, w, h);
             }
-            else if(t<75.) //TODO: move to end
+            else if(t<70.)
+            {
+                glUseProgram(hangout_program);
+                glUniform1f(hangout_time_location, t-57.);
+                glUniform2f(hangout_resolution_location, w, h);
+            }
+            else if(t<90.) //TODO: move to end
             {
                 glUseProgram(nr4_program);
                 glUniform1f(nr4_time_location, t-57.);
                 glUniform2f(nr4_resolution_location, w, h);
             }
-            else if(t<93.) //TODO: move to end
+            else if(t<110.) //TODO: move to end
             {
                 glUseProgram(qm_program);
                 glUniform1f(qm_time_location, t-75.);
                 glUniform2f(qm_resolution_location, w, h);
             }
-            else if(t<113.)
+            else if(t<130.)
             {
                 glUseProgram(trip_program);
                 glUniform1f(trip_time_location, t-93.);
@@ -1317,6 +1357,10 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     SwapBuffers(hdc);
 
     LoadSurfaceThread(0);
+    draw();
+    SwapBuffers(hdc);
+    
+    LoadHangoutThread(0);
     draw();
     SwapBuffers(hdc);
     
