@@ -184,11 +184,10 @@ void scene(in vec3 x, out vec2 sdf)
         yi -= ya;
         yi /= mix(2.,.2,smoothstep(0.,3.,x.y));
         float da;
-        if(yi.x < 4.)
         {
             zextrude(x.y, -length(ya)+R, 1.e4, sdb.x);
             stroke(sdb.x, .003, da);
-        } else da = 1.e-3;
+        } 
         sdb.y = 2.;
 
         float phi = atan(ya.y, ya.x);
@@ -281,6 +280,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     a = iResolution.x/iResolution.y;
     vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0),
         s;
+        
+    lfnoise(30.*uv-iTime,s.x);
+    lfnoise(30.*uv-iTime-10.,s.y);
+    uv += .015*s;
+    
     vec3 col = c.yyy, 
         o = .5*c.yyx + mix(.3*iTime*c.yxy,.3*6.*c.yxy,smoothstep(0.,6.,clamp(iTime,0.,6.))) 
         	+ smoothstep(6.,12.,clamp(iTime, 6., 12.))*c.yyx*.15, 
@@ -325,13 +329,13 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
             col = abs(RR * col);
         }
     }
-    /*
+    
     vec3 ddd;
     rand(uv-iTime*c.xx, ddd.x);
     rand(uv-iTime*c.xx, ddd.y);
     rand(uv-iTime*c.xx, ddd.z);
     col -=.1*ddd;
-    */
+    
     col = clamp(col, 0.,1.);
     
     fragColor = vec4(col,1.0);
