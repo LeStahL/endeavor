@@ -619,6 +619,25 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         blendadd(new,c0,28.,35.,new);
         mix(new,c.xyyy, clamp(iTime-36., 0., 1.));
     }
+    else if(iTime < 90.)
+    {
+        vec4 bd,bda;
+        box(uv-vec2(-.0,.35)-.03*sin(iTime+.1)*c.xy, vec2(.5,.03), bd.x);
+        bd.gba = mix(old.gba, vec3(1.00,0.65,0.00),.8);
+        dstring(uv-vec2(-.42,.35)-.03*sin(iTime+.1)*c.xy, 8., .020, d); // NR4 - Cybernetic Coding & 
+        stroke(d, .0045, d);
+        bda = vec4(d, mix(new.gba, c.yyy, .9));
+        add(bd,bda,bd);
+        blendadd(old, bd, 71.,88., new);
+        
+        box(uv-vec2(.1,.28)-.03*sin(iTime+.4)*c.xy, vec2(.35,.03), bd.x);
+        bd.gba = mix(new.gba, vec3(1.00,0.65,0.00),.8);
+        dstring(uv-vec2(-.16,.28)-.03*sin(iTime+.4)*c.xy, 5., .020, d); // Genetic Graphics
+        stroke(d, .0045, d);
+        bda = vec4(d, mix(new.gba, c.yyy, .9));
+        add(bd,bda,bd);
+        blendadd(new, bd, 72.,88., new);
+    }
     else if(iTime < 130.)
     {
         vec4 bd,bda;
