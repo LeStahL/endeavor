@@ -556,7 +556,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     dfloat(uv-vec2(-.63,.45)-.03*sin(iTime)*c.xy, iTime, .018, bd.x);
     stroke(bd.x, .004, bd.x);
     add(b, bd, b);
-    dfloat(uv-vec2(-.23,.45)-.03*sin(iTime)*c.xy, iExecutableSize, .018, bd.x);
+    //dfloat(uv-vec2(-.23,.45)-.03*sin(iTime)*c.xy, iExecutableSize, .018, bd.x);
+    dstring(uv-vec2(-.225,.45)-.03*sin(iTime)*c.xy, 6., .018, bd.x);
     stroke(bd.x, .004, bd.x);
     bd.gba = vec3(0.99,0.64,0.02);
     add(b, bd, b);
@@ -622,51 +623,51 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     {
         vec4 bd,bda;
         box(uv-vec2(-.08,.25), vec2(.42,.03), bd.x);
-        bd.gba = mix(old.gba, vec3(0.73,0.90,0.22),.8);
-        dstring(uv-vec2(-.42,.25), 67., .020, d); // Dont forget to take
-        stroke(d, .004, d);
-        bda = vec4(d, mix(new.gba, vec3(0.23,0.27,0.16), .6));
+        bd.gba = mix(old.gba, vec3(0.84,0.18,0.53),.8);
+        dstring(uv-vec2(-.42,.25), 70., .020, d); // Dont forget to take
+        stroke(d, .005, d);
+        bda = vec4(d, mix(new.gba, c.xxx, .9));
         add(bd,bda,bd);
-        blendadd(old, bd, 132.,138., new);
+        blendadd(old, bd, 118.,122., new);
         
-        box(uv-vec2(-.08,.15), vec2(.18,.03), bd.x);
-        bd.gba = mix(new.gba, vec3(0.73,0.90,0.22),.8);
-        dstring(uv-vec2(-.18,.15), 68., .020, d); // your medicine
-        stroke(d, .004, d);
-        bda = vec4(d, mix(new.gba, vec3(0.23,0.27,0.16), .6));
+        box(uv-vec2(.1,.15), vec2(.34,.03), bd.x);
+        bd.gba = mix(new.gba, vec3(0.84,0.18,0.53),.8);
+        dstring(uv-vec2(-.08,.15), 71., .020, d); // your medicine
+        stroke(d, .005, d);
+        bda = vec4(d, mix(new.gba, c.xxx, .9));
         add(bd,bda,bd);
-        blendadd(new, bd, 133.,138., new);
+        blendadd(new, bd, 119.,122., new);
     }
     else if(iTime < 140.)
     {
         vec4 bd,bda;
-        box(uv-vec2(-.08,.25), vec2(.42,.03), bd.x);
+        box(uv-vec2(-.08,.25)-.03*sin(iTime+.1)*c.xy, vec2(.42,.03), bd.x);
         bd.gba = mix(old.gba, vec3(0.73,0.90,0.22),.8);
-        dstring(uv-vec2(-.42,.25), 67., .020, d); // Two times two-ten is
+        dstring(uv-vec2(-.42,.25)-.03*sin(iTime+.1)*c.xy, 67., .020, d); // Two times two-ten is
         stroke(d, .004, d);
         bda = vec4(d, mix(new.gba, vec3(0.23,0.27,0.16), .6));
         add(bd,bda,bd);
         blendadd(old, bd, 132.,138., new);
         
-        box(uv-vec2(-.08,.15), vec2(.18,.03), bd.x);
+        box(uv-vec2(-.08,.15)-.03*sin(iTime+.4)*c.xy, vec2(.18,.03), bd.x);
         bd.gba = mix(new.gba, vec3(0.73,0.90,0.22),.8);
-        dstring(uv-vec2(-.18,.15), 68., .020, d); // today is
+        dstring(uv-vec2(-.18,.15)-.03*sin(iTime+.4)*c.xy, 68., .020, d); // today is
         stroke(d, .004, d);
         bda = vec4(d, mix(new.gba, vec3(0.23,0.27,0.16), .6));
         add(bd,bda,bd);
         blendadd(new, bd, 133.,138., new);
         
-        box(uv-vec2(-.08,-.05), vec2(.9,.08), bd.x);
+        box(uv-vec2(-.08,-.05)-.03*sin(iTime+.9)*c.xy, vec2(.9,.08), bd.x);
         bd.gba = mix(new.gba,c.xxy,.8);
-        dstring(uv-vec2(-.64,-.05), 69., .07, d); // four-twenty
+        dstring(uv-vec2(-.64,-.05)-.03*sin(iTime+.9)*c.xy, 69., .07, d); // four-twenty
         stroke(d, .016, d);
         bda = vec4(d, mix(new.gba, vec3(0.23,0.27,0.16), .6));
         add(bd,bda,bd);
         blendadd(new, bd, 134.,138., new);
         
-        box(uv-vec2(+.14,-.17), vec2(.42,.03), bd.x);
+        box(uv-vec2(+.14,-.17)-.03*sin(iTime+.13)*c.xy, vec2(.42,.03), bd.x);
         bd.gba = mix(new.gba, vec3(0.73,0.90,0.22),.8);
-        dstring(uv-vec2(-.18,-.17), 75., .020, d); // whatever that means
+        dstring(uv-vec2(-.18,-.17)-.03*sin(iTime+.13)*c.xy, 75., .020, d); // whatever that means
         stroke(d, .004, d);
         bda = vec4(d, mix(new.gba, vec3(0.23,0.27,0.16), .6));
         add(bd,bda,bd);

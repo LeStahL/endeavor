@@ -4,7 +4,7 @@ size:
 Team210 present
 a production made of joy
 fast fourier transform
-mixed radix
+32 kilobyte
 QM - Masterful Mathematical Music
 NR4 - Cybernetic Coding & Genetic Graphics
 MIC - Diabolical Direction & Suburban Support
