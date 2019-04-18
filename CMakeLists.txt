@@ -54,6 +54,10 @@ if(WIN32)
 #             COMMAND del "\"${PROJECT_SOURCE_DIR}/gfx/logosmall.h\""
 #             COMMAND del "\"${PROJECT_SOURCE_DIR}/gfx/nr4.h\""
 #             COMMAND del "\"${PROJECT_SOURCE_DIR}/gfx/qm.h\""
+#             COMMAND del "\"${PROJECT_SOURCE_DIR}/gfx/trip.h\""
+#             COMMAND del "\"${PROJECT_SOURCE_DIR}/gfx/surface.h\""
+#             COMMAND del "\"${PROJECT_SOURCE_DIR}/gfx/hangout.h\""
+#             COMMAND del "\"${PROJECT_SOURCE_DIR}/gfx/fourtwenty.h\""
             COMMAND python shader-compressor.py "${PROJECT_SOURCE_DIR}/gfx.frag" -o "${PROJECT_SOURCE_DIR}/gfx.h"  --no-minification 
             COMMAND python shader-compressor.py  -o "${PROJECT_SOURCE_DIR}/sfx.h" "${PROJECT_SOURCE_DIR}/sfx.frag" --no-minification
             COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/load.h" "${PROJECT_SOURCE_DIR}/gfx/load.frag" --no-minification

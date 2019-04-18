@@ -724,32 +724,58 @@ void draw()
             else if(override_index == 2)
             {
                 glUseProgram(logo_small_program);
-                glUniform1f(logo_small_time_location, t);
+                glUniform1f(logo_small_time_location, t+15.);
+                t += 15.;
                 glUniform2f(logo_small_resolution_location, w, h);
             }
             else if(override_index == 3)
             {
-                glUseProgram(nr4_program);
-                glUniform1f(nr4_time_location, t);
-                glUniform2f(nr4_resolution_location, w, h);
+                glUseProgram(surface_program);
+                glUniform1f(surface_time_location, t+351.+37.);
+                t += 37.;
+                glUniform2f(surface_resolution_location, w, h);
             }
             else if(override_index == 4)
             {
-                glUseProgram(qm_program);
-                glUniform1f(qm_time_location, t);
-                glUniform2f(qm_resolution_location, w, h);
+                glUseProgram(hangout_program);
+                glUniform1f(hangout_time_location, t);
+                t += 57.;
+                glUniform2f(hangout_resolution_location, w, h);
             }
             else if(override_index == 5)
             {
-                glUseProgram(greet_program);
-                glUniform1f(greet_time_location, t);
-                glUniform2f(greet_resolution_location, w, h);
+                glUseProgram(nr4_program);
+                glUniform1f(nr4_time_location, t);
+                t += 70.;
+                glUniform2f(nr4_resolution_location, w, h);
             }
             else if(override_index == 6)
             {
+                glUseProgram(qm_program);
+                glUniform1f(qm_time_location, t);
+                t += 90.;
+                glUniform2f(qm_resolution_location, w, h);
+            }
+            else if(override_index == 7)
+            {
                 glUseProgram(trip_program);
                 glUniform1f(trip_time_location, t);
+                t += 110.;
                 glUniform2f(trip_resolution_location, w, h);
+            }
+            else if(override_index == 8)
+            {
+                glUseProgram(fourtwenty_program);
+                glUniform1f(fourtwenty_time_location, t+130.);
+                t += 130.;
+                glUniform2f(fourtwenty_resolution_location, w, h);
+            }
+            else if(override_index == 9)
+            {
+                glUseProgram(greet_program);
+                glUniform1f(greet_time_location, t+140.);
+                t += 140.;
+                glUniform2f(greet_resolution_location, w, h);
             }
         }
         else
@@ -1119,15 +1145,23 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     // Populate with entries
     const char *all_scenes = "All scenes",
         *logo210_scene= "Team210 Logo",
-        *logoendeavor_scene = "Endeavour Logo",
+        *logoendeavor_scene = "Planet rotation",
+        *surface_scene = "Surface with pipes",
+        *hangar_outside_scene = "Hangar outside",
         *nr4_scene = "NR4 Graffiti build-up",
         *qm_scene = "QM Graffiti build-up",
+        *trip_scene = "Trip scene",
+        *fourtwenty_scene = "Four-twenty scene",
         *greet_scene = "Greetings";
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (all_scenes)); 
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (logo210_scene)); 
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (logoendeavor_scene));
+    SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (surface_scene));
+    SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (hangar_outside_scene));
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (nr4_scene)); 
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (qm_scene)); 
+    SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (trip_scene));
+    SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (fourtwenty_scene));
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (greet_scene));
     SendMessage(hSceneComboBox, CB_SETCURSEL, 0, 0);
     

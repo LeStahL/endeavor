@@ -292,6 +292,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
             if(d>1.5)
             {
                 col += .15*vec3(0.97,0.58,0.00)*(1.-smoothstep(r*1.1,r*1.24, length(uv)));
+                col = clamp(col, 0., 1.);
+                col = mix(c.yyy, col, smoothstep(15.,15.5, iTime)*(1.-smoothstep(36.5,37.,iTime)));
                 fragColor = vec4(col, 1.);
                 return;
             }
@@ -324,13 +326,6 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
             col = .05*vec3(0.66,0.54,0.46)*dln+.2*vec3(0.97,0.80,0.67)*pow(drv,1.);
         else if(s.y == 3.)
             col = .05*vec3(0.66,0.54,0.46)*dln+.2*vec3(0.36,0.36,0.36)*pow(drv,1.);
-    }
-    
-    //else
-    {
-        // Stars
-        
-        // Glow effect
     }
     
     col = clamp(col, 0., 1.);
