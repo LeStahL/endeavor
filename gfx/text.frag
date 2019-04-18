@@ -618,6 +618,33 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         blendadd(new,c0,28.,35.,new);
         mix(new,c.xyyy, clamp(iTime-36., 0., 1.));
     }
+    else if(iTime < 140.)
+    {
+        vec4 bd,bda;
+        box(uv-vec2(-.08,.25), vec2(.42,.03), bd.x);
+        bd.gba = mix(old.gba, vec3(0.73,0.90,0.22),.8);
+        dstring(uv-vec2(-.42,.25), 67., .020, d); // Two times two-ten
+        stroke(d, .004, d);
+        bda = vec4(d, mix(new.gba, vec3(0.23,0.27,0.16), .6));
+        add(bd,bda,bd);
+        blendadd(old, bd, 132.,138., new);
+        
+        box(uv-vec2(-.08,.15), vec2(.18,.03), bd.x);
+        bd.gba = mix(new.gba, vec3(0.73,0.90,0.22),.8);
+        dstring(uv-vec2(-.18,.15), 68., .020, d); // Two times two-ten
+        stroke(d, .004, d);
+        bda = vec4(d, mix(new.gba, vec3(0.23,0.27,0.16), .6));
+        add(bd,bda,bd);
+        blendadd(new, bd, 133.,138., new);
+        
+        box(uv-vec2(-.08,-.05), vec2(.9,.08), bd.x);
+        bd.gba = mix(new.gba,c.xxy,.8);
+        dstring(uv-vec2(-.64,-.05), 69., .07, d); // Two times two-ten
+        stroke(d, .016, d);
+        bda = vec4(d, mix(new.gba, vec3(0.23,0.27,0.16), .6));
+        add(bd,bda,bd);
+        blendadd(new, bd, 133.,138., new);
+    }
     else new = old;
     
     fragColor = vec4(new.gba, 1.);
