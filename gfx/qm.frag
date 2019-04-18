@@ -404,41 +404,28 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     
     if(iTime > 14.) 
     {
-        float d;
-        vec2 y = mod(uv, .2)-.1, yi = floor((uv-y)/.2);
-        dqm((yi+.1)*.2,d);
-        stroke(d,.15,d);
+        float d, size = 8.;
+        vec2 ind;
+        dvoronoi(size*uv, d, ind);
+        vec2 y = uv-ind/size, yi = ind;
+        dqm((yi-.1)*.2,d);
+        stroke(d,.65,d);
         if(d<0.)
         {
             vec2 da;
-            lfnoise(16.*yi*.2-.5e1*iTime*c.xy, da.x);
-            lfnoise(16.*yi*.2-.53e1*iTime*c.yx, da.y);
+            lfnoise(16.*yi*.2-2.e0*iTime*c.xy, da.x);
+            lfnoise(16.*yi*.2-2.3e0*iTime*c.yx, da.y);
             da = .5+.5*da;
             
             float dg;
             vec2 ri;
-            rand(yi+.1-floor(4.*da.x)/4., ri.x);
-            rand(yi+.2-floor(4.*da.y)/4., ri.y);
-            
-            if(da.x < .5 && da.y <.7)
+            rand(yi+.1, ri.x);
+            rand(yi+.2, ri.y);
+            if(da.x < .5 && da.y <.4)
             {
                 mat2 m;
                 rot(ri.y-iTime,m);
-                dstar(m*(y-.05+.1*ri), 5.+floor(4.*ri.y), .05*ri.x*vec2(.01, .04), dg);
-                col = mix(col, mix(col,c.xxx,.5), step(-dg,0.));
-                stroke(dg, .0025, dg);
-                col = mix(col, c.xxx, step(dg,0.));
-            }
-            lfnoise(16.*yi*.2-2.e0*iTime*c.xy, da.x);
-            lfnoise(16.*yi*.2-3.3e0*iTime*c.yx, da.y);
-            da = .5+.5*da;
-            rand(yi+.3-floor(4.*da.x)/4., ri.x);
-            rand(yi+.4-floor(4.*da.y)/4., ri.y);
-            if(da.x < .5 && da.y <.7)
-            {
-                mat2 m;
-                rot(ri.y-iTime,m);
-                dstar(m*(y-.05+.1*ri), 5.+floor(4.*ri.y), .05*ri.x*vec2(.01, .04), dg);
+                dstar(m*y-.05*da, 5.+floor(4.*ri.y), .2*ri.x*vec2(.01, .04), dg);
                 col = mix(col, mix(col,c.xxx,.5), step(-dg,0.));
                 stroke(dg, .0025, dg);
                 col = mix(col, c.xxx, step(dg,0.));

@@ -796,7 +796,7 @@ void draw()
                 glUniform1f(trip_time_location, t-110.);
                 glUniform2f(trip_resolution_location, w, h);
             }
-            else if(t<150.)
+            else if(t<140.)
             {
                 glUseProgram(fourtwenty_program);
                 glUniform1f(fourtwenty_time_location, t-130.);
