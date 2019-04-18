@@ -56,7 +56,7 @@ Start with the text
 It needs to be fat
 distort it
 well, a texture would be great
-how about some triangles
+how about some voronoi
 ok, lets go 3d
 wobble
 more
@@ -73,4 +73,4 @@ Your Medicine
 Booze barrel
 Electric energy
 Atomic Diesel
-Ship status
+Whatever that means
