@@ -622,17 +622,17 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     else if(iTime < 130.)
     {
         vec4 bd,bda;
-        box(uv-vec2(-.08,.25), vec2(.42,.03), bd.x);
+        box(uv-vec2(-.08,.25)-.03*sin(iTime+.1), vec2(.42,.03), bd.x);
         bd.gba = mix(old.gba, vec3(0.84,0.18,0.53),.8);
-        dstring(uv-vec2(-.42,.25), 70., .020, d); // Dont forget to take
+        dstring(uv-vec2(-.42,.25)-.03*sin(iTime+.1), 70., .020, d); // Dont forget to take
         stroke(d, .0045, d);
         bda = vec4(d, mix(new.gba, c.xxx, .9));
         add(bd,bda,bd);
         blendadd(old, bd, 118.,122., new);
         
-        box(uv-vec2(.1,.15), vec2(.34,.03), bd.x);
+        box(uv-vec2(.1,.15)-.03*sin(iTime+.4)*c.xy, vec2(.34,.03), bd.x);
         bd.gba = mix(new.gba, vec3(0.84,0.18,0.53),.8);
-        dstring(uv-vec2(-.08,.15), 71., .020, d); // your medicine
+        dstring(uv-vec2(-.08,.15)-.03*sin(iTime+.4)*c.xy, 71., .020, d); // your medicine
         stroke(d, .0045, d);
         bda = vec4(d, mix(new.gba, c.xxx, .9));
         add(bd,bda,bd);
