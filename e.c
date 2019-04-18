@@ -799,7 +799,7 @@ void draw()
             else if(t<140.)
             {
                 glUseProgram(fourtwenty_program);
-                glUniform1f(fourtwenty_time_location, t-130.);
+                glUniform1f(fourtwenty_time_location, t);
                 glUniform2f(fourtwenty_resolution_location, w, h);
             }
             else if(t < 5000.)

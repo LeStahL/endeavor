@@ -334,6 +334,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     }
     
     col = clamp(col, 0., 1.);
+    col = mix(c.yyy, col, smoothstep(15.,15.5, iTime)*(1.-smoothstep(36.5,37.,iTime)));
     fragColor = vec4(col,1.0);
 }
 

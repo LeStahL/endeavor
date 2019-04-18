@@ -331,7 +331,7 @@ const char * logo210_frag =
 "        background2((ro-ro.z/dir.z*dir).xy, col);\n"
 "\n"
 "    col = clamp(col, 0., 1.);\n"
-"        \n"
+"    col = mix(c.yyy, col, smoothstep(0.,.5,iTime)*(1.-smoothstep(14.5,15.,iTime)));\n"
 "    fragColor = vec4(col,1.0);\n"
 "}\n"
 "\n"

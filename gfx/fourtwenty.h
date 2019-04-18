@@ -167,6 +167,8 @@ const char * fourtwenty_frag =
 "        colorize(col, float(i), (1.+3.*scale)*RR*(uv-delta), col);\n"
 "    }\n"
 "    col = clamp(col, 0.,1.);\n"
+"    col = mix(c.yyy, col, smoothstep(130.,130.5,iTime)*(1.-smoothstep(139.5,140.,iTime)));\n"
+"    \n"
 "    fragColor = vec4(col,1.0);\n"
 "}\n"
 "\n"

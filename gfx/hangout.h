@@ -342,6 +342,8 @@ const char * hangout_frag =
 "    \n"
 "    col = clamp(col, 0.,1.);\n"
 "    \n"
+"    col = mix(c.yyy, col, smoothstep(0.,.5,iTime)*(1.-smoothstep(12.5,13.,iTime)));\n"
+"    \n"
 "    fragColor = vec4(col,1.0);\n"
 "}\n"
 "\n"

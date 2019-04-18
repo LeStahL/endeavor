@@ -420,6 +420,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     rand(uv*3.-iTime,rd.z);
     col += .2*(-c.xxx+rd);
     
+    col = clamp(col, 0., 1.);
+    col = mix(c.yyy, col, smoothstep(0.,.5,iTime)*(1.-smoothstep(19.5,20.,iTime)));
+    
     fragColor = vec4(col,1.0);
 }
 

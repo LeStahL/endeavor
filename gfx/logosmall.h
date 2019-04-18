@@ -338,6 +338,7 @@ const char * logosmall_frag =
 "    }\n"
 "    \n"
 "    col = clamp(col, 0., 1.);\n"
+"    col = mix(c.yyy, col, smoothstep(15.,15.5, iTime)*(1.-smoothstep(36.5,37.,iTime)));\n"
 "    fragColor = vec4(col,1.0);\n"
 "}\n"
 "\n"

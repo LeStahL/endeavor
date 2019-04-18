@@ -292,6 +292,7 @@ const char * surface_frag =
 "    col -=.1*ddd;\n"
 "    */\n"
 "    col = clamp(col, 0.,1.);\n"
+"    col = mix(c.yyy, col, smoothstep(37.,37.5,iTime)*(1.-smoothstep(56.5,57.,iTime-351.)));\n"
 "    \n"
 "    fragColor = vec4(col,1.0);\n"
 "}\n"
