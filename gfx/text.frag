@@ -638,6 +638,17 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         add(bd,bda,bd);
         blendadd(new, bd, 72.,88., new);
     }
+    else if(iTime < 110.)
+    {
+        vec4 bd,bda;
+        box(uv-vec2(-.0,.35)-.03*sin(iTime+.1)*c.xy, vec2(.72,.03), bd.x);
+        bd.gba = mix(old.gba, vec3(0.40,0.00,0.60),.8);
+        dstring(uv-vec2(-.57,.35)-.03*sin(iTime+.1)*c.xy, 7., .020, d); // QM - Masterful Mathematical Music
+        stroke(d, .0045, d);
+        bda = vec4(d, mix(new.gba, c.xxx, .9));
+        add(bd,bda,bd);
+        blendadd(old, bd, 91.,108., new);
+    }
     else if(iTime < 130.)
     {
         vec4 bd,bda;
