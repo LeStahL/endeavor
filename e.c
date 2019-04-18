@@ -192,7 +192,7 @@ float texs = 1024;
 int block_size = 1024*1024, 
     nblocks1;
 unsigned int paused = 0;
-float progress = 0.;
+float progress = .1;
 
 HWAVEOUT hWaveOut;
 WAVEHDR silence_header = {0, 0, 0, 0, 0, 0, 0, 0 };
@@ -207,6 +207,7 @@ GLuint first_pass_framebuffer = 0, first_pass_texture;
 HDC hdc;
 HGLRC glrc;
 GLenum error;
+#define NSHADERS 11.
 
 float t_load_end = 0.;
 
@@ -314,7 +315,7 @@ DWORD WINAPI LoadMusicThread( LPVOID lpParam)
     printf("++++ SFX shader created.\n");
     
     music_loading = 1;
-    progress += .1; //TODO: add better value here as soon as the real time is known
+    progress += .5/NSHADERS; 
     
     return 0;
 }
@@ -347,7 +348,7 @@ DWORD WINAPI LoadLogo210Thread( LPVOID lpParam)
     logo210_resolution_location = glGetUniformLocation(logo210_program, VAR_IRESOLUTION);
     printf("++++ Logo 210 shader created.\n");
     
-    progress += .1;
+    progress += .5/NSHADERS;
     
     return 0;
 }
@@ -379,7 +380,7 @@ DWORD WINAPI LoadGreetThread( LPVOID lpParam)
     greet_resolution_location = glGetUniformLocation(greet_program, VAR_IRESOLUTION);
     printf("++++ Greetings shader created.\n");
     
-    progress += .1;
+    progress += .5/NSHADERS;
     
     return 0;
 }
@@ -445,7 +446,7 @@ DWORD WINAPI LoadTextThread(LPVOID lpParam)
     
     font_texture_width = font_texture_size;
     
-    progress += .1;
+    progress += .5/NSHADERS;
     
     return 0;
 }
@@ -477,7 +478,7 @@ DWORD WINAPI LoadLogoSmallThread( LPVOID lpParam)
     logo_small_resolution_location = glGetUniformLocation(logo_small_program, VAR_IRESOLUTION);
     printf("++++ Endeavour logo shader created.\n");
     
-    progress += .1;
+    progress += .5/NSHADERS;
     
     return 0;
 }
@@ -509,7 +510,7 @@ DWORD WINAPI LoadNr4Thread( LPVOID lpParam)
     nr4_resolution_location = glGetUniformLocation(nr4_program, VAR_IRESOLUTION);
     printf("++++ Endeavour NR4 shader created.\n");
     
-    progress += .1;
+    progress += .5/NSHADERS;
     
     return 0;
 }
@@ -541,7 +542,7 @@ DWORD WINAPI LoadQMThread( LPVOID lpParam)
     qm_resolution_location = glGetUniformLocation(qm_program, VAR_IRESOLUTION);
     printf("++++ Endeavour QM shader created.\n");
     
-    progress += .1;
+    progress += .5/NSHADERS;
     
     return 0;
 }
@@ -573,7 +574,7 @@ DWORD WINAPI LoadTripThread( LPVOID lpParam)
     trip_resolution_location = glGetUniformLocation(trip_program, VAR_IRESOLUTION);
     printf("++++ Endeavour Trip shader created.\n");
     
-    progress += .1;
+    progress += .5/NSHADERS;
     
     return 0;
 }
@@ -605,7 +606,7 @@ DWORD WINAPI LoadSurfaceThread( LPVOID lpParam)
     surface_resolution_location = glGetUniformLocation(surface_program, VAR_IRESOLUTION);
     printf("++++ Endeavour surface shader created.\n");
     
-    progress += .1;
+    progress += .5/NSHADERS;
     
     return 0;
 }
@@ -637,7 +638,7 @@ DWORD WINAPI LoadHangoutThread( LPVOID lpParam)
     hangout_resolution_location = glGetUniformLocation(hangout_program, VAR_IRESOLUTION);
     printf("++++ Endeavour hangout shader created.\n");
     
-    progress += .1;
+    progress += .5/NSHADERS;
     
     return 0;
 }
@@ -669,7 +670,7 @@ DWORD WINAPI LoadFourtwentyThread( LPVOID lpParam)
     fourtwenty_resolution_location = glGetUniformLocation(fourtwenty_program, VAR_IRESOLUTION);
     printf("++++ Endeavour fourtwenty shader created.\n");
     
-    progress += .1;
+    progress += .5/NSHADERS;
     
     return 0;
 }
