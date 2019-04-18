@@ -606,6 +606,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 //     stroke(d+.02,.01,d);
 //     col = mix(col, c.yyy, step(d,0.));
     
+    col = clamp(col, 0., 1.);
+    col = mix(c.yyy, col, smoothstep(140.,140.5,iTime)*(1.-smoothstep(166.,166.5,iTime)));
+    
     fragColor = vec4(col,1.0);
 }
 
