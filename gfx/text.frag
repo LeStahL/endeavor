@@ -703,6 +703,18 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         add(bd,bda,bd);
         blendadd(new, bd, 135.,138., new);
     }
+    else if(iTime < 168.) new = old;
+    else if(iTime <178.)
+    {
+        vec4 bd,bda;
+        box(uv-vec2(-.08,.25)-.03*sin(iTime+.1)*c.xy, vec2(.42,.03), bd.x);
+        bd.gba = mix(old.gba, vec3(1.00,0.79,0.05),.8);
+        dstring(uv-vec2(-.42,.25)-.03*sin(iTime+.1)*c.xy, 17., .020, d); // seconds to evoke 2019?
+        stroke(d, .004, d);
+        bda = vec4(d, mix(new.gba, vec3(0.23,0.27,0.16), .6));
+        add(bd,bda,bd);
+        blendadd(old, bd, 170.,177., new);
+    }
     else new = old;
     
     fragColor = vec4(new.gba, 1.);

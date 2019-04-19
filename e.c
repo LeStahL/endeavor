@@ -174,7 +174,7 @@ int w = 1920, h = 1080,
 float font_texture_width;
     
 // Demo globals
-#define duration 178.
+#define duration 188.
 double t_start = 0., 
     t_now = 0., 
     t_end = duration;
@@ -194,7 +194,7 @@ float texs = 1024;
 int block_size = 1024*1024, 
     nblocks1;
 unsigned int paused = 0;
-float progress = .1;
+float progress = .0;
 
 HWAVEOUT hWaveOut;
 WAVEHDR silence_header = {0, 0, 0, 0, 0, 0, 0, 0 };
@@ -209,7 +209,7 @@ GLuint first_pass_framebuffer = 0, first_pass_texture;
 HDC hdc;
 HGLRC glrc;
 GLenum error;
-#define NSHADERS 12.
+#define NSHADERS 13.
 
 float t_load_end = 0.;
 
@@ -723,7 +723,7 @@ void quad()
 // Pure opengl drawing code, essentially cross-platform
 void draw()
 {
-    if(progress == 1.)
+    if(progress >= 1.)
         t_load_end = t_now;
     
     if(t_now-t_load_end > 5.)
@@ -1181,7 +1181,8 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf256));
     SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf512)); 
     SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf1024));
-    SendMessage(hTXAAComboBox, CB_SETCURSEL, 3, 0);
+    //SendMessage(hTXAAComboBox, CB_SETCURSEL, 3, 0);
+    SendMessage(hTXAAComboBox, CB_SETCURSEL, 1, 0);
 
     // Add "Antialiasing: " text
     HWND hSceneText = CreateWindow(WC_STATIC, "Scene: ", WS_VISIBLE | WS_CHILD | SS_LEFT, 10,125,100,100, lwnd, NULL, hInstance, NULL);
