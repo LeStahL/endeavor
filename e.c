@@ -726,7 +726,7 @@ void draw()
     if(progress >= 1.)
         t_load_end = t_now;
     
-    if(t_now-t_load_end > 5.)
+    if(t_now-t_load_end > 0.)
     {
         loading = 0;
         glUseProgram(0.);
@@ -746,7 +746,7 @@ void draw()
     }
     else //TODO: arrange scenes in the right order
     {
-        float t = t_now-t_load_end-5.;
+        float t = t_now-t_load_end;
         if(t > t_end)
             ExitProcess(0);
         
@@ -1182,7 +1182,7 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf512)); 
     SendMessage(hTXAAComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (buf1024));
     //SendMessage(hTXAAComboBox, CB_SETCURSEL, 3, 0);
-    SendMessage(hTXAAComboBox, CB_SETCURSEL, 1, 0);
+    SendMessage(hTXAAComboBox, CB_SETCURSEL, 0, 0);
 
     // Add "Antialiasing: " text
     HWND hSceneText = CreateWindow(WC_STATIC, "Scene: ", WS_VISIBLE | WS_CHILD | SS_LEFT, 10,125,100,100, lwnd, NULL, hInstance, NULL);
