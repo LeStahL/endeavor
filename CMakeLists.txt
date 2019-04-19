@@ -41,6 +41,7 @@ if(WIN32)
             COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/gfx/surface.h" "${PROJECT_SOURCE_DIR}/gfx/surface.frag"
             COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/gfx/hangout.h" "${PROJECT_SOURCE_DIR}/gfx/hangout.frag"
             COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/gfx/fourtwenty.h" "${PROJECT_SOURCE_DIR}/gfx/fourtwenty.frag"
+            COMMAND ${MINIFIER} -o "${PROJECT_SOURCE_DIR}/gfx/solskogen.h" "${PROJECT_SOURCE_DIR}/gfx/solskogen.frag"
         )
     else()
         add_custom_target(minification
@@ -72,6 +73,7 @@ if(WIN32)
             COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/surface.h" "${PROJECT_SOURCE_DIR}/gfx/surface.frag" --no-minification
             COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/hangout.h" "${PROJECT_SOURCE_DIR}/gfx/hangout.frag" --no-minification
             COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/fourtwenty.h" "${PROJECT_SOURCE_DIR}/gfx/fourtwenty.frag" --no-minification
+            COMMAND python shader-compressor.py -o "${PROJECT_SOURCE_DIR}/gfx/solskogen.h" "${PROJECT_SOURCE_DIR}/gfx/solskogen.frag" --no-minification
         )
     endif()
     

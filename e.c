@@ -167,12 +167,14 @@ int w = 1920, h = 1080,
     hangout_handle, hangout_program,
     hangout_time_location, hangout_resolution_location,
     fourtwenty_handle, fourtwenty_program,
-    fourtwenty_time_location, fourtwenty_resolution_location;
+    fourtwenty_time_location, fourtwenty_resolution_location,
+    solskogen_handle, solskogen_program,
+    solskogen_time_location, solskogen_resolution_location;
     
 float font_texture_width;
     
 // Demo globals
-#define duration 168.
+#define duration 178.
 double t_start = 0., 
     t_now = 0., 
     t_end = duration;
@@ -207,7 +209,7 @@ GLuint first_pass_framebuffer = 0, first_pass_texture;
 HDC hdc;
 HGLRC glrc;
 GLenum error;
-#define NSHADERS 11.
+#define NSHADERS 12.
 
 float t_load_end = 0.;
 
@@ -675,6 +677,38 @@ DWORD WINAPI LoadFourtwentyThread( LPVOID lpParam)
     return 0;
 }
 
+DWORD WINAPI LoadSolskogenThread( LPVOID lpParam)
+{
+#undef VAR_IRESOLUTION
+#undef VAR_ITIME
+#include "gfx/solskogen.h"
+#ifndef VAR_IRESOLUTION
+    #define VAR_IRESOLUTION "iResolution"
+#endif
+#ifndef VAR_ITIME
+    #define VAR_ITIME "iTime"
+#endif
+    int solskogen_size = strlen(solskogen_frag),
+        solskogen_handle = glCreateShader(GL_FRAGMENT_SHADER);
+    solskogen_program = glCreateProgram();
+    glShaderSource(solskogen_handle, 1, (GLchar **)&solskogen_frag, &solskogen_size);
+    glCompileShader(solskogen_handle);
+    //printf("---> Endeavour solskogen shader:\n");
+    //debug(solskogen_handle);
+    glAttachShader(solskogen_program, solskogen_handle);
+    glLinkProgram(solskogen_program);
+    //printf("---> Endeavour solskogen program:\n");
+    //debugp(solskogen_program);
+    glUseProgram(solskogen_program);
+    solskogen_time_location =  glGetUniformLocation(solskogen_program, VAR_ITIME);
+    solskogen_resolution_location = glGetUniformLocation(solskogen_program, VAR_IRESOLUTION);
+    //printf("++++ Endeavour solskogen shader created.\n");
+    
+    progress += .5/NSHADERS;
+    
+    return 0;
+}
+
 void quad()
 {
     glBegin(GL_QUADS);
@@ -780,6 +814,13 @@ void draw()
                 t += 140.;
                 glUniform2f(greet_resolution_location, w, h);
             }
+            else if(override_index == 10)
+            {
+                glUseProgram(solskogen_program);
+                glUniform1f(solskogen_time_location, t);
+                t += 168.;
+                glUniform2f(solskogen_resolution_location, w, h);
+            }
         }
         else
         {
@@ -831,11 +872,17 @@ void draw()
                 glUniform1f(fourtwenty_time_location, t);
                 glUniform2f(fourtwenty_resolution_location, w, h);
             }
-            else if(t < 5000.)
+            else if(t < 168.)
             {
                 glUseProgram(greet_program);
                 glUniform1f(greet_time_location, t);
                 glUniform2f(greet_resolution_location, w, h);
+            }
+            else if(t < 178.)
+            {
+                glUseProgram(solskogen_program);
+                glUniform1f(solskogen_time_location, t-168.);
+                glUniform2f(solskogen_resolution_location, w, h);
             }
             else ExitProcess(0);
         }
@@ -1155,7 +1202,8 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
         *qm_scene = "QM Graffiti build-up",
         *trip_scene = "Trip scene",
         *fourtwenty_scene = "Four-twenty scene",
-        *greet_scene = "Greetings";
+        *greet_scene = "Greetings",
+        *solskogen_scene = "Solskogen";
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (all_scenes)); 
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (logo210_scene)); 
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (logoendeavor_scene));
@@ -1166,6 +1214,7 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (trip_scene));
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (fourtwenty_scene));
     SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (greet_scene));
+    SendMessage(hSceneComboBox,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM) (solskogen_scene));
     SendMessage(hSceneComboBox, CB_SETCURSEL, 0, 0);
     
     // Add start button
@@ -1442,6 +1491,10 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     SwapBuffers(hdc);
     
     LoadFourtwentyThread(0);
+    draw();
+    SwapBuffers(hdc);
+    
+    LoadSolskogenThread(0);
     draw();
     SwapBuffers(hdc);
     
