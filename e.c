@@ -59,7 +59,7 @@ void *malloc( unsigned int size )
 
 // TODO: remove
 // #include <stdio.h>
-
+// 
 // #include <math.h>
 
 #include "sequence.h"
@@ -88,7 +88,7 @@ PFNGLACTIVETEXTUREPROC glActiveTexture;
 
 
 // // TODO: remove below
-// void debug(int shader_handle)
+// void //debug(int shader_handle)
 // {
 //     //printf("    Debugging shader with handle %d.\n", shader_handle);
 //     int compile_status = 0;
@@ -108,7 +108,7 @@ PFNGLACTIVETEXTUREPROC glActiveTexture;
 //         //printf("    Shader compilation successful.\n");
 // }
 // 
-// void debugp(int program)
+// void //debugp(int program)
 // {
 //     //printf("    Debugging program.\n");
 //     int compile_status = 0;
@@ -190,7 +190,7 @@ int sample_rate = 44100, channels = 2;
 double duration1 = duration; //3 min running time
 float *smusic1;
 int music1_size;
-float texs = 1024;
+float texs = 128;
 int block_size = 1024*1024, 
     nblocks1;
 unsigned int paused = 0;
@@ -726,7 +726,7 @@ void draw()
     if(progress >= 1.)
         t_load_end = t_now;
     
-    if(t_now-t_load_end > 1.)
+    if(t_now-t_load_end > 5.)
     {
         loading = 0;
         glUseProgram(0.);
@@ -746,7 +746,7 @@ void draw()
     }
     else //TODO: arrange scenes in the right order
     {
-        float t = t_now-t_load_end-1.;
+        float t = t_now-t_load_end-5.;
         if(t > t_end)
             ExitProcess(0);
         
@@ -758,7 +758,7 @@ void draw()
                 glUniform1f(logo210_time_location, t);
                 glUniform2f(logo210_resolution_location, w, h);
             }
-            else if(override_index == 2)
+            else if(override_index == 4)
             {
                 glUseProgram(logo_small_program);
                 glUniform1f(logo_small_time_location, t+15.);
