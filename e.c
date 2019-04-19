@@ -726,7 +726,7 @@ void draw()
     if(progress >= 1.)
         t_load_end = t_now;
     
-    if(t_now-t_load_end > 0.)
+    if(t_now-t_load_end > 1.)
     {
         loading = 0;
         glUseProgram(0.);
@@ -746,7 +746,7 @@ void draw()
     }
     else //TODO: arrange scenes in the right order
     {
-        float t = t_now-t_load_end;
+        float t = t_now-t_load_end-1.;
         if(t > t_end)
             ExitProcess(0);
         
