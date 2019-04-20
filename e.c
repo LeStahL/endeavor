@@ -191,7 +191,7 @@ double duration1 = duration; //3 min running time
 float *smusic1;
 int music1_size;
 float texs = 128;
-int block_size = 1024*1024, 
+int block_size = 128*128, 
     nblocks1;
 unsigned int paused = 0;
 float progress = .0;
